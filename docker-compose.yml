@@ -1,0 +1,30 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: whisperlag-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: whisperlag
+      POSTGRES_PASSWORD: whisperlag
+      POSTGRES_DB: whisperlag
+    ports:
+      - "5432:5432"
+    volumes:
+      - whisperlag_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U whisperlag"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: whisperlag-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+volumes:
+  whisperlag_pgdata:

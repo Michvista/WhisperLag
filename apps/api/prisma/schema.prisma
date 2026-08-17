@@ -1,0 +1,197 @@
+// WhisperLag data model
+//
+// The schema is deliberately normalised around the six RFP modules
+// (monitoring, evaluation, feedback, performance, collaboration,
+// accreditation) while keeping anonymity a first-class property: a
+// Whisper never references a submitting user.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Identity & Access
+// ---------------------------------------------------------------------------
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  passwordHash  String
+  role          Role      @default(STUDENT)
+  departmentId  String?
+  department    Department? @relation(fields: [departmentId], references: [id])
+  evaluations   Evaluation[] @relation("Evaluator")
+  taughtCourses Course[]   @relation("Lecturer")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+enum Role {
+  STUDENT
+  FACULTY
+  ADMIN
+  GUEST
+}
+
+model Department {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  faculty   String?
+  users     User[]
+  courses   Course[]
+  whispers  Whisper[]
+  evaluations Evaluation[]
+  createdAt DateTime  @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Academic structure
+// ---------------------------------------------------------------------------
+
+model Course {
+  id            String       @id @default(cuid())
+  code          String       @unique
+  title         String
+  departmentId  String?
+  department    Department?  @relation(fields: [departmentId], references: [id])
+  lecturerId    String?
+  lecturer      User?        @relation("Lecturer", fields: [lecturerId], references: [id])
+  evaluations   Evaluation[]
+  createdAt     DateTime     @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Feedback & Engagement (Whisper Lock)
+// ---------------------------------------------------------------------------
+
+model Whisper {
+  id           String       @id @default(cuid())
+  category     String
+  content      String
+  // A whisper is anonymous by design: for anonymous whispers the system
+  // stores NO user id. The comment below documents that invariant.
+  isAnonymous  Boolean      @default(true)
+  departmentId String?
+  department   Department?  @relation(fields: [departmentId], references: [id])
+  status       WhisperStatus @default(NEW)
+  createdAt    DateTime     @default(now())
+}
+
+enum WhisperStatus {
+  NEW
+  ACKNOWLEDGED
+  ACTIONED
+}
+
+// ---------------------------------------------------------------------------
+// Evaluation & Assessment
+// ---------------------------------------------------------------------------
+
+model Rubric {
+  id          String       @id @default(cuid())
+  name        String
+  criteria    Json         // [{ key, label, weight }]
+  evaluations Evaluation[]
+  createdAt   DateTime     @default(now())
+}
+
+model Evaluation {
+  id          String      @id @default(cuid())
+  courseId    String
+  course      Course      @relation(fields: [courseId], references: [id])
+  lecturerId  String
+  lecturer    User        @relation("Evaluator", fields: [lecturerId], references: [id])
+  rubricId    String
+  rubric      Rubric      @relation(fields: [rubricId], references: [id])
+  departmentId String?
+  department  Department? @relation(fields: [departmentId], references: [id])
+  scores      Json        // per-criterion scores keyed by rubric criterion key
+  overallRating Float
+  comment     String?
+  createdAt   DateTime    @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Surveys, polls & suggestion box
+// ---------------------------------------------------------------------------
+
+model Survey {
+  id          String      @id @default(cuid())
+  title       String
+  description String?
+  isAnonymous Boolean     @default(true)
+  createdById String?
+  status      SurveyStatus @default(DRAFT)
+  questions   SurveyQuestion[]
+  responses   SurveyResponse[]
+  opensAt     DateTime?
+  closesAt    DateTime?
+  createdAt   DateTime    @default(now())
+}
+
+enum SurveyStatus {
+  DRAFT
+  OPEN
+  CLOSED
+}
+
+model SurveyQuestion {
+  id        String     @id @default(cuid())
+  surveyId  String
+  survey    Survey     @relation(fields: [surveyId], references: [id])
+  prompt    String
+  type      QuestionType @default(MULTIPLE_CHOICE)
+  options   Json?
+  responses SurveyResponse[]
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  RATING
+  FREE_TEXT
+}
+
+model SurveyResponse {
+  id         String          @id @default(cuid())
+  surveyId   String
+  survey     Survey          @relation(fields: [surveyId], references: [id])
+  questionId String
+  question   SurveyQuestion  @relation(fields: [questionId], references: [id])
+  answer     Json
+  // Anonymous surveys store no userId.
+  createdAt  DateTime        @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Reporting & accreditation
+// ---------------------------------------------------------------------------
+
+model Report {
+  id          String   @id @default(cuid())
+  title       String
+  type        String   // e.g. ACCREDITATION, DEPARTMENT_SNAPSHOT, TREND
+  generatedById String?
+  content     Json     // structured report payload
+  fileUrl     String?
+  createdAt   DateTime @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Audit trail (admin accountability)
+// ---------------------------------------------------------------------------
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  actorRole Role?
+  action    String
+  target    String?
+  meta      Json?
+  createdAt DateTime @default(now())
+}

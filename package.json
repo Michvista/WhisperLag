@@ -1,0 +1,27 @@
+{
+  "name": "whisperlag",
+  "version": "0.1.0",
+  "private": true,
+  "description": "WhisperLag - A mobile-first, anonymous-by-design Quality Assurance System for the University of Lagos.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,green \"npm run dev -w @whisperlag/api\" \"npm run dev -w @whisperlag/web\"",
+    "dev:api": "npm run dev -w @whisperlag/api",
+    "dev:web": "npm run dev -w @whisperlag/web",
+    "build": "npm run build -w @whisperlag/shared && npm run build -w @whisperlag/api && npm run build -w @whisperlag/web",
+    "typecheck": "npm run typecheck -w @whisperlag/shared && npm run typecheck -w @whisperlag/api && npm run typecheck -w @whisperlag/web",
+    "lint": "npm run lint -w @whisperlag/api && npm run lint -w @whisperlag/web",
+    "db:up": "docker compose up -d",
+    "db:migrate": "npm run prisma:migrate -w @whisperlag/api",
+    "db:seed": "npm run prisma:seed -w @whisperlag/api"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.17.0"
+  }
+}

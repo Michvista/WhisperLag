@@ -1,0 +1,167 @@
+# WhisperLag
+
+> **A mobile-first, anonymous-by-design Quality Assurance System for the University of Lagos.**
+> *"A student who whispers is still speaking. A system that listens quietly still hears everything."*
+
+WhisperLag digitises UNILAG's quality assurance processes — monitoring,
+evaluation, feedback, performance measurement, and accreditation support —
+into a single, role-based platform. Its defining idea is the **Whisper Lock**:
+a permanent, visual guarantee of anonymity on every student screen, enforced
+at the **database level** so a whisper truly stays a whisper.
+
+Submission for the **UNILAG Quality Assurance & SERVICOM Unit — Student
+Innovation Award 2026**.
+
+---
+
+## Why the architecture matters (for judges)
+
+WhisperLag is a **monorepo** with a clear, layered architecture. We chose this
+so the codebase reads cleanly, scales, and — most importantly — is easy to
+explain and defend.
+
+```
+WhisperLag/
+├── apps/
+│   ├── api/                    # Express REST API (modular services)
+│   └── web/                    # Next.js frontend (App Router)
+├── packages/
+│   └── shared/                 # Shared domain types, roles, constants
+├── prisma/                     # Data models (single source of truth)
+├── docker-compose.yml          # PostgreSQL + Redis for local dev
+└── docs/
+    ├── ARCHITECTURE.md         # Deep-dive for reviewers
+    └── STITCH-PROMPT.md        # Design brief for Stitch AI
+```
+
+### The three layers
+
+| Layer | Package | Responsibility |
+|-------|---------|----------------|
+| Presentation | `apps/web` | Role-specific UI, built mobile-first (375px). |
+| API / Business | `apps/api` | Express routes → controllers → services → Prisma. |
+| Data | `prisma` | PostgreSQL models; anonymity enforced structurally. |
+
+### Architecture decisions worth pointing out
+
+1. **Single source of truth** — `@whisperlag/shared` holds roles, the RBAC
+   permission matrix, module labels, and brand tokens. Both apps import it, so
+   a permission change propagates everywhere and the frontend can't drift from
+   the backend contract.
+2. **RBAC is declarative** — the role→permission matrix in
+   `packages/shared/src/roles.ts` is the one authority the `authorize()`
+   middleware consults. Adding a capability is a one-line change.
+3. **Anonymity by structure, not discipline** — the `Whisper` Prisma model has
+   **no** `userId` column. An anonymous whisper cannot leak an identity because
+   there is nowhere to store one.
+4. **Express is a thin layer** — routes only parse/validate; services hold all
+   business logic. This keeps handlers tiny and unit-testable.
+5. **Consistent envelopes** — every API response uses the shared
+   `ApiResponse<T>` shape, and errors pass through one global handler.
+
+---
+
+## Tech stack
+
+| Concern | Choice |
+|---------|--------|
+| Frontend | Next.js (React) + Tailwind CSS |
+| Mobile | Progressive Web App (PWA-ready) |
+| Backend | Node.js + Express (modular) |
+| Database | PostgreSQL via Prisma ORM |
+| Auth | JWT + RBAC (UNILAG SSO-ready) |
+| Caching / Queue | Redis |
+| Validation | Zod |
+| Deployment | Docker + Railway (or on-prem) |
+
+---
+
+## Quick start
+
+### Prerequisites
+- Node.js ≥ 18
+- Docker (for PostgreSQL/Redis) — or point `DATABASE_URL` at an existing Postgres
+
+### 1. Install dependencies
+```bash
+npm install
+```
+
+### 2. Start the database
+```bash
+npm run db:up          # docker compose up -d
+```
+
+### 3. Configure the API
+```bash
+cp apps/api/.env.example apps/api/.env
+# edit DATABASE_URL etc. if needed
+```
+
+### 4. Generate the Prisma client and run migrations + seed
+```bash
+npm run prisma:generate -w @whisperlag/api
+npm run db:migrate -w @whisperlag/api     # prisma migrate dev
+npm run db:seed -w @whisperlag/api
+```
+
+### 5. Run everything
+```bash
+npm run dev            # api on :4000, web on :3000
+```
+
+### Seed logins
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | `admin@whisperlag.test` | `password123` |
+| Faculty | `faculty@whisperlag.test` | `password123` |
+| Student | `student@whisperlag.test` | `password123` |
+
+---
+
+## API surface (v1)
+
+| Method | Route | Access |
+|--------|-------|--------|
+| POST | `/api/v1/auth/register` | Public |
+| POST | `/api/v1/auth/login` | Public |
+| GET | `/api/v1/auth/me` | Authenticated |
+| POST | `/api/v1/feedback` | Student+ |
+| GET | `/api/v1/feedback` | Admin |
+| PATCH | `/api/v1/feedback/:id/status` | Admin |
+| POST | `/api/v1/evaluations` | Student+ |
+| GET | `/api/v1/evaluations/aggregate/:courseId` | Faculty+ |
+| GET | `/api/v1/surveys` | Authenticated |
+| POST | `/api/v1/surveys` | Admin |
+| POST | `/api/v1/surveys/questions/:questionId/respond` | Student+ |
+| GET | `/api/v1/departments` | Authenticated |
+| POST | `/api/v1/departments` | Admin |
+| GET | `/api/v1/departments/:id/snapshot` | Authenticated |
+| GET | `/api/v1/reports` | Faculty+ |
+| POST | `/api/v1/reports/generate` | Admin |
+
+---
+
+## The "Whisper Lock" — our differentiator
+
+Most QA systems offer an *optional* anonymous checkbox. WhisperLag makes
+anonymity the **default and the guarantee**:
+
+- Every student screen carries a persistent indicator: *"Your whisper is
+  hidden. Nobody knows it is you."*
+- The `Whisper` model stores **no** submitting user — anonymity is enforced by
+  the database schema itself.
+- Faculty see **aggregates only** (averages, distributions) — never individual
+  names — enforced at the query layer.
+
+---
+
+## Team
+
+- **Koyinsola Samuel** — UI/UX Lead (Nursing Science)
+- **Olumide Michelle** — FullStack Developer (Nursing Science)
+- **Chime Jael** — Researcher / QA (Nursing Science)
+
+Contact: Koyinsola.samuel3@gmail.com
+
+*University of Lagos · Student Innovation Award 2026*
