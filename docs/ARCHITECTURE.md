@@ -42,6 +42,19 @@ a narrow responsibility:
 the RBAC matrix through it, eliminating the "contract drift" that plagues
 frontend/backend split codebases.
 
+### Feature modules (`apps/api/src/modules/`)
+
+| Module | Responsibility | Key endpoints |
+|--------|----------------|---------------|
+| `auth` | Register, login (JWT), current user | `POST /auth/login`, `GET /auth/me` |
+| `feedback` | Anonymous whispers + the "Have I been heard?" feed | `POST /feedback`, `GET /feedback/recent` |
+| `evaluations` | Course evaluations; aggregate-only summaries | `POST /evaluations`, `GET /evaluations/summary` |
+| `surveys` | Polls / surveys with anonymous responses | `GET /surveys`, `POST /surveys/questions/:id/respond` |
+| `departments` | Departments + admin KPI snapshots | `GET /departments/:id/snapshot` |
+| `courses` | Academic course registry | `GET /courses` |
+| `stats` | Live admin analytics + 14-day trend | `GET /stats/overview` |
+| `reports` | Accreditation reports + CSV export | `POST /reports/generate`, `GET /reports/:id/export` |
+
 ## 3. The shared package (`packages/shared`)
 
 Contains:

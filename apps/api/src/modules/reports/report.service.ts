@@ -1,4 +1,5 @@
 import { prisma } from "../../lib/prisma.js";
+import { ApiError } from "../../utils/ApiError.js";
 import type { GenerateReportInput } from "./report.schema.js";
 
 /**
@@ -35,6 +36,40 @@ export class ReportService {
 
   async list() {
     return prisma.report.findMany({ orderBy: { createdAt: "desc" } });
+  }
+
+  async get(id: string) {
+    const report = await prisma.report.findUnique({ where: { id } });
+    if (!report) {
+      throw ApiError.notFound("Report");
+    }
+    return report;
+  }
+
+  /** Renders a report as CSV for the Excel / spreadsheet export affordance. */
+  async toCsv(id: string): Promise<{ filename: string; csv: string }> {
+    const report = await this.get(id);
+    const content = report.content as {
+      type?: string;
+      scope?: string;
+      metrics?: { evaluations: number; whispers: number };
+      departments?: number;
+      generatedAt?: string;
+    };
+
+    const header = "title,type,scope,generated_at,departments,evaluations,whispers";
+    const row = [
+      `"${report.title.replace(/"/g, '""')}"`,
+      content.type ?? "",
+      `"${String(content.scope ?? "")}"`,
+      content.generatedAt ?? report.createdAt.toISOString(),
+      content.departments ?? 0,
+      content.metrics?.evaluations ?? 0,
+      content.metrics?.whispers ?? 0,
+    ].join(",");
+
+    const safe = report.title.replace(/[^\w-]+/g, "_");
+    return { filename: `${safe}.csv`, csv: `${header}\n${row}\n` };
   }
 }
 

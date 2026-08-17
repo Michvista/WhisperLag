@@ -11,7 +11,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "Dashboard" },
-  { href: "/whispers", label: "My Whispers" },
+  { href: "/whisper", label: "My Whispers" },
   { href: "/faculty", label: "Faculty" },
   { href: "/admin", label: "Admin" },
 ];

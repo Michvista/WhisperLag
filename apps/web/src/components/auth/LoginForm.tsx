@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { api } from "@/lib/api";
+import { api, storeSession } from "@/lib/api";
 
 /**
  * Sign-in form wired to the WhisperLag API. On success the token is
@@ -25,8 +25,7 @@ export function LoginForm() {
         method: "POST",
         body: JSON.stringify({ email, password }),
       });
-      localStorage.setItem("whisperlag_token", result.token);
-      localStorage.setItem("whisperlag_role", result.user.role);
+      storeSession(result.token, result.user.role);
       router.push("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign in failed");

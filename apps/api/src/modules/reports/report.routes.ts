@@ -15,3 +15,15 @@ reportRoutes.post(
   validate(generateReportSchema),
   reportController.generate,
 );
+reportRoutes.get(
+  "/:id",
+  authenticate,
+  authorize(PERMISSIONS.VIEW_REPORTS),
+  reportController.get,
+);
+reportRoutes.get(
+  "/:id/export",
+  authenticate,
+  authorize(PERMISSIONS.VIEW_REPORTS),
+  reportController.export,
+);

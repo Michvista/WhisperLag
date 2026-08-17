@@ -1,13 +1,48 @@
+"use client";
+
 import { AppShell } from "@/components/layout/AppShell";
 import { WhisperLock } from "@/components/ui/WhisperLock";
 import { WhisperForm } from "@/components/feedback/WhisperForm";
+import { SurveyList } from "@/components/feedback/SurveyList";
+import { ErrorBlock, LoadingBlock, SignedOut } from "@/components/ui/States";
+import { useFetch } from "@/lib/useFetch";
+import { getToken } from "@/lib/api";
+
+interface RecentWhisper {
+  id: string;
+  category: string;
+  content: string;
+  status: "NEW" | "ACKNOWLEDGED" | "ACTIONED";
+  createdAt: string;
+}
+
+const STATUS_META: Record<RecentWhisper["status"], { label: string; icon: string; cls: string }> = {
+  ACTIONED: { label: "Resolved", icon: "check_circle", cls: "text-primary bg-primary/10" },
+  ACKNOWLEDGED: { label: "Reviewed", icon: "pending", cls: "text-tertiary-fixed-dim bg-tertiary-fixed-dim/20" },
+  NEW: { label: "New", icon: "radio_button_unchecked", cls: "text-onSurfaceVariant bg-surface-container" },
+};
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
 
 /**
- * Student dashboard — the heart of the product. Carries the Whisper Lock
- * banner, the primary "Submit a Whisper" form, and the "Have I been heard?"
- * status tracker.
+ * Student dashboard — fully live. Submits whispers, lists real open surveys
+ * and the recent-activity feed, all from the API.
  */
 export default function StudentDashboardPage() {
+  const session = Boolean(getToken());
+  const recent = useFetch<RecentWhisper[]>("/feedback/recent");
+  const items = recent.data;
+
+  if (!session) {
+    return (
+      <AppShell>
+        <SignedOut />
+      </AppShell>
+    );
+  }
+
   return (
     <AppShell>
       <div className="mx-auto max-w-container space-y-12">
@@ -39,46 +74,53 @@ export default function StudentDashboardPage() {
                 <span className="material-symbols-outlined text-tertiary-fixed-dim">timeline</span>
                 Have I been heard?
               </h3>
-              <div className="space-y-4">
-                <div className="flex items-start gap-4">
-                  <span className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                    <span className="material-symbols-outlined text-sm text-primary">check_circle</span>
-                  </span>
-                  <div>
-                    <p className="font-label-md text-label-md text-onSurface">Library AC Issue</p>
-                    <p className="font-body-sm text-body-sm text-onSurfaceVariant">
-                      Status: <span className="font-medium text-primary">Resolved</span>
-                    </p>
-                  </div>
+              {recent.loading ? (
+                <LoadingBlock label="Loading…" />
+              ) : recent.error ? (
+                <ErrorBlock message={recent.error} onRetry={recent.refetch} />
+              ) : items && items.length > 0 ? (
+                <div className="space-y-4">
+                  {items.slice(0, 4).map((w, i) => {
+                    const meta = STATUS_META[w.status];
+                    return (
+                      <div key={w.id}>
+                        <div className="flex items-start gap-4">
+                          <span className={`mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${meta.cls}`}>
+                            <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>
+                              {meta.icon}
+                            </span>
+                          </span>
+                          <div>
+                            <p className="font-label-md text-label-md text-onSurface">{w.category}</p>
+                            <p className="font-body-sm text-body-sm text-onSurfaceVariant">
+                              {formatDate(w.createdAt)} ·{" "}
+                              <span className="font-medium text-onSurface">{meta.label}</span>
+                            </p>
+                          </div>
+                        </div>
+                        {i < items.length - 1 && (
+                          <div className="-my-2 ml-4 h-6 w-0.5 bg-outlineVariant/30" />
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="-my-2 ml-4 h-6 w-0.5 bg-outlineVariant/30" />
-                <div className="flex items-start gap-4">
-                  <span className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-tertiary-fixed-dim/20">
-                    <span className="material-symbols-outlined text-sm text-tertiary-fixed-dim">pending</span>
-                  </span>
-                  <div>
-                    <p className="font-label-md text-label-md text-onSurface">Cafeteria Pricing</p>
-                    <p className="font-body-sm text-body-sm text-onSurfaceVariant">
-                      Status: <span className="font-medium text-tertiary-fixed-dim">Reviewed</span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <button className="mt-6 w-full rounded py-2 text-center font-label-md text-label-md text-primary transition-colors hover:bg-surface-container-low">
-                View All History
-              </button>
+              ) : (
+                <p className="font-body-sm text-body-sm text-onSurfaceVariant">
+                  Nothing yet. Submit your first whisper above — it stays anonymous.
+                </p>
+              )}
             </section>
 
             <section className="relative overflow-hidden rounded-xl border border-outlineVariant/20 bg-surface-container-low p-6">
-              <h3 className="relative z-10 mb-2 font-display text-headline-sm font-semibold text-onSurface">
+              <h3 className="relative z-10 mb-4 font-display text-headline-sm font-semibold text-onSurface">
                 Campus Surveys
               </h3>
               <p className="relative z-10 mb-4 font-body-sm text-body-sm text-onSurfaceVariant">
                 Help shape university policies.
               </p>
-              <div className="relative z-10 mb-3 cursor-pointer rounded border border-outlineVariant/30 bg-surface-container-lowest p-4 transition-colors hover:border-secondary">
-                <p className="font-label-md text-label-md text-onSurface">New Shuttle Route Feedback</p>
-                <p className="mt-1 font-body-sm text-body-sm text-onSurfaceVariant">3 mins</p>
+              <div className="relative z-10">
+                <SurveyList />
               </div>
             </section>
           </aside>

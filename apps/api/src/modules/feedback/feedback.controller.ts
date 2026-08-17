@@ -26,4 +26,10 @@ export const feedbackController = {
     const whisper = await feedbackService.updateStatus(req.params.id, input);
     res.status(HTTP_STATUS.OK).json({ success: true, data: whisper, error: null });
   }),
+
+  /** GET /api/v1/feedback/recent — any authenticated user ("Have I been heard?"). */
+  recent: asyncHandler(async (_req: Request, res: Response) => {
+    const items = await feedbackService.recent();
+    res.status(HTTP_STATUS.OK).json({ success: true, data: items, error: null });
+  }),
 };

@@ -21,3 +21,10 @@ evaluationRoutes.get(
   authorize(PERMISSIONS.VIEW_EVALUATION_AGGREGATES),
   evaluationController.aggregate,
 );
+
+evaluationRoutes.get(
+  "/summary",
+  authenticate,
+  authorize(PERMISSIONS.VIEW_EVALUATION_AGGREGATES),
+  evaluationController.summary,
+);

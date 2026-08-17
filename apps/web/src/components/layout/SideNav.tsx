@@ -11,10 +11,10 @@ interface SideItem {
 
 const SIDE_ITEMS: SideItem[] = [
   { href: "/dashboard", label: "Home", icon: "home" },
-  { href: "/whispers", label: "Whispers", icon: "chat_bubble" },
+  { href: "/whisper", label: "Whispers", icon: "chat_bubble" },
   { href: "/faculty", label: "Faculty Hub", icon: "school" },
   { href: "/admin", label: "Admin Panel", icon: "admin_panel_settings" },
-  { href: "/settings", label: "Settings", icon: "settings" },
+  { href: "/reports", label: "Reports", icon: "description" },
 ];
 
 /**

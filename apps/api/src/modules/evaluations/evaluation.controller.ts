@@ -17,4 +17,10 @@ export const evaluationController = {
     const result = await evaluationService.aggregateByCourse(req.params.courseId);
     res.status(HTTP_STATUS.OK).json({ success: true, data: result, error: null });
   }),
+
+  /** GET /api/v1/evaluations/summary — university-wide faculty summary. */
+  summary: asyncHandler(async (_req: Request, res: Response) => {
+    const result = await evaluationService.summary();
+    res.status(HTTP_STATUS.OK).json({ success: true, data: result, error: null });
+  }),
 };

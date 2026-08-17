@@ -128,16 +128,22 @@ npm run dev            # api on :4000, web on :3000
 | GET | `/api/v1/auth/me` | Authenticated |
 | POST | `/api/v1/feedback` | Student+ |
 | GET | `/api/v1/feedback` | Admin |
+| GET | `/api/v1/feedback/recent` | Authenticated |
 | PATCH | `/api/v1/feedback/:id/status` | Admin |
 | POST | `/api/v1/evaluations` | Student+ |
 | GET | `/api/v1/evaluations/aggregate/:courseId` | Faculty+ |
+| GET | `/api/v1/evaluations/summary` | Faculty+ |
 | GET | `/api/v1/surveys` | Authenticated |
 | POST | `/api/v1/surveys` | Admin |
 | POST | `/api/v1/surveys/questions/:questionId/respond` | Student+ |
 | GET | `/api/v1/departments` | Authenticated |
 | POST | `/api/v1/departments` | Admin |
 | GET | `/api/v1/departments/:id/snapshot` | Authenticated |
+| GET | `/api/v1/courses` | Authenticated |
+| GET | `/api/v1/stats/overview` | Admin |
 | GET | `/api/v1/reports` | Faculty+ |
+| GET | `/api/v1/reports/:id` | Faculty+ |
+| GET | `/api/v1/reports/:id/export` | Faculty+ |
 | POST | `/api/v1/reports/generate` | Admin |
 
 ---

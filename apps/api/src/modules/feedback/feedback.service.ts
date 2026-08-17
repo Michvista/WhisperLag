@@ -62,6 +62,26 @@ export class FeedbackService {
     const whisper = await prisma.whisper.findUnique({ where: { id } });
     return whisper ? (whisper as unknown as Whisper) : null;
   }
+
+  /**
+   * The "Have I been heard?" feed. Because whispers are anonymous, this
+   * surfaces the most recent items and their resolution status so students
+   * can see the university is acting on feedback without revealing who
+   * submitted what.
+   */
+  async recent(limit = 8) {
+    return prisma.whisper.findMany({
+      orderBy: { createdAt: "desc" },
+      take: limit,
+      select: {
+        id: true,
+        category: true,
+        content: true,
+        status: true,
+        createdAt: true,
+      },
+    });
+  }
 }
 
 export const feedbackService = new FeedbackService();

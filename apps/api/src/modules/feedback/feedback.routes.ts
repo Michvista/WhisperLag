@@ -22,6 +22,13 @@ feedbackRoutes.get(
   feedbackController.listAdmin,
 );
 
+feedbackRoutes.get(
+  "/recent",
+  authenticate,
+  authorize(PERMISSIONS.SUBMIT_WHISPER),
+  feedbackController.recent,
+);
+
 feedbackRoutes.patch(
   "/:id/status",
   authenticate,

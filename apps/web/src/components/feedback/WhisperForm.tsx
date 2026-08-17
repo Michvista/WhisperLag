@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { api } from "@/lib/api";
+import Link from "next/link";
+import { api, getToken } from "@/lib/api";
 
 const CATEGORIES = ["Academic Issue", "Facility Maintenance", "Student Welfare", "Other"];
 
@@ -23,7 +24,7 @@ export function WhisperForm({ onSubmitted }: { onSubmitted?: () => void }) {
       await api("/feedback", {
         method: "POST",
         body: JSON.stringify({ category, content, isAnonymous: true }),
-        token: localStorage.getItem("whisperlag_token") ?? undefined,
+        token: getToken(),
       });
       setContent("");
       setStatus("done");
@@ -34,7 +35,8 @@ export function WhisperForm({ onSubmitted }: { onSubmitted?: () => void }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-1 flex-col space-y-6">
+    <>
+      <form onSubmit={handleSubmit} className="flex flex-1 flex-col space-y-6">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
           <label className="mb-2 block font-label-md text-label-md text-onSurfaceVariant">Category</label>
@@ -70,6 +72,30 @@ export function WhisperForm({ onSubmitted }: { onSubmitted?: () => void }) {
           {status === "submitting" ? "Sending…" : "Send Anonymously"}
         </button>
       </div>
-    </form>
+      </form>
+
+      {/* Success dialog — "Whisper Received" per the design system */}
+      {status === "done" && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-onSurface/50 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-md scale-100 rounded-xl bg-surface-container-lowest p-8 text-center shadow-level-2">
+            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary-container">
+              <span className="material-symbols-outlined text-3xl text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>
+                check_circle
+              </span>
+            </div>
+            <h2 className="mb-2 font-display text-headline-md font-semibold text-onSurface">Whisper Received</h2>
+            <p className="mb-6 font-body-md text-body-md text-onSurfaceVariant">
+              Your whisper is hidden. It&apos;s been received successfully.
+            </p>
+            <Link
+              href="/dashboard"
+              className="flex h-12 w-full items-center justify-center rounded bg-primary font-label-md text-label-md text-onPrimary transition-colors hover:bg-surface-tint"
+            >
+              Return to Dashboard
+            </Link>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
