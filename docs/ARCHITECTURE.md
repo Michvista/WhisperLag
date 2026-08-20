@@ -53,6 +53,7 @@ frontend/backend split codebases.
 | `departments` | Departments + admin KPI snapshots | `GET /departments/:id/snapshot` |
 | `courses` | Academic course registry | `GET /courses` |
 | `stats` | Live admin analytics + 14-day trend | `GET /stats/overview` |
+| `insights` | AI/algorithm clustering of whispers by viewpoint + noise detection | `POST /insights/analyze` |
 | `reports` | Accreditation reports + CSV export | `POST /reports/generate`, `GET /reports/:id/export` |
 
 ## 3. The shared package (`packages/shared`)

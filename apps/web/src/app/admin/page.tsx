@@ -1,6 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
 import { AppShell } from "@/components/layout/AppShell";
 import { ErrorBlock, LoadingBlock, SignedOut } from "@/components/ui/States";
 import { api, getToken } from "@/lib/api";
@@ -10,48 +23,28 @@ interface Overview {
   totalEvaluations: number;
   totalDepartments: number;
   pendingInterventions: number;
+  resolutionRate: number;
   averageRating: number;
   trend: { date: string; whispers: number; evaluations: number }[];
 }
 
-interface Department {
+interface Report {
   id: string;
-  name: string;
+  title: string;
+  type: string;
+  createdAt: string;
+  content: { scope?: string } | null;
 }
 
-interface Snapshot {
-  departmentId: string;
-  name: string;
-  kpiScores: { engagement: number; quality: number; feedbackReceived: number };
-  trend: { period: string; score: number }[];
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
-function load<T>(path: string): Promise<T> {
-  return api<T>(path, { token: getToken(), cache: "no-store" });
-}
-
-function DeptStatus({ snapshot }: { snapshot: Snapshot }) {
-  const quality = snapshot.kpiScores.quality;
-  const needsAttention = quality < 3.5 || snapshot.kpiScores.feedbackReceived < 3;
-  return (
-    <span
-      className={`rounded-full px-2 py-1 text-xs font-bold ${
-        needsAttention ? "bg-tertiary-fixed-dim/20 text-tertiary-container" : "bg-primary/10 text-primary"
-      }`}
-    >
-      {needsAttention ? "Needs Attention" : "Healthy"}
-    </span>
-  );
-}
-
-/**
- * Admin command center — fully live: KPIs from /stats/overview, a 14-day
- * trend, and real department snapshots.
- */
+/** Admin command center — institutional overview, live. */
 export default function AdminCommandCenterPage() {
   const session = Boolean(getToken());
   const [overview, setOverview] = useState<Overview | null>(null);
-  const [depts, setDepts] = useState<(Department & { snapshot: Snapshot | null })[] | null>(null);
+  const [reports, setReports] = useState<Report[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -61,22 +54,12 @@ export default function AdminCommandCenterPage() {
     setLoading(true);
     setError(null);
     try {
-      const [ov, departments] = await Promise.all([
-        load<Overview>("/stats/overview"),
-        load<Department[]>("/departments"),
+      const [ov, rep] = await Promise.all([
+        api<Overview>("/stats/overview", { token: getToken(), cache: "no-store" }),
+        api<Report[]>("/reports", { token: getToken(), cache: "no-store" }),
       ]);
       setOverview(ov);
-      const withSnapshots = await Promise.all(
-        departments.map(async (d) => {
-          try {
-            const snapshot = await load<Snapshot>(`/departments/${d.id}/snapshot`);
-            return { ...d, snapshot };
-          } catch {
-            return { ...d, snapshot: null };
-          }
-        }),
-      );
-      setDepts(withSnapshots);
+      setReports(rep);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load dashboard");
     } finally {
@@ -92,15 +75,15 @@ export default function AdminCommandCenterPage() {
     setGenerating(true);
     setNotice(null);
     try {
-      await api<{ id: string }>("/reports/generate", {
+      await api("/reports/generate", {
         method: "POST",
         body: JSON.stringify({ title: "Accreditation Report", type: "ACCREDITATION" }),
         token: getToken(),
       });
-      setNotice("Accreditation report generated and saved. View it in Reports.");
+      setNotice("Accreditation report generated. View it in Reports.");
       void loadAll();
     } catch (e) {
-      setNotice(e instanceof Error ? e.message : "Report generation failed");
+      setNotice(e instanceof Error ? e.message : "Generation failed");
     } finally {
       setGenerating(false);
     }
@@ -114,29 +97,21 @@ export default function AdminCommandCenterPage() {
     );
   }
 
-  const maxTrend = Math.max(1, ...(overview?.trend.map((t) => Math.max(t.whispers, t.evaluations)) ?? [1]));
-
   return (
     <AppShell>
-      <div className="mb-12 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h2 className="mb-2 font-display text-headline-lg font-bold text-onSurface">Platform Overview</h2>
-          <p className="font-body-md text-body-md text-onSurfaceVariant">
-            Real-time metrics and institutional compliance status.
-          </p>
+      <header className="mb-16 flex flex-col gap-6">
+        <h1 className="font-display text-headline-lg font-semibold text-onSurface">Institutional Overview</h1>
+        <div className="flex items-center gap-4">
+          <span className="font-mono-label text-mono-label uppercase tracking-wider text-onSurfaceVariant">
+            UNILAG Command Center
+          </span>
+          <div className="rule-b h-px flex-1" />
+          <span className="font-mono-label text-mono-label text-onSurfaceVariant">Live data</span>
         </div>
-        <button
-          onClick={generateReport}
-          disabled={generating}
-          className="flex min-h-[48px] items-center rounded-lg bg-primary px-6 py-3 font-label-md text-label-md text-onPrimary shadow-level-1 transition-all hover:shadow-level-2 disabled:opacity-60"
-        >
-          <span className="material-symbols-outlined mr-2">description</span>
-          {generating ? "Generating…" : "Generate Accreditation Report"}
-        </button>
-      </div>
+      </header>
 
       {notice && (
-        <div className="mb-8 rounded-lg border border-primary-container bg-primary-container/20 p-4 font-body-sm text-body-sm text-onPrimaryContainer">
+        <div className="mb-8 border border-primary/20 bg-primary/5 p-4 font-body-md text-body-md text-onPrimaryContainer">
           {notice}
         </div>
       )}
@@ -148,153 +123,191 @@ export default function AdminCommandCenterPage() {
       ) : (
         overview && (
           <>
-            {/* KPI cards */}
-            <div className="mb-12 grid grid-cols-1 gap-gutter md:grid-cols-3">
-              <div className="flex h-48 flex-col justify-between rounded-xl border border-outlineVariant bg-surface-container-lowest p-6 shadow-level-1">
-                <div className="flex items-start justify-between">
-                  <span className="font-label-md text-label-md uppercase tracking-wider text-onSurfaceVariant">
-                    Total Whispers
-                  </span>
-                  <span className="rounded-lg bg-primary-container/20 p-2 text-primary">
-                    <span className="material-symbols-outlined">forum</span>
-                  </span>
-                </div>
-                <div>
-                  <div className="mb-1 font-display text-headline-xl font-bold text-onSurface">
-                    {overview.totalWhispers.toLocaleString()}
-                  </div>
-                  <div className="font-body-sm text-body-sm text-onSurfaceVariant">
-                    {overview.pendingInterventions} awaiting action
-                  </div>
+            {/* High-level metrics */}
+            <section className="grid grid-cols-1 border-y border-ink/10 md:grid-cols-3">
+              <div className="flex flex-col gap-2 border-b border-ink/10 p-8 md:border-b-0 md:border-r">
+                <span className="font-label-caps text-label-caps text-onSurfaceVariant">Total Whispers</span>
+                <span className="font-display text-5xl font-bold text-onSurface">{overview.totalWhispers.toLocaleString()}</span>
+                <span className="font-mono-label text-mono-label text-primary">
+                  {overview.pendingInterventions} awaiting action
+                </span>
+              </div>
+              <div className="flex flex-col gap-2 border-b border-ink/10 p-8 md:border-b-0 md:border-r">
+                <span className="font-label-caps text-label-caps text-onSurfaceVariant">Critical Alerts</span>
+                <span className="font-display text-5xl font-bold text-error">{overview.pendingInterventions}</span>
+                <span className="font-mono-label text-mono-label text-error">Requires immediate review</span>
+              </div>
+              <div className="flex flex-col gap-2 p-8">
+                <span className="font-label-caps text-label-caps text-onSurfaceVariant">Resolution Rate</span>
+                <span className="font-display text-5xl font-bold text-onSurface">{overview.resolutionRate}%</span>
+                <span className="font-mono-label text-mono-label text-onSurfaceVariant">
+                  {overview.totalEvaluations} evaluations · {overview.totalDepartments} departments
+                </span>
+              </div>
+            </section>
+
+            {/* Trend + resolution charts */}
+            <section className="grid grid-cols-1 gap-16 pt-16 lg:grid-cols-[60%_40%]">
+              <div>
+                <h2 className="rule-b mb-6 font-label-caps text-label-caps uppercase tracking-widest text-onSurface">
+                  Whisper &amp; Evaluation Activity — 14 days
+                </h2>
+                <div className="h-64 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                      data={overview.trend.map((t) => ({
+                        date: new Date(t.date).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+                        Whispers: t.whispers,
+                        Evaluations: t.evaluations,
+                      }))}
+                      margin={{ top: 4, right: 8, bottom: 0, left: -24 }}
+                    >
+                      <defs>
+                        <linearGradient id="adminWhisper" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#006b2d" stopOpacity={0.25} />
+                          <stop offset="100%" stopColor="#006b2d" stopOpacity={0} />
+                        </linearGradient>
+                        <linearGradient id="adminEval" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#00668a" stopOpacity={0.25} />
+                          <stop offset="100%" stopColor="#00668a" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid stroke="rgba(17,24,39,0.06)" vertical={false} />
+                      <XAxis dataKey="date" tick={{ fontSize: 10, fill: "#3e4a3e" }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
+                      <YAxis tick={{ fontSize: 10, fill: "#3e4a3e" }} tickLine={false} axisLine={false} allowDecimals={false} />
+                      <Tooltip contentStyle={{ borderRadius: 0, borderColor: "#e5e7eb", fontSize: 12 }} />
+                      <Area type="monotone" dataKey="Whispers" stroke="#006b2d" fill="url(#adminWhisper)" strokeWidth={2} />
+                      <Area type="monotone" dataKey="Evaluations" stroke="#00668a" fill="url(#adminEval)" strokeWidth={2} />
+                    </AreaChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
 
-              <div className="flex h-48 flex-col justify-between rounded-xl border border-outlineVariant bg-surface-container-lowest p-6 shadow-level-1">
-                <div className="flex items-start justify-between">
-                  <span className="font-label-md text-label-md uppercase tracking-wider text-onSurfaceVariant">
-                    Student Sentiment
-                  </span>
-                  <span className="rounded-lg bg-secondary-container/30 p-2 text-secondary">
-                    <span className="material-symbols-outlined">mood</span>
-                  </span>
-                </div>
-                <div>
-                  <div className="mb-1 font-display text-headline-xl font-bold text-onSurface">
-                    {overview.averageRating.toFixed(1)}
-                    <span className="text-headline-md text-onSurfaceVariant">/5</span>
-                  </div>
-                  <div className="font-body-sm text-body-sm text-onSurfaceVariant">
-                    From {overview.totalEvaluations.toLocaleString()} evaluations
+              <div>
+                <h2 className="rule-b mb-6 font-label-caps text-label-caps uppercase tracking-widest text-onSurface">
+                  Resolution Status
+                </h2>
+                <div className="h-64 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: "Resolved", value: overview.resolutionRate },
+                          { name: "Remaining", value: Math.max(0, 100 - overview.resolutionRate) },
+                        ]}
+                        dataKey="value"
+                        nameKey="name"
+                        innerRadius={55}
+                        outerRadius={80}
+                        paddingAngle={2}
+                        strokeWidth={0}
+                      >
+                        <Cell fill="#006b2d" />
+                        <Cell fill="#e5e7eb" />
+                      </Pie>
+                      <Tooltip contentStyle={{ borderRadius: 0, borderColor: "#e5e7eb", fontSize: 12 }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="mt-2 flex items-center justify-center gap-6 font-mono-label text-mono-label text-onSurfaceVariant">
+                    <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-primary" /> Resolved {overview.resolutionRate}%</span>
+                    <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-[#e5e7eb]" /> {100 - overview.resolutionRate}%</span>
                   </div>
                 </div>
               </div>
+            </section>
 
-              <div className="relative flex h-48 flex-col justify-between overflow-hidden rounded-xl border border-primary bg-surface-container-lowest p-6 shadow-level-1">
-                <div className="absolute -mr-10 -mt-10 right-0 top-0 h-32 w-32 rounded-bl-full bg-primary-container/10" />
-                <div className="relative z-10 flex items-start justify-between">
-                  <span className="font-label-md text-label-md uppercase tracking-wider text-onSurfaceVariant">
-                    Compliance Status
-                  </span>
-                  <span className="material-symbols-outlined text-primary">verified_user</span>
+            {/* Split: reports + actions */}
+            <section className="grid grid-cols-1 gap-16 pt-16 lg:grid-cols-[60%_40%]">
+              <div className="flex flex-col gap-8">
+                <div className="rule-b flex items-end justify-between pb-4">
+                  <h2 className="font-display text-headline-md font-semibold text-onSurface">Recent Reports</h2>
+                  <Link href="/reports" className="font-label-caps text-label-caps text-primary hover:underline">
+                    View All
+                  </Link>
                 </div>
-                <div className="relative z-10">
-                  <div className="mb-1 font-display text-headline-lg font-bold text-primary">
-                    {overview.totalDepartments} departments
-                  </div>
-                  <div className="mt-2 flex items-center font-body-sm text-body-sm text-onSurfaceVariant">
-                    <span className="mr-2 h-2 w-2 rounded-full bg-primary" />
-                    All departments reporting active
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Trend chart */}
-            <div className="mb-12 rounded-xl border border-outlineVariant bg-surface-container-lowest p-6 shadow-level-1">
-              <div className="mb-6 flex items-center justify-between">
-                <h3 className="font-display text-headline-sm font-semibold text-onSurface">
-                  Whisper &amp; Evaluation Activity — last 14 days
-                </h3>
-              </div>
-              <div className="flex h-56 items-end gap-1.5">
-                {overview.trend.map((t) => (
-                  <div key={t.date} className="group relative flex flex-1 flex-col items-center justify-end gap-1">
-                    <span className="hidden rounded bg-onSurface px-1.5 py-0.5 text-[10px] font-semibold text-onPrimary group-hover:block">
-                      {t.whispers + t.evaluations}
-                    </span>
-                    <div className="w-full rounded-t-sm bg-primary/40 transition-colors hover:bg-primary/60" style={{ height: `${(t.whispers / maxTrend) * 100}%` }} />
-                  </div>
-                ))}
-              </div>
-              <div className="mt-2 flex items-center gap-4 font-body-sm text-body-sm text-onSurfaceVariant">
-                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-primary/40" /> Whispers</span>
-                <span>— last {overview.trend.length} days</span>
-              </div>
-            </div>
-
-            {/* Departments + tools */}
-            <div className="grid grid-cols-1 gap-gutter lg:grid-cols-3">
-              <div className="rounded-xl border border-outlineVariant bg-surface-container-lowest p-6 shadow-level-1 lg:col-span-2">
-                <div className="mb-6 flex items-center justify-between">
-                  <h3 className="font-display text-headline-sm font-semibold text-onSurface">Departmental Snapshots</h3>
-                </div>
-                <div className="space-y-4">
-                  {(depts ?? []).map((dept) => (
-                    <div key={dept.id} className="flex items-center justify-between rounded-lg border border-outlineVariant bg-surface p-4 transition-colors hover:border-primary">
-                      <div className="flex items-center">
-                        <div className="mr-4 flex h-10 w-10 items-center justify-center rounded-full bg-secondary-container font-bold text-onSecondaryContainer">
-                          {dept.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
+                <div className="flex flex-col">
+                  {(reports ?? []).slice(0, 4).map((report, i) => (
+                    <Link
+                      key={report.id}
+                      href="/reports"
+                      className="rule-b group flex cursor-pointer items-start gap-6 py-6"
+                    >
+                      <span className="font-display text-3xl font-light text-onSurfaceVariant/50">
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <div className="flex flex-1 flex-col gap-2">
+                        <div className="flex items-center justify-between">
+                          <span
+                            className={`rounded-sm px-2 py-1 font-label-caps text-label-caps ${
+                              report.type === "ACCREDITATION"
+                                ? "bg-error-container text-onErrorContainer"
+                                : "bg-surface-variant text-onSurfaceVariant"
+                            }`}
+                          >
+                            {report.type === "ACCREDITATION" ? "High Priority" : "Standard"}
+                          </span>
+                          <span className="font-mono-label text-mono-label text-onSurfaceVariant">
+                            {formatDate(report.createdAt)}
+                          </span>
                         </div>
-                        <div>
-                          <h4 className="font-label-md text-label-md text-onSurface">{dept.name}</h4>
-                          {dept.snapshot ? (
-                            <p className="font-body-sm text-body-sm text-onSurfaceVariant">
-                              {dept.snapshot.kpiScores.feedbackReceived} whispers · {dept.snapshot.kpiScores.engagement} evaluations
-                            </p>
-                          ) : (
-                            <p className="font-body-sm text-body-sm text-onSurfaceVariant">No data yet</p>
-                          )}
-                        </div>
+                        <h3 className="font-body-lg font-medium text-onSurface transition-colors group-hover:text-primary">
+                          {report.title}
+                        </h3>
+                        <p className="font-body-md text-body-md text-onSurfaceVariant">
+                          {typeof report.content?.scope === "string" ? report.content.scope : "University-wide"}
+                        </p>
                       </div>
-                      {dept.snapshot && <DeptStatus snapshot={dept.snapshot} />}
-                    </div>
+                    </Link>
                   ))}
                 </div>
               </div>
 
-              <div className="flex flex-col rounded-xl border border-outlineVariant bg-surface-container-lowest p-6 shadow-level-1">
-                <h3 className="mb-6 font-display text-headline-sm font-semibold text-onSurface">Administrative Tools</h3>
-                <div className="flex-1 space-y-4">
-                  <a href="/reports" className="group flex w-full items-start justify-start rounded-lg border border-outlineVariant bg-surface p-4 text-left transition-colors hover:bg-surface-container-low">
-                    <span className="mr-3 text-secondary transition-colors group-hover:text-primary">
-                      <span className="material-symbols-outlined">description</span>
+              <div className="flex flex-col gap-12">
+                <div className="whisper-lock-glow relative flex flex-col gap-6 border border-ink/10 bg-surface-container-lowest p-8">
+                  <div className="absolute -top-3 right-6 flex items-center gap-1 bg-surface px-2 text-primary">
+                    <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                      shield
                     </span>
-                    <div>
-                      <div className="font-label-md text-label-md text-onSurface">Reports &amp; Accreditation</div>
-                      <div className="font-body-sm text-body-sm text-onSurfaceVariant">Generate and export reports</div>
-                    </div>
-                  </a>
-                  <a href="/reports" className="group flex w-full items-start justify-start rounded-lg border border-outlineVariant bg-surface p-4 text-left transition-colors hover:bg-surface-container-low">
-                    <span className="mr-3 text-secondary transition-colors group-hover:text-primary">
-                      <span className="material-symbols-outlined">format_list_bulleted_add</span>
-                    </span>
-                    <div>
-                      <div className="font-label-md text-label-md text-onSurface">Survey Builder</div>
-                      <div className="font-body-sm text-body-sm text-onSurfaceVariant">Create new feedback forms</div>
-                    </div>
-                  </a>
-                  <div className="mt-8 flex items-start rounded-lg border border-secondary-fixed-dim/30 bg-secondary-fixed-dim/20 p-4">
-                    <span className="material-symbols-outlined mr-3 mt-1 text-secondary">lock</span>
-                    <div>
-                      <h4 className="mb-1 font-label-md text-label-md text-onSurface">Whisper Lock Active</h4>
-                      <p className="font-body-sm text-body-sm text-onSurfaceVariant">
-                        All student identities in this view are cryptographically anonymized per institutional policy.
-                      </p>
-                    </div>
+                    <span className="font-label-caps text-[10px]">Encrypted</span>
                   </div>
+                  <h2 className="font-display text-headline-md font-semibold text-onSurface">Accreditation Reporting</h2>
+                  <p className="font-body-md text-body-md text-onSurfaceVariant">
+                    Compile institutional data for external review. This process
+                    securely aggregates anonymized sentiment and compliance
+                    metrics across all faculties.
+                  </p>
+                  <button
+                    onClick={generateReport}
+                    disabled={generating}
+                    className="flex w-full items-center justify-center gap-2 bg-ink px-6 py-4 text-center font-label-caps text-label-caps uppercase tracking-widest text-white transition-colors duration-300 hover:bg-primary disabled:opacity-60"
+                  >
+                    <span className="material-symbols-outlined">summarize</span>
+                    {generating ? "Generating…" : "Generate Accreditation Report"}
+                  </button>
+                </div>
+
+                <div className="flex flex-col gap-4">
+                  <h3 className="rule-b font-label-caps text-label-caps text-onSurfaceVariant">Quick Actions</h3>
+                  <ul className="flex flex-col gap-2">
+                    <li>
+                      <Link href="/surveys" className="flex items-center justify-between font-body-md text-body-md transition-colors hover:text-primary">
+                        Manage Survey Templates <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/insights" className="flex items-center justify-between font-body-md text-body-md transition-colors hover:text-primary">
+                        AI Complaint Intelligence <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/reports" className="flex items-center justify-between font-body-md text-body-md transition-colors hover:text-primary">
+                        Audit Logs &amp; Reports <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                      </Link>
+                    </li>
+                  </ul>
                 </div>
               </div>
-            </div>
+            </section>
           </>
         )
       )}

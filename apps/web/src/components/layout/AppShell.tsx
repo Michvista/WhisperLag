@@ -1,20 +1,18 @@
 import { Footer } from "./Footer";
-import { SideNav } from "./SideNav";
-import { TopNav } from "./TopNav";
+import { Sidebar } from "./Sidebar";
 
 /**
- * Layout for authenticated app screens: fixed top nav, desktop side nav,
- * and the shared footer.
+ * Authenticated app layout: a sidebar-only navigation rail with the content
+ * beside it — deliberately one navigation pattern (per design direction).
  */
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col">
-      <TopNav />
-      <SideNav />
-      <main className="w-full flex-1 px-margin-mobile pb-16 pt-24 md:ml-64 md:px-margin-desktop">
-        {children}
-      </main>
-      <Footer />
+    <div className="flex min-h-screen flex-col bg-surface">
+      <Sidebar />
+      <div className="flex min-h-screen flex-col pl-64">
+        <main className="w-full flex-1 px-margin-desktop py-12">{children}</main>
+        <Footer />
+      </div>
     </div>
   );
 }

@@ -73,6 +73,8 @@ WhisperLag/
 | Caching / Queue | Redis |
 | Validation | Zod |
 | Deployment | Docker + Railway (or on-prem) |
+| Data Visualization | Recharts | Interactive charts for performance dashboards |
+| AI Insights | Groq (LLM) + rule fallback | Groups whispers by viewpoint; flags noise |
 
 ---
 
@@ -141,6 +143,7 @@ npm run dev            # api on :4000, web on :3000
 | GET | `/api/v1/departments/:id/snapshot` | Authenticated |
 | GET | `/api/v1/courses` | Authenticated |
 | GET | `/api/v1/stats/overview` | Admin |
+| POST | `/api/v1/insights/analyze` | Admin |
 | GET | `/api/v1/reports` | Faculty+ |
 | GET | `/api/v1/reports/:id` | Faculty+ |
 | GET | `/api/v1/reports/:id/export` | Faculty+ |

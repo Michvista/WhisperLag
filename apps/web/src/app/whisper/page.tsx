@@ -1,47 +1,55 @@
-import { WhisperLock } from "@/components/ui/WhisperLock";
+import Link from "next/link";
 import { WhisperForm } from "@/components/feedback/WhisperForm";
+import { WhisperLock } from "@/components/ui/WhisperLock";
+import { WhisperLogo } from "@/components/ui/WhisperLogo";
 
 /**
- * Focused "Submit a Whisper" transactional screen. A single card, the
- * Whisper Lock indicator up top, and a success state handled client-side.
+ * Transactional whisper screen: an editorial 40/60 split. Context and
+ * metadata sit on the left; the message canvas on the right.
  */
-export default function SubmitWhisperPage() {
+export default function WhisperPage() {
   return (
-    <main className="flex min-h-screen flex-col bg-brand-gray font-body text-onBackground">
-      <nav className="fixed top-0 z-50 flex h-16 w-full items-center justify-between border-b-2 border-primary bg-surface px-margin-mobile md:h-20 md:px-margin-desktop">
-        <span className="font-display text-headline-sm font-bold text-primary">WhisperLag</span>
-        <button aria-label="Close" className="rounded-full p-2 text-onSurfaceVariant transition-colors hover:bg-surface-container-low hover:text-primary">
-          <span className="material-symbols-outlined">close</span>
-        </button>
-      </nav>
-
-      <main className="flex w-full flex-grow items-start justify-center px-margin-mobile pb-16 pt-24 md:px-margin-desktop md:pt-32">
-        <div className="w-full max-w-2xl rounded-lg bg-surface-container-lowest p-6 shadow-sm md:p-8">
-          <div className="mb-8 flex justify-center">
-            <WhisperLock />
-          </div>
-          <h1 className="mb-8 text-center font-display text-headline-lg font-bold text-onSurface md:text-headline-xl">
-            Submit a Whisper
-          </h1>
-          <WhisperForm />
+    <main className="flex min-h-screen flex-col bg-surface font-body text-onSurface">
+      {/* Slim header (transactional focus page) */}
+      <header className="border-b border-ink/10">
+        <div className="mx-auto flex w-full max-w-wide items-center justify-between px-margin-desktop py-4">
+          <Link href="/dashboard" className="font-display text-headline-md font-bold tracking-tighter text-primary">
+            WhisperLag
+          </Link>
+          <nav className="hidden items-center gap-8 md:flex">
+            <Link href="/dashboard" className="font-label-caps text-label-caps uppercase text-onSurfaceVariant/70 transition-colors hover:text-primary">Dashboard</Link>
+            <Link href="/faculty" className="font-label-caps text-label-caps uppercase text-onSurfaceVariant/70 transition-colors hover:text-primary">Faculty</Link>
+            <Link href="/reports" className="font-label-caps text-label-caps uppercase text-onSurfaceVariant/70 transition-colors hover:text-primary">Reports</Link>
+          </nav>
+          <WhisperLock compact />
         </div>
+      </header>
+
+      <main className="mx-auto flex w-full max-w-[1600px] flex-grow flex-col gap-16 px-margin-mobile py-12 md:flex-row md:px-margin-desktop md:py-section-gap md:gap-32">
+        {/* Left: context & metadata (40%) */}
+        <section className="flex w-full flex-col gap-12 border-b border-ink/10 pb-12 md:w-[40%] md:border-b-0 md:border-r md:pb-0 md:pr-16">
+          <div className="flex flex-col gap-4">
+            <h1 className="font-display text-headline-lg-mobile font-semibold text-onSurface md:text-headline-lg">The Whisper.</h1>
+            <p className="font-body-lg text-body-lg text-onSurfaceVariant">
+              Your voice is secure. Provide context below to help institutional
+              processing while remaining entirely anonymous.
+            </p>
+          </div>
+          <WhisperLogo size={160} />
+          <WhisperForm withMetadata redirectToSuccess />
+        </section>
+
+        {/* Right: the message canvas (60%) */}
+        <section className="flex w-full flex-col md:w-[60%]">
+          <div className="mb-8 flex items-end justify-between border-b border-ink/10 pb-4">
+            <span className="font-mono-label text-mono-label text-onSurfaceVariant">THE MESSAGE</span>
+            <WhisperLock compact />
+          </div>
+          <p className="font-body-lg text-body-lg text-onSurfaceVariant">
+            Press Enter to continue line. Shift+Enter for a new paragraph.
+          </p>
+        </section>
       </main>
-
-      <footer className="mt-auto w-full border-t border-outlineVariant bg-surface-container-lowest px-margin-mobile py-8 md:px-margin-desktop">
-        <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-          <span className="font-label-md text-label-md text-onSurfaceVariant">
-            © 2024 University of Lagos. Protected by Whisper Lock.
-          </span>
-          <div className="flex gap-6">
-            <a href="#" className="font-body-sm text-body-sm text-onSurfaceVariant opacity-80 transition-opacity hover:text-primary">
-              Privacy Policy
-            </a>
-            <a href="#" className="font-body-sm text-body-sm text-onSurfaceVariant opacity-80 transition-opacity hover:text-primary">
-              Terms of Service
-            </a>
-          </div>
-        </div>
-      </footer>
     </main>
   );
 }

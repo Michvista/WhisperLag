@@ -1,46 +1,22 @@
-"use client";
-
-import { motion, useReducedMotion } from "framer-motion";
-
-interface WhisperLockProps {
-  /** Small inline badge (default) vs. a larger banner variant. */
-  size?: "badge" | "banner";
-  className?: string;
-}
-
 /**
- * The signature "Whisper Lock" — the persistent visual guarantee of
- * anonymity that appears on every student-facing screen. This is the
- * memorable detail of the WhisperLag identity, per the design brief.
+ * The signature "Whisper Lock" security indicator. Per the design system this
+ * is the only element allowed subtle shadow weight — a safe harbor for voices.
+ * (Plain markup + CSS animation; kept out of framer-motion so server-rendered
+ * transactional pages stay stable.)
  */
-export function WhisperLock({ size = "badge", className = "" }: WhisperLockProps) {
-  const reduce = useReducedMotion();
-
+export function WhisperLock({ compact = true, className = "" }: { compact?: boolean; className?: string }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: reduce ? 0 : -6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-      className={`inline-flex items-center gap-2 rounded-full border bg-secondary-fixed-dim/20 text-onSurface ${
-        size === "banner" ? "px-5 py-2.5" : "px-4 py-2"
+    <div
+      className={`whisper-lock-glow flex items-center gap-2 rounded-full bg-surface-container-lowest ${
+        compact ? "px-4 py-2" : "px-5 py-2.5"
       } ${className}`}
     >
-      <motion.span
-        animate={reduce ? undefined : { scale: [1, 1.06, 1] }}
-        transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-surface-container-lowest text-secondary shadow-level-1"
-      >
-        <span aria-hidden className="material-symbols-outlined text-[14px] font-bold" style={{ fontVariationSettings: "'FILL' 1" }}>
-          lock
-        </span>
-      </motion.span>
-      <span className="font-label-md text-label-md">
-        {size === "banner" ? (
-          "Your whisper is hidden. Nobody knows it is you."
-        ) : (
-          "Your whisper is hidden. Nobody knows it is you."
-        )}
+      <span className="whisper-lock-pulse material-symbols-outlined text-[16px] text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>
+        lock
       </span>
-    </motion.div>
+      <span className="font-label-caps text-label-caps text-onSurfaceVariant">
+        {compact ? "Whisper Lock: Secure" : "End-to-End Encrypted via UNILAG Secure."}
+      </span>
+    </div>
   );
 }

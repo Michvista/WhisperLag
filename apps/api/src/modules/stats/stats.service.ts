@@ -16,15 +16,19 @@ export class StatsService {
     since.setDate(since.getDate() - (DAYS - 1));
     since.setHours(0, 0, 0, 0);
 
-    const [totalWhispers, totalEvaluations, totalDepartments, pending, whisperRows, evalRows] =
+    const [totalWhispers, totalEvaluations, totalDepartments, pending, resolved, whisperRows, evalRows] =
       await Promise.all([
         prisma.whisper.count(),
         prisma.evaluation.count(),
         prisma.department.count(),
         prisma.whisper.count({ where: { status: "NEW" } }),
+        prisma.whisper.count({ where: { status: "ACTIONED" } }),
         prisma.whisper.findMany({ select: { createdAt: true }, where: { createdAt: { gte: since } } }),
         prisma.evaluation.findMany({ select: { createdAt: true, overallRating: true } }),
       ]);
+
+    const resolutionRate =
+      totalWhispers > 0 ? Math.round((resolved / totalWhispers) * 1000) / 10 : 0;
 
     const avgRating =
       totalEvaluations > 0
@@ -51,6 +55,7 @@ export class StatsService {
       totalEvaluations,
       totalDepartments,
       pendingInterventions: pending,
+      resolutionRate,
       averageRating: avgRating,
       trend: [...trend.values()],
     };

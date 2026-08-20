@@ -1,12 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
-import { WhisperLock } from "@/components/ui/WhisperLock";
 import { WhisperForm } from "@/components/feedback/WhisperForm";
-import { SurveyList } from "@/components/feedback/SurveyList";
 import { ErrorBlock, LoadingBlock, SignedOut } from "@/components/ui/States";
 import { useFetch } from "@/lib/useFetch";
-import { getToken } from "@/lib/api";
+import { api, getToken } from "@/lib/api";
 
 interface RecentWhisper {
   id: string;
@@ -16,23 +15,118 @@ interface RecentWhisper {
   createdAt: string;
 }
 
-const STATUS_META: Record<RecentWhisper["status"], { label: string; icon: string; cls: string }> = {
-  ACTIONED: { label: "Resolved", icon: "check_circle", cls: "text-primary bg-primary/10" },
-  ACKNOWLEDGED: { label: "Reviewed", icon: "pending", cls: "text-tertiary-fixed-dim bg-tertiary-fixed-dim/20" },
-  NEW: { label: "New", icon: "radio_button_unchecked", cls: "text-onSurfaceVariant bg-surface-container" },
+interface Survey {
+  id: string;
+  title: string;
+  description: string | null;
+  status: string;
+  closesAt: string | null;
+  questions: { id: string; prompt: string; type: string; options: string[] | null }[];
+}
+
+const STATUS_META: Record<RecentWhisper["status"], { label: string; cls: string }> = {
+  ACTIONED: { label: "Resolved", cls: "bg-unilag-green/10 text-unilag-green" },
+  ACKNOWLEDGED: { label: "Under Review", cls: "bg-unilag-green/10 text-unilag-green" },
+  NEW: { label: "New", cls: "bg-ink/5 text-ink/50" },
 };
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
-/**
- * Student dashboard — fully live. Submits whispers, lists real open surveys
- * and the recent-activity feed, all from the API.
- */
+/** Compact expandable poll list wired to the respond endpoint. */
+function PollList({ surveys, onDone }: { surveys: Survey[]; onDone: () => void }) {
+  const [open, setOpen] = useState<string | null>(null);
+  const [answer, setAnswer] = useState<Record<string, unknown>>({});
+  const [busy, setBusy] = useState<string | null>(null);
+
+  async function respond(questionId: string) {
+    const value = answer[questionId];
+    if (value === undefined) return;
+    setBusy(questionId);
+    try {
+      await api(`/surveys/questions/${questionId}/respond`, {
+        method: "POST",
+        body: JSON.stringify({ answer: { value } }),
+        token: getToken(),
+      });
+      onDone();
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  return (
+    <div>
+      {surveys.map((survey, i) => (
+        <div key={survey.id} className="rule-b py-4">
+          <button onClick={() => setOpen(open === survey.id ? null : survey.id)} className="flex w-full items-start gap-4 text-left">
+            <span className="font-mono-label text-lg font-light text-ink/30">{String(i + 1).padStart(2, "0")}</span>
+            <div className="flex flex-1 flex-col gap-1">
+              <h3 className="font-body-md text-body-md text-ink transition-colors hover:text-unilag-green">{survey.title}</h3>
+              <p className="font-mono-label text-mono-label text-ink/50">
+                {survey.status === "OPEN" ? "Open" : survey.status.toLowerCase()} · {survey.questions.length} question{survey.questions.length === 1 ? "" : "s"}
+              </p>
+            </div>
+            <span className="material-symbols-outlined text-ink/40">{open === survey.id ? "expand_less" : "expand_more"}</span>
+          </button>
+
+          {open === survey.id && (
+            <div className="ml-10 mt-4 flex flex-col gap-4">
+              {survey.questions.map((q) => (
+                <div key={q.id}>
+                  <p className="mb-2 font-label-caps text-label-caps uppercase tracking-wider text-onSurfaceVariant">{q.prompt}</p>
+                  {q.type === "RATING" && (
+                    <div className="flex gap-2">
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <button
+                          key={n}
+                          onClick={() => setAnswer((a) => ({ ...a, [q.id]: n }))}
+                          className={`h-8 w-8 border font-mono-label text-mono-label transition-colors ${
+                            answer[q.id] === n ? "border-ink bg-ink text-white" : "border-ink/20 hover:border-ink"
+                          }`}
+                        >
+                          {n}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {q.type === "MULTIPLE_CHOICE" &&
+                    q.options?.map((opt) => (
+                      <label key={opt} className="flex cursor-pointer items-center gap-2 py-0.5 font-body-md text-body-md text-onSurface">
+                        <input type="radio" name={q.id} onChange={() => setAnswer((a) => ({ ...a, [q.id]: opt }))} className="accent-primary" />
+                        {opt}
+                      </label>
+                    ))}
+                  {q.type === "FREE_TEXT" && (
+                    <textarea
+                      onChange={(e) => setAnswer((a) => ({ ...a, [q.id]: e.target.value }))}
+                      placeholder="Your thoughts (kept anonymous)…"
+                      className="input-minimal w-full resize-none font-body-md text-body-md"
+                    />
+                  )}
+                  <button
+                    onClick={() => respond(q.id)}
+                    disabled={busy === q.id || answer[q.id] === undefined}
+                    className="mt-2 border border-ink px-4 py-1.5 font-label-caps text-label-caps uppercase tracking-wider transition-colors hover:bg-surface-variant disabled:opacity-40"
+                  >
+                    {busy === q.id ? "Sending…" : "Submit"}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Student dashboard — editorial split layout, fully live. */
 export default function StudentDashboardPage() {
   const session = Boolean(getToken());
   const recent = useFetch<RecentWhisper[]>("/feedback/recent");
+  const surveys = useFetch<Survey[]>("/surveys");
   const items = recent.data;
 
   if (!session) {
@@ -45,85 +139,67 @@ export default function StudentDashboardPage() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-container space-y-12">
-        <div className="mx-auto flex max-w-2xl justify-center">
-          <WhisperLock size="banner" />
+      <div className="flex flex-col gap-16 md:flex-row md:gap-24">
+        {/* Left: the whisper (60%) */}
+        <div className="w-full bg-surface-container-lowest p-8 md:w-3/5 md:p-12">
+          <header className="mb-8 flex flex-col gap-4">
+            <h1 className="font-display text-headline-lg-mobile font-bold text-ink md:text-display-xl">Speak freely.</h1>
+            <p className="max-w-xl font-body-lg text-body-lg text-ink/70">
+              Your voice matters. Use this space to share feedback, report
+              concerns, or propose changes with absolute anonymity.
+            </p>
+          </header>
+          <div className="rule-b mb-8" />
+          <WhisperForm />
         </div>
 
-        <div className="space-y-2">
-          <h1 className="font-display text-headline-xl font-bold text-onSurface">Good Morning.</h1>
-          <p className="font-body-lg text-body-lg text-onSurfaceVariant">
-            Speak up safely. Your identity is protected.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
-          {/* Submit a Whisper */}
-          <section className="flex flex-col rounded-xl border border-outlineVariant/30 bg-surface-container-lowest p-6 shadow-level-1 md:col-span-8">
-            <h2 className="mb-6 flex items-center gap-2 font-display text-headline-md font-semibold text-onSurface">
-              <span className="material-symbols-outlined text-primary">campaign</span>
-              Submit a Whisper
+        {/* Right: context & activity (40%) */}
+        <div className="flex w-full flex-col gap-16 md:w-2/5">
+          <section className="flex flex-col gap-6">
+            <h2 className="flex items-center gap-2 font-display text-headline-md font-semibold text-ink">
+              Active Polls
+              <span className="inline-block h-2 w-2 rounded-full bg-sun-gold" />
             </h2>
-            <WhisperForm />
+            {surveys.loading ? (
+              <LoadingBlock label="Loading…" />
+            ) : surveys.error ? (
+              <ErrorBlock message={surveys.error} onRetry={surveys.refetch} />
+            ) : surveys.data && surveys.data.length > 0 ? (
+              <PollList surveys={surveys.data} onDone={surveys.refetch} />
+            ) : (
+              <p className="font-mono-label text-mono-label text-ink/50">No open polls right now.</p>
+            )}
           </section>
 
-          {/* Side column */}
-          <aside className="flex flex-col gap-6 md:col-span-4">
-            <section className="flex-1 rounded-xl border border-outlineVariant/30 bg-surface-container-lowest p-6 shadow-level-1">
-              <h3 className="mb-4 flex items-center gap-2 font-display text-headline-sm font-semibold text-onSurface">
-                <span className="material-symbols-outlined text-tertiary-fixed-dim">timeline</span>
-                Have I been heard?
-              </h3>
-              {recent.loading ? (
-                <LoadingBlock label="Loading…" />
-              ) : recent.error ? (
-                <ErrorBlock message={recent.error} onRetry={recent.refetch} />
-              ) : items && items.length > 0 ? (
-                <div className="space-y-4">
-                  {items.slice(0, 4).map((w, i) => {
-                    const meta = STATUS_META[w.status];
-                    return (
-                      <div key={w.id}>
-                        <div className="flex items-start gap-4">
-                          <span className={`mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${meta.cls}`}>
-                            <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>
-                              {meta.icon}
-                            </span>
-                          </span>
-                          <div>
-                            <p className="font-label-md text-label-md text-onSurface">{w.category}</p>
-                            <p className="font-body-sm text-body-sm text-onSurfaceVariant">
-                              {formatDate(w.createdAt)} ·{" "}
-                              <span className="font-medium text-onSurface">{meta.label}</span>
-                            </p>
-                          </div>
-                        </div>
-                        {i < items.length - 1 && (
-                          <div className="-my-2 ml-4 h-6 w-0.5 bg-outlineVariant/30" />
-                        )}
+          <section className="flex flex-col gap-6">
+            <h2 className="font-display text-headline-md font-semibold text-ink">Recent Activity</h2>
+            {recent.loading ? (
+              <LoadingBlock label="Loading…" />
+            ) : recent.error ? (
+              <ErrorBlock message={recent.error} onRetry={recent.refetch} />
+            ) : items && items.length > 0 ? (
+              <div className="flex flex-col">
+                {items.slice(0, 5).map((w) => {
+                  const meta = STATUS_META[w.status];
+                  return (
+                    <div key={w.id} className="rule-b flex items-start justify-between gap-3 py-4">
+                      <div className="flex flex-col gap-1">
+                        <h3 className="font-body-md text-body-md text-ink">{w.category}</h3>
+                        <p className="font-mono-label text-mono-label text-ink/50">{formatDate(w.createdAt)}</p>
                       </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p className="font-body-sm text-body-sm text-onSurfaceVariant">
-                  Nothing yet. Submit your first whisper above — it stays anonymous.
-                </p>
-              )}
-            </section>
-
-            <section className="relative overflow-hidden rounded-xl border border-outlineVariant/20 bg-surface-container-low p-6">
-              <h3 className="relative z-10 mb-4 font-display text-headline-sm font-semibold text-onSurface">
-                Campus Surveys
-              </h3>
-              <p className="relative z-10 mb-4 font-body-sm text-body-sm text-onSurfaceVariant">
-                Help shape university policies.
-              </p>
-              <div className="relative z-10">
-                <SurveyList />
+                      <span className={`shrink-0 px-2 py-1 font-label-caps text-[10px] uppercase tracking-wider ${meta.cls}`}>
+                        {meta.label}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
-            </section>
-          </aside>
+            ) : (
+              <p className="font-mono-label text-mono-label text-ink/50">
+                Nothing yet. Submit your first whisper — it stays anonymous.
+              </p>
+            )}
+          </section>
         </div>
       </div>
     </AppShell>

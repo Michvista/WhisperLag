@@ -5,79 +5,70 @@ import { AppShell } from "@/components/layout/AppShell";
 import { ErrorBlock, LoadingBlock, SignedOut } from "@/components/ui/States";
 import { api, getToken, API_BASE } from "@/lib/api";
 
+interface Overview {
+  totalWhispers: number;
+  totalEvaluations: number;
+  totalDepartments: number;
+  pendingInterventions: number;
+  resolutionRate: number;
+  averageRating: number;
+}
+
 interface Report {
   id: string;
   title: string;
   type: string;
   createdAt: string;
-  content: {
-    type?: string;
-    scope?: string;
-    generatedAt?: string;
-    metrics?: { evaluations: number; whispers: number };
-    departments?: number;
-    status?: string;
-  } | null;
+  content: { scope?: string } | null;
+}
+
+interface Department {
+  id: string;
+  name: string;
 }
 
 const TYPE_LABELS: Record<string, string> = {
-  ACCREDITATION: "Accreditation",
-  DEPARTMENT_SNAPSHOT: "Department Snapshot",
-  TREND: "Trend Report",
+  ACCREDITATION: "Accreditation Summary",
+  DEPARTMENT_SNAPSHOT: "Faculty Feedback Aggregate",
+  TREND: "Compliance Audit",
 };
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
-/**
- * Accreditation reports — fully live. Lists generated reports, generates new
- * ones, and offers CSV export of the structured payload.
- */
+/** Reports & accreditation — editorial 40/60 presentation of live data. */
 export default function ReportsPage() {
   const session = Boolean(getToken());
   const [reports, setReports] = useState<Report[] | null>(null);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [overview, setOverview] = useState<Overview | null>(null);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [typeFilter, setTypeFilter] = useState("All");
+  const [deptFilter, setDeptFilter] = useState("All");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [generating, setGenerating] = useState(false);
-  const [notice, setNotice] = useState<string | null>(null);
-
-  async function loadReports() {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await api<Report[]>("/reports", { token: getToken(), cache: "no-store" });
-      setReports(data);
-      setSelectedId((cur) => cur ?? data[0]?.id ?? null);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load reports");
-    } finally {
-      setLoading(false);
-    }
-  }
 
   useEffect(() => {
-    if (session) void loadReports();
+    if (!session) return;
+    (async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const [rep, ov, deps] = await Promise.all([
+          api<Report[]>("/reports", { token: getToken(), cache: "no-store" }),
+          api<Overview>("/stats/overview", { token: getToken(), cache: "no-store" }),
+          api<Department[]>("/departments", { token: getToken(), cache: "no-store" }),
+        ]);
+        setReports(rep);
+        setOverview(ov);
+        setDepartments(deps);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Failed to load reports");
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [session]);
-
-  async function generate() {
-    setGenerating(true);
-    setNotice(null);
-    try {
-      await api<Report>("/reports/generate", {
-        method: "POST",
-        body: JSON.stringify({ title: "Accreditation Report", type: "ACCREDITATION" }),
-        token: getToken(),
-      });
-      setNotice("Report generated.");
-      await loadReports();
-    } catch (e) {
-      setNotice(e instanceof Error ? e.message : "Generation failed");
-    } finally {
-      setGenerating(false);
-    }
-  }
 
   if (!session) {
     return (
@@ -87,185 +78,144 @@ export default function ReportsPage() {
     );
   }
 
-  const selected = reports?.find((r) => r.id === selectedId) ?? reports?.[0] ?? null;
-  const content = selected?.content;
+  const filtered = (reports ?? []).filter(
+    (r) =>
+      (typeFilter === "All" || TYPE_LABELS[r.type] === typeFilter || r.type === typeFilter) &&
+      (deptFilter === "All" ||
+        (typeof r.content?.scope === "string" && r.content.scope.toLowerCase().includes(deptFilter.toLowerCase()))),
+  );
 
   return (
     <AppShell>
-      <div className="grid w-full max-w-container grid-cols-1 gap-gutter lg:grid-cols-12">
-        {/* Left column: report list */}
-        <div className="flex flex-col gap-6 lg:col-span-4">
-          <div className="flex items-center justify-between">
-            <h1 className="font-display text-headline-md font-semibold text-onSurface">Reports</h1>
-            <button
-              onClick={generate}
-              disabled={generating}
-              className="flex h-[48px] items-center gap-2 rounded bg-[#009A44] px-4 font-label-md text-label-md text-white transition-colors hover:bg-primary-container disabled:opacity-60"
-            >
-              <span className="material-symbols-outlined text-[20px]">add</span>
-              {generating ? "Generating…" : "New"}
-            </button>
-          </div>
+      <div className="mb-20">
+        <h1 className="mb-6 font-display text-4xl font-bold text-onSurface md:w-2/3 md:text-display-xl">
+          Institutional Reports &amp; Accreditation Data
+        </h1>
+        <p className="font-body-lg text-body-lg text-onSurfaceVariant md:w-1/2">
+          Secure access to verified whisper data summaries designed for
+          institutional review and compliance reporting. All data maintains
+          strict anonymity protocols.
+        </p>
+      </div>
 
-          {notice && (
-            <div className="rounded-lg border border-primary-container bg-primary-container/20 p-3 font-body-sm text-body-sm text-onPrimaryContainer">
-              {notice}
-            </div>
-          )}
-
-          <div className="flex w-fit items-center gap-2 rounded-full border border-[#78C4EE]/50 bg-[#78C4EE]/20 px-4 py-2">
-            <span className="flex items-center justify-center rounded-full bg-[#78C4EE] p-1">
-              <span className="material-symbols-outlined text-[14px] text-white" style={{ fontVariationSettings: "'FILL' 1" }}>
-                lock
-              </span>
-            </span>
-            <span className="font-label-md text-label-md text-onSurface">Audit Trail Encrypted</span>
-          </div>
-
-          <div className="no-scrollbar flex max-h-[600px] flex-col gap-2 overflow-y-auto rounded-lg bg-surface-container-lowest p-4 shadow-level-1">
-            {loading ? (
-              <LoadingBlock label="Loading…" />
-            ) : error ? (
-              <ErrorBlock message={error} onRetry={loadReports} />
-            ) : reports && reports.length > 0 ? (
-              reports.map((report) => {
-                const active = selected?.id === report.id;
-                return (
-                  <button
-                    key={report.id}
-                    onClick={() => setSelectedId(report.id)}
-                    className={`relative flex cursor-pointer flex-col gap-2 rounded border p-4 text-left transition-colors ${
-                      active
-                        ? "border-primary bg-surface-container-low"
-                        : "border-outlineVariant hover:bg-surface-container-low"
-                    }`}
-                  >
-                    {active && <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l bg-primary" />}
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="font-label-md text-label-md font-semibold text-onSurface">{report.title}</span>
-                      <span className="rounded bg-primary/10 px-2 py-1 text-[11px] font-semibold tracking-wide text-primary">
-                        {TYPE_LABELS[report.type] ?? report.type}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 font-body-sm text-body-sm text-onSurfaceVariant">
-                      <span className="material-symbols-outlined text-[16px]">calendar_today</span>
-                      <span>{formatDate(report.createdAt)}</span>
-                    </div>
-                  </button>
-                );
-              })
-            ) : (
-              <p className="p-4 font-body-sm text-body-sm text-onSurfaceVariant">
-                No reports yet. Click &ldquo;New&rdquo; to generate one.
-              </p>
-            )}
-          </div>
+      {/* Filters */}
+      <div className="rule-b mb-16 flex flex-col items-end gap-8 border-t border-ink/10 pt-8 md:flex-row">
+        <div className="w-full md:w-1/4">
+          <label className="mb-2 block font-label-caps text-label-caps text-onSurfaceVariant">Department</label>
+          <select
+            value={deptFilter}
+            onChange={(e) => setDeptFilter(e.target.value)}
+            className="input-minimal w-full font-body-md text-onSurface"
+          >
+            <option>All</option>
+            {departments.map((d) => (
+              <option key={d.id}>{d.name}</option>
+            ))}
+          </select>
         </div>
-
-        {/* Right column: report detail */}
-        <div className="flex flex-col gap-6 lg:col-span-8">
-          {selected ? (
-            <>
-              <div className="flex flex-col justify-between gap-4 rounded-lg bg-white p-6 shadow-level-1 md:flex-row md:items-center">
-                <div>
-                  <h2 className="font-display text-headline-lg font-bold text-onSurface">{selected.title}</h2>
-                  <p className="mt-1 font-body-md text-body-md text-onSurfaceVariant">
-                    {TYPE_LABELS[selected.type] ?? selected.type} · Prepared for UNILAG Quality Assurance Board
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <a
-                    href={`${API_BASE}/reports/${selected.id}/export?format=csv`}
-                    className="flex h-[48px] items-center gap-2 rounded border border-outline bg-white px-4 font-label-md text-label-md text-primary transition-colors hover:bg-surface-container-low"
-                  >
-                    <span className="material-symbols-outlined text-[20px]">table_view</span>
-                    Excel (CSV)
-                  </a>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <div className="flex flex-col gap-4 rounded-lg bg-surface-container-lowest p-6 shadow-level-1 md:col-span-2">
-                  <div className="flex items-center gap-2 border-b border-outlineVariant pb-2">
-                    <span className="material-symbols-outlined text-primary">summarize</span>
-                    <h3 className="font-display text-headline-sm font-semibold text-onSurface">Executive Summary</h3>
-                  </div>
-                  <p className="font-body-md text-body-md leading-relaxed text-onSurface">
-                    This report aggregates anonymous feedback and evaluations
-                    {content?.scope ? ` for ${typeof content.scope === "string" ? content.scope : "the selected department"}` : ""}.{" "}
-                    It was generated {content?.generatedAt ? formatDate(content.generatedAt) : "automatically"}{" "}
-                    and reflects the latest available data. Anonymity preservation remained at 100% integrity.
-                  </p>
-                  <div className="grid grid-cols-3 gap-4 pt-2">
-                    <div className="rounded-lg bg-surface-container-low p-4 text-center">
-                      <div className="font-display text-headline-md font-bold text-onSurface">
-                        {content?.metrics?.whispers ?? 0}
-                      </div>
-                      <div className="font-body-sm text-body-sm text-onSurfaceVariant">Whispers</div>
-                    </div>
-                    <div className="rounded-lg bg-surface-container-low p-4 text-center">
-                      <div className="font-display text-headline-md font-bold text-onSurface">
-                        {content?.metrics?.evaluations ?? 0}
-                      </div>
-                      <div className="font-body-sm text-body-sm text-onSurfaceVariant">Evaluations</div>
-                    </div>
-                    <div className="rounded-lg bg-surface-container-low p-4 text-center">
-                      <div className="font-display text-headline-md font-bold text-onSurface">
-                        {content?.departments ?? 0}
-                      </div>
-                      <div className="font-body-sm text-body-sm text-onSurfaceVariant">Departments</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-4 rounded-lg bg-surface-container-lowest p-6 shadow-level-1">
-                  <div className="flex items-center gap-2 border-b border-outlineVariant pb-2">
-                    <span className="material-symbols-outlined text-primary">verified_user</span>
-                    <h3 className="font-display text-headline-sm font-semibold text-onSurface">Report Metadata</h3>
-                  </div>
-                  <dl className="space-y-3 font-body-sm text-body-sm">
-                    <div className="flex justify-between">
-                      <dt className="text-onSurfaceVariant">Type</dt>
-                      <dd className="font-medium text-onSurface">{TYPE_LABELS[selected.type] ?? selected.type}</dd>
-                    </div>
-                    <div className="flex justify-between">
-                      <dt className="text-onSurfaceVariant">Generated</dt>
-                      <dd className="font-medium text-onSurface">{formatDate(selected.createdAt)}</dd>
-                    </div>
-                    <div className="flex justify-between">
-                      <dt className="text-onSurfaceVariant">Status</dt>
-                      <dd className="font-medium text-primary">{content?.status ?? "READY"}</dd>
-                    </div>
-                    <div className="flex justify-between">
-                      <dt className="text-onSurfaceVariant">Audit</dt>
-                      <dd className="font-medium text-onSurface">Encrypted trail</dd>
-                    </div>
-                  </dl>
-                </div>
-
-                <div className="flex flex-col gap-4 rounded-lg bg-surface-container-lowest p-6 shadow-level-1">
-                  <div className="flex items-center gap-2 border-b border-outlineVariant pb-2">
-                    <span className="material-symbols-outlined text-primary">download</span>
-                    <h3 className="font-display text-headline-sm font-semibold text-onSurface">Export</h3>
-                  </div>
-                  <p className="font-body-sm text-body-sm text-onSurfaceVariant">
-                    Download this report as a spreadsheet for your accreditation evidence pack.
-                  </p>
-                  <a
-                    href={`${API_BASE}/reports/${selected.id}/export?format=csv`}
-                    className="flex h-12 items-center justify-center gap-2 rounded-lg bg-[#78C4EE] px-4 font-label-md text-label-md text-[#001e2c] transition-opacity hover:opacity-90"
-                  >
-                    <span className="material-symbols-outlined text-[20px]">table_view</span>
-                    Download CSV
-                  </a>
-                </div>
-              </div>
-            </>
-          ) : (
-            <p className="font-body-md text-body-md text-onSurfaceVariant">Select a report to view its details.</p>
-          )}
+        <div className="w-full md:w-1/4">
+          <label className="mb-2 block font-label-caps text-label-caps text-onSurfaceVariant">Report Type</label>
+          <select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+            className="input-minimal w-full font-body-md text-onSurface"
+          >
+            <option>All</option>
+            {Object.values(TYPE_LABELS).map((label) => (
+              <option key={label}>{label}</option>
+            ))}
+          </select>
+        </div>
+        <div className="ml-auto flex w-full justify-end md:w-1/4">
+          <button className="flex w-full items-center justify-center gap-2 border border-ink px-6 py-3 font-label-caps text-label-caps uppercase tracking-wider text-onSurface transition-colors hover:bg-surface-variant md:w-auto">
+            <span className="material-symbols-outlined text-sm">filter_list</span> Apply Filters
+          </button>
         </div>
       </div>
+
+      {loading ? (
+        <LoadingBlock label="Loading reports…" />
+      ) : error ? (
+        <ErrorBlock message={error} onRetry={() => window.location.reload()} />
+      ) : (
+        <div className="grid grid-cols-1 gap-gutter lg:grid-cols-12">
+          {/* Left: key indicators (40%) */}
+          <div className="flex flex-col gap-12 lg:col-span-5">
+            <div>
+              <h2 className="mb-6 font-display text-headline-md font-semibold text-onSurface">
+                Key Accreditation Indicators
+              </h2>
+              <div className="flex flex-col border-t border-ink/10">
+                <div className="rule-b flex items-center justify-between py-6">
+                  <span className="font-body-md text-body-md text-onSurfaceVariant">Verified Reports (YTD)</span>
+                  <span className="font-display text-headline-lg font-semibold text-onSurface">{reports?.length ?? 0}</span>
+                </div>
+                <div className="rule-b flex items-center justify-between py-6">
+                  <span className="font-body-md text-body-md text-onSurfaceVariant">Pending Interventions</span>
+                  <span className="font-display text-headline-lg font-semibold text-onSurface">
+                    {overview?.pendingInterventions ?? 0}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between py-6">
+                  <span className="font-body-md text-body-md text-onSurfaceVariant">Compliance Rate</span>
+                  <span className="font-display text-headline-lg font-semibold text-primary">
+                    {overview?.resolutionRate ?? 0}%
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="whisper-lock-glow bg-surface-container-low p-8">
+              <div className="mb-4 flex items-center gap-2 text-primary">
+                <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  verified_user
+                </span>
+                <h3 className="font-label-caps text-label-caps">Data Integrity Confirmed</h3>
+              </div>
+              <p className="font-body-md text-body-md text-onSurfaceVariant">
+                This dataset is generated live from anonymized submissions and
+                is certified suitable for external accreditation review.
+              </p>
+            </div>
+          </div>
+
+          {/* Right: datasets (60%) */}
+          <div className="lg:col-span-7">
+            <div className="rule-b mb-6 flex items-end justify-between pb-4">
+              <h2 className="font-display text-headline-md font-semibold text-onSurface">Available Datasets</h2>
+            </div>
+            <div className="flex flex-col">
+              {filtered.length === 0 && (
+                <p className="py-8 font-body-md text-body-md text-onSurfaceVariant">
+                  No reports match these filters yet.
+                </p>
+              )}
+              {filtered.map((report, i) => (
+                <div key={report.id} className="rule-b group flex flex-col items-start gap-4 py-8 sm:flex-row sm:items-center sm:gap-8">
+                  <span className="w-12 font-display text-headline-lg font-light text-onSurfaceVariant/30">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <div className="flex-grow">
+                    <h3 className="mb-1 font-display text-headline-md font-semibold text-onSurface">{report.title}</h3>
+                    <p className="font-body-md text-sm text-onSurfaceVariant">
+                      {TYPE_LABELS[report.type] ?? report.type} · {formatDate(report.createdAt)} ·{" "}
+                      {typeof report.content?.scope === "string" ? report.content.scope : "University-wide"}
+                    </p>
+                  </div>
+                  <div className="flex gap-4">
+                    <a
+                      href={`${API_BASE}/reports/${report.id}/export?format=csv`}
+                      title="Export CSV"
+                      className="text-onSurfaceVariant transition-colors hover:text-primary"
+                    >
+                      <span className="material-symbols-outlined">table_view</span>
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </AppShell>
   );
 }

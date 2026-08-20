@@ -10,6 +10,10 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(8).default("whisperlag-dev-secret-change-me"),
   JWT_EXPIRES_IN: z.string().default("7d"),
   CORS_ORIGIN: z.string().default("*"),
+  // Optional AI insights. When unset, the insights endpoint falls back to a
+  // deterministic keyword/rule clustering algorithm.
+  GROQ_API_KEY: z.string().optional(),
+  GROQ_MODEL: z.string().default("llama-3.3-70b-versatile"),
 });
 
 const parsed = envSchema.safeParse(process.env);

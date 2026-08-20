@@ -2,28 +2,20 @@
 
 import Link from "next/link";
 import { motion, type Variants } from "framer-motion";
+import { WhisperLogo } from "@/components/ui/WhisperLogo";
 
-const TRUST_PILLARS = [
+const TRUST_ITEMS = [
   {
-    icon: "shield_lock",
-    bg: "bg-secondary-container",
-    fg: "text-onSecondaryContainer",
-    title: "Cryptographic Anonymity",
-    body: "Your identity is stripped at the database level. Not even system administrators can trace a whisper back to your account.",
+    title: "End-to-End Encrypted via UNILAG Secure",
+    body: "Every submission is stripped of identifying metadata before it ever reaches our servers. The Whisper Lock ensures your voice remains solely yours.",
   },
   {
-    icon: "account_balance",
-    bg: "bg-primary-container",
-    fg: "text-onPrimaryContainer",
-    title: "Official Channel",
-    body: "Direct integration with UNILAG's quality assurance workflows ensures your feedback reaches the right department immediately.",
+    title: "Editorial Clarity",
+    body: "We prioritize the substance of your message. Our interface removes distractions, allowing you to articulate complex concerns with focus and dignity.",
   },
   {
-    icon: "visibility",
-    bg: "bg-tertiary-container",
-    fg: "text-onTertiaryContainer",
-    title: "Transparent Progress",
-    body: "Track the status of your reported issues through resolution, preserving your privacy the whole way.",
+    title: "Direct Institutional Routing",
+    body: "Feedback isn't shouted into a void. It is securely routed to the appropriate faculty or compliance boards for actionable, confidential review.",
   },
 ];
 
@@ -33,138 +25,125 @@ const containerVariants: Variants = {
 };
 
 const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 260, damping: 24 } },
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 260, damping: 26 } },
 };
 
+/** Editorial marketing landing page (per the "Whisper" design). */
 export default function LandingPage() {
-
   return (
-    <main className="flex min-h-screen flex-col bg-surface font-body text-onBackground">
-      {/* TopNav */}
-      <header className="fixed top-0 z-50 flex h-16 w-full items-center justify-between border-b-2 border-primary bg-surface px-margin-mobile md:px-margin-desktop">
-        <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-2xl font-bold text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>
-            security
+    <main className="flex min-h-screen flex-col bg-surface font-body text-onSurface">
+      {/* Top nav (public marketing page only) */}
+      <header className="border-b border-ink/10">
+        <div className="mx-auto flex w-full max-w-wide items-center justify-between px-margin-desktop py-4">
+          <span className="font-display text-headline-md font-bold tracking-tighter text-primary">
+            WhisperLag
           </span>
-          <span className="font-display text-headline-sm font-bold text-primary">WhisperLag</span>
-        </div>
-        <nav className="hidden items-center gap-6 md:flex">
-          <Link href="/dashboard" className="rounded px-3 py-2 font-label-md text-label-md text-onSurfaceVariant transition-colors hover:bg-surface-container-low hover:text-primary">
-            Dashboard
-          </Link>
-          <Link href="/whisper" className="rounded px-3 py-2 font-label-md text-label-md text-onSurfaceVariant transition-colors hover:bg-surface-container-low hover:text-primary">
-            My Whispers
-          </Link>
-          <Link href="/faculty" className="rounded px-3 py-2 font-label-md text-label-md text-onSurfaceVariant transition-colors hover:bg-surface-container-low hover:text-primary">
-            Faculty
-          </Link>
-          <Link href="/admin" className="rounded px-3 py-2 font-label-md text-label-md text-onSurfaceVariant transition-colors hover:bg-surface-container-low hover:text-primary">
-            Admin
-          </Link>
-        </nav>
-        <div className="flex items-center gap-4 text-primary">
-          <button aria-label="Notifications" className="rounded-full p-2 transition-colors hover:bg-surface-container-low">
-            <span className="material-symbols-outlined">notifications</span>
-          </button>
-          <button aria-label="Account" className="rounded-full p-2 transition-colors hover:bg-surface-container-low">
-            <span className="material-symbols-outlined">account_circle</span>
+          <div className="hidden items-center gap-8 md:flex">
+            <Link href="/dashboard" className="font-label-caps text-label-caps uppercase text-onSurfaceVariant/70 transition-colors hover:text-primary">
+              Dashboard
+            </Link>
+            <Link href="/login" className="font-label-caps text-label-caps uppercase text-onSurfaceVariant/70 transition-colors hover:text-primary">
+              Sign In
+            </Link>
+          </div>
+          <button className="bg-ink px-6 py-3 font-label-caps text-label-caps uppercase tracking-widest text-white transition-colors duration-300 hover:bg-primary">
+            Submit a Whisper
           </button>
         </div>
       </header>
 
       {/* Hero */}
-      <section className="flex flex-1 flex-col items-center justify-between gap-12 px-margin-mobile pb-16 pt-24 md:flex-row md:px-margin-desktop">
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="max-w-container flex-1 space-y-6"
-        >
-          <motion.div variants={itemVariants}>
-            <div className="inline-flex items-center gap-2 rounded-full border border-secondary-container bg-secondary-container/20 px-4 py-2 animate-whisper-pulse">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-secondary text-onSecondary">
-                <span className="material-symbols-outlined text-sm font-bold" style={{ fontVariationSettings: "'FILL' 1" }}>
-                  lock
-                </span>
-              </span>
-              <span className="font-label-md text-label-md text-secondary">
-                Your whisper is hidden. Nobody knows it is you.
-              </span>
+      <section className="mx-auto w-full max-w-wide px-margin-desktop py-section-gap">
+        <div className="flex flex-col gap-gutter md:flex-row">
+          <motion.div variants={containerVariants} initial="hidden" animate="visible" className="flex w-full flex-col justify-center md:w-3/5">
+            <motion.h1 variants={itemVariants} className="mb-8 font-display text-4xl font-bold leading-tight tracking-tight text-onSurface md:text-display-xl">
+              A student who whispers
+              <br />
+              <span className="font-normal text-onSurfaceVariant">is still speaking.</span>
+            </motion.h1>
+            <motion.p variants={itemVariants} className="mb-12 max-w-xl font-body-lg text-body-lg text-onSurfaceVariant">
+              A space designed for institutional trust and absolute privacy.
+              Because the most important feedback often requires a safe harbor.
+            </motion.p>
+            <motion.div variants={itemVariants} className="flex items-center gap-8">
+              <Link
+                href="/whisper"
+                className="bg-ink px-8 py-4 font-label-caps text-label-caps uppercase tracking-widest text-white transition-colors duration-300 hover:bg-primary"
+              >
+                Speak Now
+              </Link>
+              <a href="#purpose" className="border-b border-onSurface pb-1 font-label-caps text-label-caps uppercase tracking-widest text-onSurface transition-colors hover:border-primary hover:text-primary">
+                Learn More
+              </a>
+            </motion.div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="flex w-full items-center justify-center pt-12 md:w-2/5 md:pt-0"
+          >
+            <div className="relative flex aspect-square w-full flex-col items-center justify-center overflow-hidden border border-ink/10 bg-surface p-8">
+              <WhisperLogo size={160} className="z-10 mb-8" />
+              <div className="absolute inset-0 bg-gradient-to-br from-surface-container-highest/20 to-transparent" />
+              <div className="z-10 text-center">
+                <p className="mb-2 font-display text-headline-md font-semibold text-onSurface">Your whisper is hidden.</p>
+                <p className="font-body-lg text-body-lg text-onSurfaceVariant">Nobody knows it is you.</p>
+              </div>
             </div>
           </motion.div>
-
-          <motion.h1 variants={itemVariants} className="font-display text-headline-lg-mobile font-bold text-onSurface md:text-headline-xl">
-            A student who whispers is still speaking.
-          </motion.h1>
-
-          <motion.p variants={itemVariants} className="max-w-2xl font-body-lg text-body-lg text-onSurfaceVariant">
-            WhisperLag is the secure, official channel for University of Lagos
-            students to provide candid feedback, report issues, and improve
-            campus life — with absolute anonymity guaranteed.
-          </motion.p>
-
-          <motion.div variants={itemVariants} className="flex flex-col gap-4 pt-4 sm:flex-row">
-            <Link
-              href="/dashboard"
-              className="flex h-12 items-center justify-center gap-2 rounded-lg bg-primary px-8 font-label-md text-label-md text-onPrimary shadow-level-1 transition-colors hover:bg-surface-tint active:scale-95"
-            >
-              Go to Dashboard
-              <span className="material-symbols-outlined text-sm">arrow_forward</span>
-            </Link>
-            <a
-              href="#trust"
-              className="flex h-12 items-center justify-center rounded-lg border border-outline bg-transparent px-8 font-label-md text-label-md text-primary transition-colors hover:bg-surface-container-low active:scale-95"
-            >
-              Learn More
-            </a>
-          </motion.div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, scale: 0.96 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="w-full max-w-md"
-        >
-          <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl bg-surface-container shadow-level-2">
-            <span className="material-symbols-outlined text-primary" style={{ fontSize: "9rem", fontVariationSettings: "'FILL' 1" }}>
-              lock
-            </span>
-          </div>
-        </motion.div>
+        </div>
       </section>
 
-      {/* Trust Promise */}
-      <section id="trust" className="border-t border-outlineVariant bg-background px-margin-mobile py-16 md:px-margin-desktop">
-        <div className="mx-auto max-w-container">
-          <div className="mb-12 text-center">
-            <h2 className="font-display text-headline-lg font-bold text-onSurface">The Trust Promise</h2>
-            <p className="mx-auto mt-4 max-w-2xl font-body-md text-body-md text-onSurfaceVariant">
-              Built on the pillars of institutional integrity and absolute user
-              safety. Your voice is heard without ever feeling exposed.
+      <div className="mx-auto w-full max-w-wide px-margin-desktop">
+        <div className="rule-b" />
+      </div>
+
+      {/* Purpose */}
+      <section id="purpose" className="mx-auto w-full max-w-wide px-margin-desktop py-section-gap">
+        <div className="flex flex-col gap-gutter md:flex-row">
+          <div className="w-full md:w-1/3 md:pr-12">
+            <h2 className="mb-6 font-label-caps text-label-caps uppercase tracking-wider text-onSurfaceVariant">
+              The Purpose
+            </h2>
+          </div>
+          <div className="flex w-full flex-col gap-12 md:w-2/3">
+            <p className="max-w-3xl font-display text-headline-md font-semibold leading-relaxed text-onSurface">
+              At the University of Lagos, we believe candid feedback is the
+              cornerstone of academic excellence — but voicing concerns can be daunting.
+            </p>
+            <p className="max-w-2xl font-body-lg text-body-lg leading-relaxed text-onSurfaceVariant">
+              WhisperLag is an editorial, secure channel designed entirely around
+              absolute anonymity. By removing the fear of reprisal, we uncover the
+              truths that standard surveys miss, fostering a stronger, more
+              accountable university identity.
             </p>
           </div>
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-80px" }}
-            className="grid grid-cols-1 gap-6 md:grid-cols-3"
-          >
-            {TRUST_PILLARS.map((pillar) => (
+        </div>
+      </section>
+
+      {/* Architecture of Trust */}
+      <section className="bg-surface-container-low">
+        <div className="mx-auto w-full max-w-wide px-margin-desktop py-section-gap">
+          <h2 className="mb-16 font-display text-headline-lg font-bold text-onSurface md:text-display-xl">
+            The Architecture of Trust
+          </h2>
+          <motion.div variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }}>
+            {TRUST_ITEMS.map((item, i) => (
               <motion.div
-                key={pillar.title}
+                key={item.title}
                 variants={itemVariants}
-                className="flex flex-col items-center rounded-lg border border-outlineVariant/30 bg-surface-container-lowest p-6 text-center shadow-level-1"
+                className="rule-b flex flex-col gap-8 border-t border-ink/10 py-8 md:flex-row md:items-start"
               >
-                <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-full ${pillar.bg} ${pillar.fg}`}>
-                  <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
-                    {pillar.icon}
-                  </span>
+                <span className="font-display w-16 text-headline-lg font-normal text-onSurfaceVariant/30">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <div className="flex-grow">
+                  <h3 className="mb-4 font-display text-headline-md font-semibold text-onSurface">{item.title}</h3>
+                  <p className="max-w-2xl font-body-md text-body-md text-onSurfaceVariant">{item.body}</p>
                 </div>
-                <h3 className="font-display text-headline-sm font-semibold text-onSurface">{pillar.title}</h3>
-                <p className="mt-2 font-body-sm text-body-sm text-onSurfaceVariant">{pillar.body}</p>
               </motion.div>
             ))}
           </motion.div>

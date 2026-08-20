@@ -5,9 +5,8 @@ import { useRouter } from "next/navigation";
 import { api, storeSession } from "@/lib/api";
 
 /**
- * Sign-in form wired to the WhisperLag API. On success the token is
- * persisted to localStorage (kept simple for the hackathon demo) and the
- * user is routed to the dashboard.
+ * Institutional sign-in form (editorial style). Wires to the API and stores
+ * the session token on success.
  */
 export function LoginForm() {
   const router = useRouter();
@@ -35,57 +34,62 @@ export function LoginForm() {
   }
 
   return (
-    <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
-      <div className="flex flex-col gap-4">
-        <div>
-          <label htmlFor="email" className="mb-2 block font-label-md text-label-md text-onSurface">
-            Institutional Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="student@unilag.edu.ng"
-            className="h-[48px] w-full rounded border border-outlineVariant bg-surface-container-lowest px-3 font-body-md text-body-md text-onSurface transition-all placeholder:text-onSurfaceVariant/50 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-          />
-        </div>
-        <div>
-          <div className="mb-2 flex items-center justify-between">
-            <label htmlFor="password" className="block font-label-md text-label-md text-onSurface">
-              Password
-            </label>
-            <a href="#" className="font-label-md text-label-md text-primary hover:underline">
-              Forgot password?
-            </a>
-          </div>
-          <input
-            id="password"
-            type="password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
-            className="h-[48px] w-full rounded border border-outlineVariant bg-surface-container-lowest px-3 font-body-md text-body-md text-onSurface transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-          />
-        </div>
+    <form className="space-y-8" onSubmit={handleSubmit}>
+      <div className="relative">
+        <label htmlFor="student_id" className="absolute -top-5 left-0 font-label-caps text-label-caps text-onSurfaceVariant">
+          UNILAG ID
+        </label>
+        <input
+          id="student_id"
+          type="text"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="e.g. 1902030..."
+          className="input-minimal w-full font-body-md text-body-md text-onSurface"
+        />
+      </div>
+      <div className="relative">
+        <label htmlFor="password" className="absolute -top-5 left-0 font-label-caps text-label-caps text-onSurfaceVariant">
+          Secure Password
+        </label>
+        <input
+          id="password"
+          type="password"
+          required
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="••••••••"
+          className="input-minimal w-full font-body-md text-body-md text-onSurface"
+        />
       </div>
 
       {error && (
-        <p className="rounded bg-error-container px-3 py-2 font-body-sm text-body-sm text-onErrorContainer">
+        <p className="border border-error-container bg-error-container/30 p-3 font-body-sm text-body-sm text-onErrorContainer">
           {error}
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="flex h-[48px] w-full items-center justify-center gap-2 rounded bg-primary font-label-md text-label-md text-onPrimary transition-colors hover:bg-surface-tint disabled:opacity-60"
-      >
-        {loading ? "Signing in…" : "Sign In"}
-        <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
-      </button>
+      <div className="flex flex-col gap-4 pt-8">
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-ink py-4 font-label-caps text-label-caps uppercase tracking-widest text-white transition-colors duration-300 hover:bg-primary disabled:opacity-60"
+        >
+          {loading ? "Authenticating…" : "Authenticate & Enter"}
+        </button>
+        <div className="mt-4 flex items-center justify-between">
+          <span className="h-px flex-1 bg-ink/10" />
+          <span className="px-4 font-label-caps text-label-caps text-onSurfaceVariant">Or</span>
+          <span className="h-px flex-1 bg-ink/10" />
+        </div>
+        <button
+          type="button"
+          className="w-full border border-ink bg-transparent py-4 font-label-caps text-label-caps uppercase tracking-widest text-onSurface transition-colors duration-300 hover:bg-surface-variant"
+        >
+          Register New Account
+        </button>
+      </div>
     </form>
   );
 }
