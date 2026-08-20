@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
-import { LoadingBlock, SignedOut } from "@/components/ui/States";
+import { LoadingBlock } from "@/components/ui/States";
 import { api, getToken } from "@/lib/api";
 
 interface Survey {
@@ -28,7 +28,6 @@ const TYPES = [
 
 /** Survey builder — creates and publishes surveys via the API. */
 export default function SurveyBuilderPage() {
-  const session = Boolean(getToken());
   const [title, setTitle] = useState("Faculty Feedback 2026");
   const [questions, setQuestions] = useState<DraftQuestion[]>([
     { key: 1, prompt: "How clear were the course objectives?", type: "RATING", options: "" },
@@ -47,8 +46,8 @@ export default function SurveyBuilderPage() {
   }
 
   useEffect(() => {
-    if (session) void loadSurveys();
-  }, [session]);
+    void loadSurveys();
+  }, []);
 
   function addQuestion() {
     setQuestions((q) => [
@@ -94,13 +93,6 @@ export default function SurveyBuilderPage() {
     }
   }
 
-  if (!session) {
-    return (
-      <AppShell>
-        <SignedOut />
-      </AppShell>
-    );
-  }
 
   return (
     <AppShell>

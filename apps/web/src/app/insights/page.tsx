@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
-import { SignedOut } from "@/components/ui/States";
 import { api, getToken } from "@/lib/api";
 
 interface InsightItem {
@@ -39,7 +38,6 @@ const SENTIMENT_STYLE: Record<Cluster["sentiment"], string> = {
  * zero-dependency fallback.
  */
 export default function InsightsPage() {
-  const session = Boolean(getToken());
   const [result, setResult] = useState<InsightResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,13 +59,6 @@ export default function InsightsPage() {
     }
   }
 
-  if (!session) {
-    return (
-      <AppShell>
-        <SignedOut />
-      </AppShell>
-    );
-  }
 
   return (
     <AppShell>

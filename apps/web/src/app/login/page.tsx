@@ -15,10 +15,11 @@ export default function LoginPage() {
         </div>
         <div className="mx-auto mt-24 w-full max-w-md md:mt-0">
           <div className="mb-12">
-            <h2 className="mb-2 font-display text-headline-lg font-semibold text-onSurface">Institutional Access</h2>
+            <h2 className="mb-2 font-display text-headline-lg font-semibold text-onSurface">Student Access</h2>
             <p className="font-body-md text-body-md text-onSurfaceVariant">
-              Sign in securely using your UNILAG credentials. Your identity
-              remains detached from your submissions.
+              Sign in to confirm you&apos;re a UNILAG student. This only proves
+              you belong — <span className="font-medium text-onSurface">it is never
+              linked to your whisper.</span>
             </p>
           </div>
           <LoginForm />

@@ -13,7 +13,7 @@ import {
   Bar,
 } from "recharts";
 import { AppShell } from "@/components/layout/AppShell";
-import { ErrorBlock, LoadingBlock, SignedOut } from "@/components/ui/States";
+import { ErrorBlock, LoadingBlock } from "@/components/ui/States";
 import { api, getToken } from "@/lib/api";
 
 interface Me {
@@ -58,7 +58,6 @@ const TREND_COLORS = { whispers: "#006b2d", evaluations: "#00668a" };
 
 /** Faculty hub — aggregate-only, live, with Recharts visualizations. */
 export default function FacultyHubPage() {
-  const session = Boolean(getToken());
   const [summary, setSummary] = useState<Summary | null>(null);
   const [me, setMe] = useState<Me | null>(null);
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
@@ -68,7 +67,6 @@ export default function FacultyHubPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!session) return;
     (async () => {
       setLoading(true);
       setError(null);
@@ -110,15 +108,7 @@ export default function FacultyHubPage() {
         setLoading(false);
       }
     })();
-  }, [session]);
-
-  if (!session) {
-    return (
-      <AppShell>
-        <SignedOut />
-      </AppShell>
-    );
-  }
+  }, []);
 
   const sentimentPct = summary ? Math.round((summary.averageRating / 5) * 100) : 0;
   const breakdownData = summary?.breakdown.map((b) => ({ name: b.label, rating: b.average })) ?? [];

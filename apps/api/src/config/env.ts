@@ -13,7 +13,7 @@ const envSchema = z.object({
   // Optional AI insights. When unset, the insights endpoint falls back to a
   // deterministic keyword/rule clustering algorithm.
   GROQ_API_KEY: z.string().optional(),
-  GROQ_MODEL: z.string().default("llama-3.3-70b-versatile"),
+  GROQ_MODEL: z.string().default("openai/gpt-oss-120b"),
 });
 
 const parsed = envSchema.safeParse(process.env);

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { WhisperForm } from "@/components/feedback/WhisperForm";
-import { ErrorBlock, LoadingBlock, SignedOut } from "@/components/ui/States";
+import { ErrorBlock, LoadingBlock } from "@/components/ui/States";
 import { useFetch } from "@/lib/useFetch";
 import { api, getToken } from "@/lib/api";
 
@@ -124,18 +124,9 @@ function PollList({ surveys, onDone }: { surveys: Survey[]; onDone: () => void }
 
 /** Student dashboard — editorial split layout, fully live. */
 export default function StudentDashboardPage() {
-  const session = Boolean(getToken());
   const recent = useFetch<RecentWhisper[]>("/feedback/recent");
   const surveys = useFetch<Survey[]>("/surveys");
   const items = recent.data;
-
-  if (!session) {
-    return (
-      <AppShell>
-        <SignedOut />
-      </AppShell>
-    );
-  }
 
   return (
     <AppShell>

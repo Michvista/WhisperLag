@@ -35,3 +35,6 @@ Thumbs.db
 # Temporary working files (not part of the product)
 tmp_extract/
 .agents
+
+# Internal planning/docs (not part of the deliverable)
+docs/

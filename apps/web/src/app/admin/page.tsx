@@ -15,7 +15,7 @@ import {
   Cell,
 } from "recharts";
 import { AppShell } from "@/components/layout/AppShell";
-import { ErrorBlock, LoadingBlock, SignedOut } from "@/components/ui/States";
+import { ErrorBlock, LoadingBlock } from "@/components/ui/States";
 import { api, getToken } from "@/lib/api";
 
 interface Overview {
@@ -42,7 +42,6 @@ function formatDate(iso: string) {
 
 /** Admin command center — institutional overview, live. */
 export default function AdminCommandCenterPage() {
-  const session = Boolean(getToken());
   const [overview, setOverview] = useState<Overview | null>(null);
   const [reports, setReports] = useState<Report[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -68,8 +67,8 @@ export default function AdminCommandCenterPage() {
   }
 
   useEffect(() => {
-    if (session) void loadAll();
-  }, [session]);
+    void loadAll();
+  }, []);
 
   async function generateReport() {
     setGenerating(true);
@@ -89,13 +88,6 @@ export default function AdminCommandCenterPage() {
     }
   }
 
-  if (!session) {
-    return (
-      <AppShell>
-        <SignedOut />
-      </AppShell>
-    );
-  }
 
   return (
     <AppShell>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
-import { ErrorBlock, LoadingBlock, SignedOut } from "@/components/ui/States";
+import { ErrorBlock, LoadingBlock } from "@/components/ui/States";
 import { api, getToken, API_BASE } from "@/lib/api";
 
 interface Overview {
@@ -39,7 +39,6 @@ function formatDate(iso: string) {
 
 /** Reports & accreditation — editorial 40/60 presentation of live data. */
 export default function ReportsPage() {
-  const session = Boolean(getToken());
   const [reports, setReports] = useState<Report[] | null>(null);
   const [overview, setOverview] = useState<Overview | null>(null);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -49,7 +48,6 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!session) return;
     (async () => {
       setLoading(true);
       setError(null);
@@ -68,15 +66,8 @@ export default function ReportsPage() {
         setLoading(false);
       }
     })();
-  }, [session]);
+  }, []);
 
-  if (!session) {
-    return (
-      <AppShell>
-        <SignedOut />
-      </AppShell>
-    );
-  }
 
   const filtered = (reports ?? []).filter(
     (r) =>

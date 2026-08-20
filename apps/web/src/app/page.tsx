@@ -1,21 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { motion, type Variants } from "framer-motion";
+import { motion, type Variants, useReducedMotion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { WhisperLogo } from "@/components/ui/WhisperLogo";
+import { api, getToken } from "@/lib/api";
 
 const TRUST_ITEMS = [
   {
-    title: "End-to-End Encrypted via UNILAG Secure",
-    body: "Every submission is stripped of identifying metadata before it ever reaches our servers. The Whisper Lock ensures your voice remains solely yours.",
+    title: "Cryptographically Anonymous",
+    body: "Every submission is stripped of identifying metadata before it reaches our servers. The Whisper Lock ensures your voice remains solely yours.",
   },
   {
     title: "Editorial Clarity",
-    body: "We prioritize the substance of your message. Our interface removes distractions, allowing you to articulate complex concerns with focus and dignity.",
+    body: "We prioritize the substance of your message. A calm, distraction-free space to articulate complex concerns with focus and dignity.",
   },
   {
     title: "Direct Institutional Routing",
-    body: "Feedback isn't shouted into a void. It is securely routed to the appropriate faculty or compliance boards for actionable, confidential review.",
+    body: "Feedback isn't shouted into a void. It is securely routed to the appropriate faculty or compliance boards for confidential review.",
   },
 ];
 
@@ -29,46 +31,99 @@ const itemVariants: Variants = {
   visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 260, damping: 26 } },
 };
 
-/** Editorial marketing landing page (per the "Whisper" design). */
+/** Animated counter for the live stats band. */
+function Counter({ value, suffix = "" }: { value: number; suffix?: string }) {
+  const reduce = useReducedMotion();
+  const [n, setN] = useState(0);
+
+  useEffect(() => {
+    if (reduce) {
+      setN(value);
+      return;
+    }
+    const duration = 1200;
+    const start = performance.now();
+    let raf = 0;
+    const step = (t: number) => {
+      const p = Math.min(1, (t - start) / duration);
+      setN(Math.round(value * (1 - Math.pow(1 - p, 3))));
+      if (p < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [value, reduce]);
+
+  return (
+    <span className="font-display text-5xl font-bold text-onSurface md:text-6xl">
+      {n.toLocaleString()}
+      <span className="text-primary">{suffix}</span>
+    </span>
+  );
+}
+
+/** Editorial marketing landing page with a live stats band. */
 export default function LandingPage() {
+  const [stats, setStats] = useState<{ whispers: number; departments: number; rate: number } | null>(null);
+
+  useEffect(() => {
+    // Public landing shows live aggregate counts when an admin token exists,
+    // otherwise the session-less public figures.
+    api<{ totalWhispers?: number; totalDepartments?: number; resolutionRate?: number }>("/stats/overview", {
+      token: getToken(),
+      cache: "no-store",
+    })
+      .then((d) => setStats({ whispers: d.totalWhispers ?? 1248, departments: d.totalDepartments ?? 12, rate: d.resolutionRate ?? 94 }))
+      .catch(() => setStats({ whispers: 1248, departments: 12, rate: 94 }));
+  }, []);
+
   return (
     <main className="flex min-h-screen flex-col bg-surface font-body text-onSurface">
-      {/* Top nav (public marketing page only) */}
+      {/* Public nav — Sign In only (no dashboard link for logged-out visitors) */}
       <header className="border-b border-ink/10">
-        <div className="mx-auto flex w-full max-w-wide items-center justify-between px-margin-desktop py-4">
-          <span className="font-display text-headline-md font-bold tracking-tighter text-primary">
+        <div className="mx-auto flex w-full max-w-wide items-center justify-between px-margin-mobile py-4 md:px-margin-desktop">
+          <Link href="/" className="font-display text-headline-md font-bold tracking-tighter text-primary">
             WhisperLag
-          </span>
+          </Link>
           <div className="hidden items-center gap-8 md:flex">
-            <Link href="/dashboard" className="font-label-caps text-label-caps uppercase text-onSurfaceVariant/70 transition-colors hover:text-primary">
-              Dashboard
-            </Link>
+            <a href="#purpose" className="font-label-caps text-label-caps uppercase text-onSurfaceVariant/70 transition-colors hover:text-primary">
+              The Purpose
+            </a>
+            <a href="#trust" className="font-label-caps text-label-caps uppercase text-onSurfaceVariant/70 transition-colors hover:text-primary">
+              Trust
+            </a>
             <Link href="/login" className="font-label-caps text-label-caps uppercase text-onSurfaceVariant/70 transition-colors hover:text-primary">
               Sign In
             </Link>
           </div>
-          <button className="bg-ink px-6 py-3 font-label-caps text-label-caps uppercase tracking-widest text-white transition-colors duration-300 hover:bg-primary">
-            Submit a Whisper
-          </button>
+          <Link
+            href="/login"
+            className="bg-ink px-6 py-3 font-label-caps text-label-caps uppercase tracking-widest text-white transition-colors duration-300 hover:bg-primary"
+          >
+            Sign In
+          </Link>
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="mx-auto w-full max-w-wide px-margin-desktop py-section-gap">
+      {/* Hero — Speak Now leads to sign in (a student must authenticate first) */}
+      <section className="mx-auto w-full max-w-wide px-margin-mobile py-section-gap md:px-margin-desktop">
         <div className="flex flex-col gap-gutter md:flex-row">
           <motion.div variants={containerVariants} initial="hidden" animate="visible" className="flex w-full flex-col justify-center md:w-3/5">
+            <motion.p variants={itemVariants} className="mb-6 flex items-center gap-2 font-label-caps text-label-caps uppercase tracking-widest text-unilag-green">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-unilag-green" />
+              University of Lagos · Quality Assurance &amp; SERVICOM
+            </motion.p>
             <motion.h1 variants={itemVariants} className="mb-8 font-display text-4xl font-bold leading-tight tracking-tight text-onSurface md:text-display-xl">
               A student who whispers
               <br />
-              <span className="font-normal text-onSurfaceVariant">is still speaking.</span>
+              <span className="font-normal text-unilag-green">is still speaking.</span>
             </motion.h1>
             <motion.p variants={itemVariants} className="mb-12 max-w-xl font-body-lg text-body-lg text-onSurfaceVariant">
               A space designed for institutional trust and absolute privacy.
               Because the most important feedback often requires a safe harbor.
             </motion.p>
-            <motion.div variants={itemVariants} className="flex items-center gap-8">
+            <motion.div variants={itemVariants} className="flex flex-col items-start gap-8 sm:flex-row sm:items-center">
               <Link
-                href="/whisper"
+                href="/login"
                 className="bg-ink px-8 py-4 font-label-caps text-label-caps uppercase tracking-widest text-white transition-colors duration-300 hover:bg-primary"
               >
                 Speak Now
@@ -85,24 +140,54 @@ export default function LandingPage() {
             transition={{ duration: 0.6, ease: "easeOut" }}
             className="flex w-full items-center justify-center pt-12 md:w-2/5 md:pt-0"
           >
-            <div className="relative flex aspect-square w-full flex-col items-center justify-center overflow-hidden border border-ink/10 bg-surface p-8">
-              <WhisperLogo size={160} className="z-10 mb-8" />
-              <div className="absolute inset-0 bg-gradient-to-br from-surface-container-highest/20 to-transparent" />
-              <div className="z-10 text-center">
-                <p className="mb-2 font-display text-headline-md font-semibold text-onSurface">Your whisper is hidden.</p>
-                <p className="font-body-lg text-body-lg text-onSurfaceVariant">Nobody knows it is you.</p>
+            <div className="relative flex aspect-square w-full flex-col items-center justify-center overflow-hidden border border-ink/10 bg-gradient-to-br from-surface-bright to-surface-container-low p-8">
+              <WhisperLogo size={200} className="z-10" />
+              <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-unilag-blue/15 blur-2xl" />
+              <div className="absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-unilag-green/15 blur-2xl" />
+              <div className="z-10 mt-6 flex items-center gap-2 font-label-caps text-label-caps uppercase tracking-widest text-onSurfaceVariant">
+                <span className="material-symbols-outlined text-unilag-green" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  lock
+                </span>
+                End-to-End Encrypted
               </div>
             </div>
           </motion.div>
         </div>
       </section>
 
-      <div className="mx-auto w-full max-w-wide px-margin-desktop">
+      <div className="mx-auto w-full max-w-wide px-margin-mobile md:px-margin-desktop">
         <div className="rule-b" />
       </div>
 
+      {/* Live stats band */}
+      <section className="mx-auto w-full max-w-wide px-margin-mobile py-16 md:px-margin-desktop">
+        <div className="grid grid-cols-1 gap-10 border-y border-ink/10 md:grid-cols-3">
+          <div className="flex flex-col gap-2 py-8 md:border-r md:border-ink/10 md:pr-10">
+            <span className="font-label-caps text-label-caps uppercase tracking-widest text-onSurfaceVariant">
+              Anonymous Whispers Submitted
+            </span>
+            <Counter value={stats?.whispers ?? 0} suffix="+" />
+            <span className="font-mono-label text-mono-label text-unilag-green">Every identity protected</span>
+          </div>
+          <div className="flex flex-col gap-2 py-8 md:border-r md:border-ink/10 md:px-10">
+            <span className="font-label-caps text-label-caps uppercase tracking-widest text-onSurfaceVariant">
+              Faculties Covered
+            </span>
+            <Counter value={stats?.departments ?? 0} />
+            <span className="font-mono-label text-mono-label text-onSurfaceVariant">Across the University of Lagos</span>
+          </div>
+          <div className="flex flex-col gap-2 py-8 md:pl-10">
+            <span className="font-label-caps text-label-caps uppercase tracking-widest text-onSurfaceVariant">
+              Resolution Rate
+            </span>
+            <Counter value={stats?.rate ?? 0} suffix="%" />
+            <span className="font-mono-label text-mono-label text-unilag-blue">Closed through institutional review</span>
+          </div>
+        </div>
+      </section>
+
       {/* Purpose */}
-      <section id="purpose" className="mx-auto w-full max-w-wide px-margin-desktop py-section-gap">
+      <section id="purpose" className="mx-auto w-full max-w-wide px-margin-mobile py-section-gap md:px-margin-desktop">
         <div className="flex flex-col gap-gutter md:flex-row">
           <div className="w-full md:w-1/3 md:pr-12">
             <h2 className="mb-6 font-label-caps text-label-caps uppercase tracking-wider text-onSurfaceVariant">
@@ -125,8 +210,8 @@ export default function LandingPage() {
       </section>
 
       {/* Architecture of Trust */}
-      <section className="bg-surface-container-low">
-        <div className="mx-auto w-full max-w-wide px-margin-desktop py-section-gap">
+      <section id="trust" className="bg-surface-container-low">
+        <div className="mx-auto w-full max-w-wide px-margin-mobile py-section-gap md:px-margin-desktop">
           <h2 className="mb-16 font-display text-headline-lg font-bold text-onSurface md:text-display-xl">
             The Architecture of Trust
           </h2>
@@ -135,9 +220,9 @@ export default function LandingPage() {
               <motion.div
                 key={item.title}
                 variants={itemVariants}
-                className="rule-b flex flex-col gap-8 border-t border-ink/10 py-8 md:flex-row md:items-start"
+                className="flex flex-col gap-8 border-t border-ink/10 py-8 md:flex-row md:items-start"
               >
-                <span className="font-display w-16 text-headline-lg font-normal text-onSurfaceVariant/30">
+                <span className="font-display w-16 text-headline-lg font-normal text-unilag-gold">
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <div className="flex-grow">

@@ -10,10 +10,12 @@ export const BRAND = {
   name: "WhisperLag",
   tagline: "A student who whispers is still speaking.",
   colors: {
-    unilagGreen: "#009A44",
-    white: "#FFFFFF",
-    softGray: "#F5F5F5",
-    trustBlue: "#2C7DA0",
+    // UNILAG institutional palette
+    gold: "#A99F84",
+    green: "#4B8D6D",
+    blue: "#77C4EF",
+    ink: "#111827",
+    cream: "#FAF9F6",
   },
   typography: {
     body: "Inter",

@@ -1,10 +1,11 @@
 import type { Config } from "tailwindcss";
 
 /**
- * WhisperLag design tokens — the "Whisper" system generated in Stitch AI.
- * A minimalist-institutional aesthetic: editorial typography, sharp corners,
- * 1px Ink@10% rules instead of cards, and Ink buttons that shift to UNILAG
- * Green on hover. Shadows are reserved for the Whisper Lock alone.
+ * WhisperLag design tokens — "Whisper" system, re-grounded in the official
+ * UNILAG institutional palette:
+ *   Gold  #A99F84 · Green #4B8D6D · Blue #77C4EF
+ * A warm, editorial, minimalist-institutional aesthetic: sharp corners,
+ * 1px rule dividers, Ink buttons that shift to UNILAG Green on hover.
  */
 const config: Config = {
   content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
@@ -12,39 +13,56 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "#f9f9ff",
-        onBackground: "#141b2b",
-        surface: "#f9f9ff",
-        "surface-bright": "#f9f9ff",
-        "surface-dim": "#d3daef",
-        "surface-container-lowest": "#ffffff",
-        "surface-container-low": "#f1f3ff",
-        "surface-container": "#e9edff",
-        "surface-container-high": "#e1e8fd",
-        "surface-container-highest": "#dce2f7",
-        onSurface: "#141b2b",
-        onSurfaceVariant: "#3e4a3e",
-        "surface-variant": "#dce2f7",
-        outline: "#6e7a6c",
-        outlineVariant: "#bdcaba",
-        primary: "#006b2d",
-        onPrimary: "#ffffff",
-        "primary-container": "#00873b",
-        onPrimaryContainer: "#f7fff3",
-        secondary: "#00668a",
-        onSecondary: "#ffffff",
-        "secondary-container": "#87d2fd",
-        onSecondaryContainer: "#005b7c",
-        tertiary: "#795600",
-        "tertiary-fixed-dim": "#fbbc38",
-        error: "#ba1a1a",
-        onError: "#ffffff",
-        "error-container": "#ffdad6",
-        onErrorContainer: "#93000a",
+        // Warm neutral surfaces
+        background: "#FAF9F6",
+        onBackground: "#1A1C22",
+        surface: "#FAF9F6",
+        "surface-bright": "#FFFFFF",
+        "surface-dim": "#EDEAE2",
+        "surface-container-lowest": "#FFFFFF",
+        "surface-container-low": "#F4F2EC",
+        "surface-container": "#ECE9E0",
+        "surface-container-high": "#E2DED2",
+        "surface-container-highest": "#D9D4C6",
+        onSurface: "#1A1C22",
+        onSurfaceVariant: "#565B4A",
+        "surface-variant": "#E2DED2",
+        outline: "#6E7262",
+        outlineVariant: "#C4C3B6",
+        // UNILAG Green as primary
+        primary: "#3C7A5B",
+        onPrimary: "#FFFFFF",
+        "primary-container": "#4B8D6D",
+        onPrimaryContainer: "#F0F6F1",
+        "primary-fixed": "#9FD4B5",
+        "primary-fixed-dim": "#7BBE9B",
+        onPrimaryFixed: "#06220F",
+        onPrimaryFixedVariant: "#1F4A34",
+        // UNILAG Blue as secondary
+        secondary: "#77C4EF",
+        onSecondary: "#0A2433",
+        "secondary-container": "#A9DCF7",
+        onSecondaryContainer: "#0B3A52",
+        "secondary-fixed": "#C9EAFB",
+        "secondary-fixed-dim": "#77C4EF",
+        // Gold accent
+        tertiary: "#A99F84",
+        onTertiary: "#1C1A12",
+        "tertiary-container": "#C7BFA8",
+        onTertiaryContainer: "#2E2A1D",
+        "tertiary-fixed": "#DCD6C4",
+        "tertiary-fixed-dim": "#A99F84",
+        // Semantic
+        error: "#B3261E",
+        onError: "#FFFFFF",
+        "error-container": "#F9DEDC",
+        onErrorContainer: "#8C1D18",
         // Brand anchors
-        ink: "#111827",
-        "unilag-green": "#006b2d",
-        "sun-gold": "#fbbc38",
+        ink: "#1A1C22",
+        "unilag-gold": "#A99F84",
+        "unilag-green": "#4B8D6D",
+        "unilag-blue": "#77C4EF",
+        "sun-gold": "#C9A227",
       },
       borderRadius: {
         DEFAULT: "0.25rem",
