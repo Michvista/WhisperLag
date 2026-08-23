@@ -140,10 +140,8 @@ export default function LandingPage() {
             transition={{ duration: 0.6, ease: "easeOut" }}
             className="flex w-full items-center justify-center pt-12 md:w-2/5 md:pt-0"
           >
-            <div className="relative flex aspect-square w-full flex-col items-center justify-center overflow-hidden border border-ink/10 bg-gradient-to-br from-surface-bright to-surface-container-low p-8">
+            <div className="relative flex aspect-square w-full flex-col items-center justify-center overflow-hidden border border-ink/10 bg-surface p-8">
               <WhisperLogo size={200} className="z-10" />
-              <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-unilag-blue/15 blur-2xl" />
-              <div className="absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-unilag-green/15 blur-2xl" />
               <div className="z-10 mt-6 flex items-center gap-2 font-label-caps text-label-caps uppercase tracking-widest text-onSurfaceVariant">
                 <span className="material-symbols-outlined text-unilag-green" style={{ fontVariationSettings: "'FILL' 1" }}>
                   lock
