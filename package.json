@@ -8,6 +8,7 @@
     "packages/*"
   ],
   "scripts": {
+    "postinstall": "npm run prisma:generate -w @whisperlag/api",
     "dev": "concurrently -n api,web -c blue,green \"npm run dev -w @whisperlag/api\" \"npm run dev -w @whisperlag/web\"",
     "dev:api": "npm run dev -w @whisperlag/api",
     "dev:web": "npm run dev -w @whisperlag/web",
