@@ -13,6 +13,8 @@ import {
   Bar,
 } from "recharts";
 import { AppShell } from "@/components/layout/AppShell";
+import { RoleGate } from "@/components/ui/RoleGate";
+import { ROLES } from "@whisperlag/shared";
 import { ErrorBlock, LoadingBlock } from "@/components/ui/States";
 import { api, getToken } from "@/lib/api";
 
@@ -120,7 +122,8 @@ export default function FacultyHubPage() {
     })) ?? [];
 
   return (
-    <AppShell>
+    <RoleGate minRole={ROLES.FACULTY}>
+      <AppShell>
       <header className="rule-b mb-16 flex items-end justify-between pb-8">
         <div>
           <h1 className="mb-2 font-display text-headline-lg font-semibold text-onSurface">Faculty Overview</h1>
@@ -280,6 +283,7 @@ export default function FacultyHubPage() {
           </div>
         </div>
       )}
-    </AppShell>
+      </AppShell>
+    </RoleGate>
   );
 }

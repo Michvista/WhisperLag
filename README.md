@@ -75,6 +75,11 @@ WhisperLag/
 | Deployment | Docker + Railway (or on-prem) |
 | Data Visualization | Recharts | Interactive charts for performance dashboards |
 | AI Insights | Groq (LLM) + rule fallback | Groups whispers by viewpoint; flags noise |
+| Collaboration | Internal messaging | Secure channel for faculty & admins |
+| SIS/LMS | Import adapter + REST connector | Syncs course data (manual or live) |
+| PWA | Manifest + service worker | Installable on phones; offline shell |
+| Testing | Vitest | RBAC + service unit tests |
+| CI | GitHub Actions | typecheck → test → build on every push |
 
 ---
 
@@ -144,6 +149,10 @@ npm run dev            # api on :4000, web on :3000
 | GET | `/api/v1/courses` | Authenticated |
 | GET | `/api/v1/stats/overview` | Admin |
 | POST | `/api/v1/insights/analyze` | Admin |
+| GET | `/api/v1/messages` | Faculty+ |
+| POST | `/api/v1/messages` | Faculty+ |
+| GET | `/api/v1/integrations/sis/status` | Admin |
+| POST | `/api/v1/integrations/sis/import` | Admin |
 | GET | `/api/v1/reports` | Faculty+ |
 | GET | `/api/v1/reports/:id` | Faculty+ |
 | GET | `/api/v1/reports/:id/export` | Faculty+ |

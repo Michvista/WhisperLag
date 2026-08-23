@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
+import { RoleGate } from "@/components/ui/RoleGate";
+import { ROLES } from "@whisperlag/shared";
 import { LoadingBlock } from "@/components/ui/States";
 import { api, getToken } from "@/lib/api";
 
@@ -95,7 +97,8 @@ export default function SurveyBuilderPage() {
 
 
   return (
-    <AppShell>
+    <RoleGate minRole={ROLES.ADMIN}>
+      <AppShell>
       <div className="flex flex-col gap-16 md:flex-row">
         {/* Left: structure */}
         <section className="flex w-full flex-col gap-8 md:w-2/5">
@@ -239,6 +242,7 @@ export default function SurveyBuilderPage() {
           </div>
         </section>
       </div>
-    </AppShell>
+      </AppShell>
+    </RoleGate>
   );
 }

@@ -8,6 +8,6 @@ export const insightsRoutes = Router();
 insightsRoutes.post(
   "/analyze",
   authenticate,
-  authorize(PERMISSIONS.VIEW_REPORTS),
+  authorize(PERMISSIONS.VIEW_INSIGHTS),
   insightsController.analyze,
 );

@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build shared package
+        run: npm run build -w @whisperlag/shared
+
+      - name: Typecheck all workspaces
+        run: npm run typecheck
+
+      - name: Run unit tests (RBAC + services)
+        run: npm test
+
+      - name: Build API
+        run: npm run build -w @whisperlag/api
+
+      - name: Build Web
+        run: npm run build -w @whisperlag/web
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"

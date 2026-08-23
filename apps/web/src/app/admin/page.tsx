@@ -15,6 +15,8 @@ import {
   Cell,
 } from "recharts";
 import { AppShell } from "@/components/layout/AppShell";
+import { RoleGate } from "@/components/ui/RoleGate";
+import { ROLES } from "@whisperlag/shared";
 import { ErrorBlock, LoadingBlock } from "@/components/ui/States";
 import { api, getToken } from "@/lib/api";
 
@@ -90,7 +92,8 @@ export default function AdminCommandCenterPage() {
 
 
   return (
-    <AppShell>
+    <RoleGate minRole={ROLES.ADMIN}>
+      <AppShell>
       <header className="mb-16 flex flex-col gap-6">
         <h1 className="font-display text-headline-lg font-semibold text-onSurface">Institutional Overview</h1>
         <div className="flex items-center gap-4">
@@ -303,6 +306,7 @@ export default function AdminCommandCenterPage() {
           </>
         )
       )}
-    </AppShell>
+      </AppShell>
+    </RoleGate>
   );
 }

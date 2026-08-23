@@ -59,6 +59,13 @@ export const PERMISSIONS = {
   // Reporting / accreditation
   GENERATE_REPORT: "report:generate",
   VIEW_REPORTS: "report:view",
+  // Collaboration (internal messaging)
+  SEND_MESSAGE: "messages:send",
+  VIEW_MESSAGES: "messages:view",
+  // AI insights (admin-only)
+  VIEW_INSIGHTS: "insights:view",
+  // SIS/LMS integration (admin-only)
+  IMPORT_SIS: "integrations:sis-import",
   // Administration
   MANAGE_USERS: "users:manage",
   VIEW_AUDIT_LOG: "audit:view",
@@ -82,6 +89,8 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     PERMISSIONS.VIEW_EVALUATION_AGGREGATES,
     PERMISSIONS.VIEW_REPORTS,
     PERMISSIONS.VIEW_DEPARTMENT,
+    PERMISSIONS.SEND_MESSAGE,
+    PERMISSIONS.VIEW_MESSAGES,
   ],
   [ROLES.ADMIN]: [
     PERMISSIONS.SUBMIT_WHISPER,
@@ -95,6 +104,10 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     PERMISSIONS.MANAGE_DEPARTMENT,
     PERMISSIONS.GENERATE_REPORT,
     PERMISSIONS.VIEW_REPORTS,
+    PERMISSIONS.SEND_MESSAGE,
+    PERMISSIONS.VIEW_MESSAGES,
+    PERMISSIONS.VIEW_INSIGHTS,
+    PERMISSIONS.IMPORT_SIS,
     PERMISSIONS.MANAGE_USERS,
     PERMISSIONS.VIEW_AUDIT_LOG,
   ],

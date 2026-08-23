@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { AppShell } from "@/components/layout/AppShell";
+import { RoleGate } from "@/components/ui/RoleGate";
+import { ROLES } from "@whisperlag/shared";
 import { ErrorBlock, LoadingBlock } from "@/components/ui/States";
 import { api, getToken, API_BASE } from "@/lib/api";
 
@@ -77,7 +80,8 @@ export default function ReportsPage() {
   );
 
   return (
-    <AppShell>
+    <RoleGate minRole={ROLES.FACULTY}>
+      <AppShell>
       <div className="mb-20">
         <h1 className="mb-6 font-display text-4xl font-bold text-onSurface md:w-2/3 md:text-display-xl">
           Institutional Reports &amp; Accreditation Data
@@ -155,6 +159,31 @@ export default function ReportsPage() {
                 </div>
               </div>
             </div>
+            <div>
+              <h2 className="mb-6 font-display text-headline-md font-semibold text-onSurface">
+                Reports by Type
+              </h2>
+              <div className="h-48 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={Object.entries(
+                      (reports ?? []).reduce<Record<string, number>>((acc, r) => {
+                        const label = TYPE_LABELS[r.type] ?? r.type;
+                        acc[label] = (acc[label] ?? 0) + 1;
+                        return acc;
+                      }, {}),
+                    ).map(([name, count]) => ({ name, count }))}
+                    margin={{ top: 4, right: 4, bottom: 0, left: -28 }}
+                  >
+                    <CartesianGrid stroke="rgba(17,24,39,0.06)" vertical={false} />
+                    <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#565B4A" }} tickLine={false} axisLine={false} interval={0} />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: "#565B4A" }} tickLine={false} axisLine={false} />
+                    <Tooltip contentStyle={{ borderRadius: 0, borderColor: "#e5e7eb", fontSize: 12 }} cursor={{ fill: "rgba(75,141,109,0.06)" }} />
+                    <Bar dataKey="count" fill="#4B8D6D" radius={[2, 2, 0, 0]} maxBarSize={48} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
             <div className="whisper-lock-glow bg-surface-container-low p-8">
               <div className="mb-4 flex items-center gap-2 text-primary">
                 <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
@@ -207,6 +236,7 @@ export default function ReportsPage() {
           </div>
         </div>
       )}
-    </AppShell>
+      </AppShell>
+    </RoleGate>
   );
 }

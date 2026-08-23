@@ -13,13 +13,15 @@
     "dev:web": "npm run dev -w @whisperlag/web",
     "build": "npm run build -w @whisperlag/shared && npm run build -w @whisperlag/api && npm run build -w @whisperlag/web",
     "typecheck": "npm run typecheck -w @whisperlag/shared && npm run typecheck -w @whisperlag/api && npm run typecheck -w @whisperlag/web",
+    "test": "npm run test -w @whisperlag/shared && npm run test -w @whisperlag/api",
     "lint": "npm run lint -w @whisperlag/api && npm run lint -w @whisperlag/web",
     "db:up": "docker compose up -d",
     "db:migrate": "npm run prisma:migrate -w @whisperlag/api",
     "db:seed": "npm run prisma:seed -w @whisperlag/api"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "vitest": "^4.1.11"
   },
   "engines": {
     "node": ">=18.17.0"

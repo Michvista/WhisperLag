@@ -14,6 +14,8 @@ const envSchema = z.object({
   // deterministic keyword/rule clustering algorithm.
   GROQ_API_KEY: z.string().optional(),
   GROQ_MODEL: z.string().default("openai/gpt-oss-120b"),
+  // Optional live SIS/LMS connector. When unset, admins import SIS exports manually.
+  SIS_API_URL: z.string().url().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

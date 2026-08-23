@@ -8,10 +8,12 @@ import { errorHandler } from "./middleware/errorHandler.js";
 import { notFound } from "./middleware/notFound.js";
 import { authRoutes } from "./modules/auth/auth.routes.js";
 import { courseRoutes } from "./modules/courses/course.routes.js";
+import { messageRoutes } from "./modules/collaboration/message.routes.js";
 import { departmentRoutes } from "./modules/departments/department.routes.js";
 import { evaluationRoutes } from "./modules/evaluations/evaluation.routes.js";
 import { feedbackRoutes } from "./modules/feedback/feedback.routes.js";
 import { insightsRoutes } from "./modules/insights/insights.routes.js";
+import { integrationRoutes } from "./modules/integrations/integration.routes.js";
 import { reportRoutes } from "./modules/reports/report.routes.js";
 import { statsRoutes } from "./modules/stats/stats.routes.js";
 import { surveyRoutes } from "./modules/surveys/survey.routes.js";
@@ -48,6 +50,8 @@ export function createApp(): Express {
   app.use("/api/v1/courses", courseRoutes);
   app.use("/api/v1/stats", statsRoutes);
   app.use("/api/v1/insights", insightsRoutes);
+  app.use("/api/v1/integrations", integrationRoutes);
+  app.use("/api/v1/messages", messageRoutes);
   app.use("/api/v1/reports", reportRoutes);
 
   // 404 + error handling (order matters: must be registered last)

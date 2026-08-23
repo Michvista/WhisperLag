@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
+import { RoleGate } from "@/components/ui/RoleGate";
+import { ROLES } from "@whisperlag/shared";
 import { api, getToken } from "@/lib/api";
 
 interface InsightItem {
@@ -61,7 +63,8 @@ export default function InsightsPage() {
 
 
   return (
-    <AppShell>
+    <RoleGate minRole={ROLES.ADMIN}>
+      <AppShell>
       <header className="rule-b mb-12 flex flex-wrap items-end justify-between gap-6 pb-8">
         <div>
           <h1 className="mb-2 font-display text-headline-lg font-semibold text-onSurface">AI Complaint Intelligence</h1>
@@ -163,6 +166,7 @@ export default function InsightsPage() {
           Run an analysis to cluster this semester&apos;s whispers by viewpoint.
         </p>
       )}
-    </AppShell>
+      </AppShell>
+    </RoleGate>
   );
 }
