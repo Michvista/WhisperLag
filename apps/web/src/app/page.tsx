@@ -4,7 +4,7 @@ import Link from "next/link";
 import { motion, type Variants, useReducedMotion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { WhisperLogo } from "@/components/ui/WhisperLogo";
-import { api, getToken } from "@/lib/api";
+import { api } from "@/lib/api";
 
 const TRUST_ITEMS = [
   {
@@ -66,14 +66,13 @@ export default function LandingPage() {
   const [stats, setStats] = useState<{ whispers: number; departments: number; rate: number } | null>(null);
 
   useEffect(() => {
-    // Public landing shows live aggregate counts when an admin token exists,
-    // otherwise the session-less public figures.
-    api<{ totalWhispers?: number; totalDepartments?: number; resolutionRate?: number }>("/stats/overview", {
-      token: getToken(),
+    // Public landing shows REAL aggregate counts via the unauthenticated
+    // stats endpoint — never hard-coded demo figures.
+    api<{ totalWhispers: number; totalDepartments: number; resolutionRate: number }>("/stats/public", {
       cache: "no-store",
     })
-      .then((d) => setStats({ whispers: d.totalWhispers ?? 1248, departments: d.totalDepartments ?? 12, rate: d.resolutionRate ?? 94 }))
-      .catch(() => setStats({ whispers: 1248, departments: 12, rate: 94 }));
+      .then((d) => setStats({ whispers: d.totalWhispers, departments: d.totalDepartments, rate: d.resolutionRate }))
+      .catch(() => setStats({ whispers: 0, departments: 0, rate: 0 }));
   }, []);
 
   return (

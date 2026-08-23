@@ -6,6 +6,7 @@ import { ErrorBlock, LoadingBlock } from "@/components/ui/States";
 import { RoleGate } from "@/components/ui/RoleGate";
 import { ROLES } from "@whisperlag/shared";
 import { api, getToken } from "@/lib/api";
+import { toast } from "@/lib/toast";
 
 interface Message {
   id: string;
@@ -78,9 +79,11 @@ export default function CollaborationPage() {
         token: getToken(),
       });
       setBody("");
+      toast("Note sent.");
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to send");
+      toast(err instanceof Error ? err.message : "Failed to send", "error");
     } finally {
       setSending(false);
     }

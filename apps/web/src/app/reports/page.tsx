@@ -122,8 +122,14 @@ export default function ReportsPage() {
           </select>
         </div>
         <div className="ml-auto flex w-full justify-end md:w-1/4">
-          <button className="flex w-full items-center justify-center gap-2 border border-ink px-6 py-3 font-label-caps text-label-caps uppercase tracking-wider text-onSurface transition-colors hover:bg-surface-variant md:w-auto">
-            <span className="material-symbols-outlined text-sm">filter_list</span> Apply Filters
+          <button
+            onClick={() => {
+              setTypeFilter("All");
+              setDeptFilter("All");
+            }}
+            className="flex w-full items-center justify-center gap-2 border border-ink px-6 py-3 font-label-caps text-label-caps uppercase tracking-wider text-onSurface transition-colors hover:bg-surface-variant md:w-auto"
+          >
+            <span className="material-symbols-outlined text-sm">filter_alt_off</span> Reset Filters
           </button>
         </div>
       </div>

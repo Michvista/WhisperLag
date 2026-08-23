@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, storeSession } from "@/lib/api";
+import { toast } from "@/lib/toast";
 
 /**
  * Institutional sign-in form (editorial style). Wires to the API and stores
@@ -25,9 +26,11 @@ export function LoginForm() {
         body: JSON.stringify({ email, password }),
       });
       storeSession(result.token, result.user.role);
+      toast(`Signed in as ${result.user.role.toLowerCase()}.`);
       router.push("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign in failed");
+      toast(err instanceof Error ? err.message : "Sign in failed", "error");
     } finally {
       setLoading(false);
     }

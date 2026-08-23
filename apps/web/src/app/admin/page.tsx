@@ -19,6 +19,7 @@ import { RoleGate } from "@/components/ui/RoleGate";
 import { ROLES } from "@whisperlag/shared";
 import { ErrorBlock, LoadingBlock } from "@/components/ui/States";
 import { api, getToken } from "@/lib/api";
+import { toast } from "@/lib/toast";
 
 interface Overview {
   totalWhispers: number;
@@ -82,9 +83,11 @@ export default function AdminCommandCenterPage() {
         token: getToken(),
       });
       setNotice("Accreditation report generated. View it in Reports.");
+      toast("Accreditation report generated.");
       void loadAll();
     } catch (e) {
       setNotice(e instanceof Error ? e.message : "Generation failed");
+      toast(e instanceof Error ? e.message : "Generation failed", "error");
     } finally {
       setGenerating(false);
     }

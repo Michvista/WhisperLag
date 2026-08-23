@@ -6,6 +6,7 @@ import { RoleGate } from "@/components/ui/RoleGate";
 import { ROLES } from "@whisperlag/shared";
 import { LoadingBlock } from "@/components/ui/States";
 import { api, getToken } from "@/lib/api";
+import { toast } from "@/lib/toast";
 
 interface Survey {
   id: string;
@@ -85,11 +86,13 @@ export default function SurveyBuilderPage() {
         token: getToken(),
       });
       setNotice("Survey published. Students can now respond anonymously.");
+      toast("Survey published.");
       setQuestions([]);
       setTitle("");
       await loadSurveys();
     } catch (e) {
       setNotice(e instanceof Error ? e.message : "Failed to publish");
+      toast(e instanceof Error ? e.message : "Failed to publish", "error");
     } finally {
       setPublishing(false);
     }

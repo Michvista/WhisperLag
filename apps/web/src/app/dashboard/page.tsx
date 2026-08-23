@@ -6,6 +6,7 @@ import { WhisperForm } from "@/components/feedback/WhisperForm";
 import { ErrorBlock, LoadingBlock } from "@/components/ui/States";
 import { useFetch } from "@/lib/useFetch";
 import { api, getToken } from "@/lib/api";
+import { toast } from "@/lib/toast";
 
 interface RecentWhisper {
   id: string;
@@ -50,6 +51,7 @@ function PollList({ surveys, onDone }: { surveys: Survey[]; onDone: () => void }
         body: JSON.stringify({ answer: { value } }),
         token: getToken(),
       });
+      toast("Response submitted anonymously.");
       onDone();
     } finally {
       setBusy(null);

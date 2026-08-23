@@ -6,6 +6,7 @@ import { LoadingBlock } from "@/components/ui/States";
 import { RoleGate } from "@/components/ui/RoleGate";
 import { ROLES } from "@whisperlag/shared";
 import { api, getToken } from "@/lib/api";
+import { toast } from "@/lib/toast";
 
 interface SisStatus {
   configured: boolean;
@@ -63,9 +64,11 @@ export default function IntegrationsPage() {
         token: getToken(),
       });
       setResult(`Imported ${res.imported} course${res.imported === 1 ? "" : "s"} — ${res.created} created, ${res.updated} updated.`);
+      toast(`SIS import complete: ${res.created} created, ${res.updated} updated.`);
       await loadStatus();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Invalid import payload");
+      toast(e instanceof Error ? e.message : "Invalid import payload", "error");
     } finally {
       setImporting(false);
     }
@@ -124,14 +127,41 @@ export default function IntegrationsPage() {
                   Import SIS Export
                 </h2>
                 <label className="mb-2 block font-body-sm text-body-sm text-onSurfaceVariant">
-                  Paste the SIS course export (JSON) — the standard export shape.
+                  Paste the SIS course export (JSON). The standard export shape is:
                 </label>
+                <pre className="mb-4 overflow-x-auto border border-ink/10 bg-surface-container-low p-4 font-mono-label text-mono-label text-onSurface">
+{`{
+  "courses": [
+    { "code": "CSC301", "title": "Operating Systems",
+      "department": "Computer Science", "lecturer": "Dr. Ada Obi" }
+  ]
+}`}
+                </pre>
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="font-label-caps text-label-caps text-onSurfaceVariant">
+                    Payload
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(EXAMPLE_PAYLOAD);
+                      toast("Template copied.");
+                    }}
+                    className="font-label-caps text-label-caps text-primary hover:underline"
+                  >
+                    Copy template
+                  </button>
+                </div>
                 <textarea
                   value={payload}
                   onChange={(e) => setPayload(e.target.value)}
                   spellCheck={false}
-                  className="input-minimal min-h-[240px] w-full resize-none font-mono-label text-mono-label leading-relaxed text-onSurface"
+                  className="input-minimal min-h-[200px] w-full resize-none font-mono-label text-mono-label leading-relaxed text-onSurface"
                 />
+                <p className="mt-2 font-body-sm text-body-sm text-onSurfaceVariant">
+                  <span className="font-medium text-onSurface">Required:</span> code, title.
+                  <span className="font-medium text-onSurface"> Optional:</span> department, lecturer (matched by exact name).
+                </p>
                 <div className="mt-6 flex items-center gap-6">
                   <button
                     onClick={runImport}

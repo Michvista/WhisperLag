@@ -63,6 +63,24 @@ export class StatsService {
       trend: [...trend.values()],
     };
   }
+
+  /**
+   * Public aggregate counts for the landing page. These are non-sensitive
+   * totals (no identities, no content) that anyone may see.
+   */
+  async getPublic() {
+    const [totalWhispers, totalDepartments, resolved, totalEvaluations] = await Promise.all([
+      prisma.whisper.count(),
+      prisma.department.count(),
+      prisma.whisper.count({ where: { status: "ACTIONED" } }),
+      prisma.evaluation.count(),
+    ]);
+
+    const resolutionRate =
+      totalWhispers > 0 ? Math.round((resolved / totalWhispers) * 1000) / 10 : 0;
+
+    return { totalWhispers, totalDepartments, resolutionRate, totalEvaluations };
+  }
 }
 
 export const statsService = new StatsService();

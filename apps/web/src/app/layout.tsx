@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { BRAND } from "@whisperlag/shared";
 import { PwaRegister } from "@/components/PwaRegister";
 import { PwaControls } from "@/components/PwaControls";
+import { Toaster } from "@/components/Toaster";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <PwaRegister />
         <PwaControls />
+        <Toaster />
       </body>
     </html>
   );

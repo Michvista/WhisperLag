@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { flushOutbox, submitWhisperOfflineAware } from "@/lib/offline";
+import { toast } from "@/lib/toast";
 
 const CATEGORIES = ["Academic Issue", "Facility Maintenance", "Student Welfare", "Other"];
 
@@ -58,7 +59,13 @@ export function WhisperForm({ className = "" }: WhisperFormProps) {
       unilagEmail: unilagEmail.trim() || undefined,
     });
     setStatus("idle");
-    router.push(mode === "queued" ? "/whisper/success?queued=1" : "/whisper/success");
+    if (mode === "queued") {
+      toast("Saved offline. It will sync when you're back online.", "info");
+      router.push("/whisper/success?queued=1");
+    } else {
+      toast("Your whisper was sent anonymously.");
+      router.push("/whisper/success");
+    }
   }
 
   return (
