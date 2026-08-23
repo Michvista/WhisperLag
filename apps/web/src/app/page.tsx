@@ -61,18 +61,43 @@ function Counter({ value, suffix = "" }: { value: number; suffix?: string }) {
   );
 }
 
+/** Shows a dash while stats load, then the animated counter. */
+function StatValue({ value, suffix }: { value: number | null; suffix?: string }) {
+  if (value === null) return <span className="font-display text-5xl font-bold text-onSurfaceVariant/50 md:text-6xl">—</span>;
+  return <Counter value={value} suffix={suffix} />;
+}
+
 /** Editorial marketing landing page with a live stats band. */
 export default function LandingPage() {
   const [stats, setStats] = useState<{ whispers: number; departments: number; rate: number } | null>(null);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     // Public landing shows REAL aggregate counts via the unauthenticated
-    // stats endpoint — never hard-coded demo figures.
-    api<{ totalWhispers: number; totalDepartments: number; resolutionRate: number }>("/stats/public", {
-      cache: "no-store",
-    })
-      .then((d) => setStats({ whispers: d.totalWhispers, departments: d.totalDepartments, rate: d.resolutionRate }))
-      .catch(() => setStats({ whispers: 0, departments: 0, rate: 0 }));
+    // stats endpoint. The Neon pooler occasionally cold-starts, so retry a
+    // few times before giving up; while loading we show a dash, never "0".
+    let attempts = 0;
+    let alive = true;
+    const fetchStats = async () => {
+      try {
+        const d = await api<{ totalWhispers: number; totalDepartments: number; resolutionRate: number }>(
+          "/stats/public",
+          { cache: "no-store" },
+        );
+        if (alive) setStats({ whispers: d.totalWhispers, departments: d.totalDepartments, rate: d.resolutionRate });
+      } catch {
+        attempts += 1;
+        if (attempts < 3 && alive) {
+          setTimeout(fetchStats, 1200 * attempts);
+        } else if (alive) {
+          setFailed(true);
+        }
+      }
+    };
+    void fetchStats();
+    return () => {
+      alive = false;
+    };
   }, []);
 
   return (
@@ -163,24 +188,29 @@ export default function LandingPage() {
             <span className="font-label-caps text-label-caps uppercase tracking-widest text-onSurfaceVariant">
               Anonymous Whispers Submitted
             </span>
-            <Counter value={stats?.whispers ?? 0} suffix="+" />
+            <StatValue value={stats?.whispers ?? null} />
             <span className="font-mono-label text-mono-label text-unilag-green">Every identity protected</span>
           </div>
           <div className="flex flex-col gap-2 py-8 md:border-r md:border-ink/10 md:px-10">
             <span className="font-label-caps text-label-caps uppercase tracking-widest text-onSurfaceVariant">
               Faculties Covered
             </span>
-            <Counter value={stats?.departments ?? 0} />
+            <StatValue value={stats?.departments ?? null} />
             <span className="font-mono-label text-mono-label text-onSurfaceVariant">Across the University of Lagos</span>
           </div>
           <div className="flex flex-col gap-2 py-8 md:pl-10">
             <span className="font-label-caps text-label-caps uppercase tracking-widest text-onSurfaceVariant">
               Resolution Rate
             </span>
-            <Counter value={stats?.rate ?? 0} suffix="%" />
+            <StatValue value={stats?.rate ?? null} suffix="%" />
             <span className="font-mono-label text-mono-label text-unilag-blue">Closed through institutional review</span>
           </div>
         </div>
+        {failed && (
+          <p className="mt-4 text-center font-mono-label text-mono-label text-onSurfaceVariant/60">
+            Live feed unreachable right now — it will retry automatically.
+          </p>
+        )}
       </section>
 
       {/* Purpose */}
