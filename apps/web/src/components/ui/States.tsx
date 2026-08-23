@@ -1,27 +1,3 @@
-import Link from "next/link";
-
-/** Shown on protected screens when there is no stored session. */
-export function SignedOut() {
-  return (
-    <div className="mx-auto flex max-w-md flex-col items-center gap-6 py-16 text-center">
-      <span className="material-symbols-outlined text-4xl text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>
-        lock
-      </span>
-      <h2 className="font-display text-headline-lg font-semibold text-onSurface">Institutional Access</h2>
-      <p className="font-body-md text-body-md text-onSurfaceVariant">
-        Sign in with your UNILAG credentials. Your identity is verified but
-        never linked to your submissions.
-      </p>
-      <Link
-        href="/login"
-        className="bg-ink px-8 py-4 font-label-caps text-label-caps uppercase tracking-widest text-white transition-colors duration-300 hover:bg-primary"
-      >
-        Authenticate &amp; Enter
-      </Link>
-    </div>
-  );
-}
-
 /** Shared loading state for data-driven dashboards. */
 export function LoadingBlock({ label = "Loading live data…" }: { label?: string }) {
   return (

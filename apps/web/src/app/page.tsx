@@ -123,7 +123,7 @@ export default function LandingPage() {
             </motion.p>
             <motion.div variants={itemVariants} className="flex flex-col items-start gap-8 sm:flex-row sm:items-center">
               <Link
-                href="/login"
+                href="/whisper"
                 className="bg-ink px-8 py-4 font-label-caps text-label-caps uppercase tracking-widest text-white transition-colors duration-300 hover:bg-primary"
               >
                 Speak Now

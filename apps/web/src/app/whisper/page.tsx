@@ -1,24 +1,19 @@
-"use client";
-
 import Link from "next/link";
 import { WhisperForm } from "@/components/feedback/WhisperForm";
 import { WhisperLock } from "@/components/ui/WhisperLock";
 import { WhisperLogo } from "@/components/ui/WhisperLogo";
-import { useAuth } from "@/lib/useAuth";
 
 /**
- * The Whisper — the single focused submission screen. A logged-in student
- * lands here directly to send anonymous feedback. Context on the left, the
- * form on the right; no redundant empty canvas.
+ * The Whisper — public, no-login submission. Students drop anonymous feedback
+ * here directly, exactly like an anonymous confession app: no account, no
+ * friction. The optional UNILAG email is validated but never stored.
  */
 export default function WhisperPage() {
-  useAuth(); // redirect to /login if not authenticated
-
   return (
     <main className="flex min-h-screen flex-col bg-surface font-body text-onSurface">
       <header className="border-b border-ink/10">
         <div className="mx-auto flex w-full max-w-wide items-center justify-between px-margin-mobile py-4 md:px-margin-desktop">
-          <Link href="/dashboard" className="font-display text-headline-md font-bold tracking-tighter text-primary">
+          <Link href="/" className="font-display text-headline-md font-bold tracking-tighter text-primary">
             WhisperLag
           </Link>
           <WhisperLock compact />
@@ -33,9 +28,8 @@ export default function WhisperPage() {
               The Whisper.
             </h1>
             <p className="font-body-lg text-body-lg text-onSurfaceVariant">
-              Provide context below to help institutional processing — while
-              remaining entirely anonymous. Your identity is never stored with
-              this message.
+              No account. No login. Your message is anonymized before it ever
+              reaches us — even we cannot tell who wrote it.
             </p>
           </div>
           <WhisperLogo size={140} />
@@ -44,10 +38,10 @@ export default function WhisperPage() {
         {/* Right: the form */}
         <section className="w-full md:w-3/5">
           <div className="mb-8 flex items-center justify-between border-b border-ink/10 pb-4">
-            <span className="font-mono-label text-mono-label text-onSurfaceVariant">SECURE SUBMISSION</span>
+            <span className="font-mono-label text-mono-label text-onSurfaceVariant">ANONYMOUS SUBMISSION</span>
             <WhisperLock compact />
           </div>
-          <WhisperForm withMetadata redirectToSuccess />
+          <WhisperForm redirectToSuccess />
         </section>
       </main>
     </main>

@@ -15,19 +15,16 @@ export default function LoginPage() {
         </div>
         <div className="mx-auto mt-24 w-full max-w-md md:mt-0">
           <div className="mb-12">
-            <h2 className="mb-2 font-display text-headline-lg font-semibold text-onSurface">Student Access</h2>
+            <h2 className="mb-2 font-display text-headline-lg font-semibold text-onSurface">Staff &amp; Student Access</h2>
             <p className="font-body-md text-body-md text-onSurfaceVariant">
-              Sign in to confirm you&apos;re a UNILAG student. This only proves
-              you belong — <span className="font-medium text-onSurface">it is never
-              linked to your whisper.</span>
+              Faculty and administrators sign in here. Students don&apos;t need
+              an account — just <span className="font-medium text-onSurface">Speak Now</span>.
             </p>
           </div>
           <LoginForm />
-          <div className="mt-12 text-center">
-            <a href="#" className="font-label-caps text-label-caps text-onSurfaceVariant transition-colors hover:text-primary">
-              Forgot Credentials?
-            </a>
-          </div>
+          <p className="mt-12 text-center font-label-caps text-label-caps text-onSurfaceVariant">
+            Students: <a href="/whisper" className="text-primary hover:underline">submit a whisper without signing in</a>.
+          </p>
         </div>
       </section>
 

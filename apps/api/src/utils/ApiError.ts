@@ -37,4 +37,8 @@ export class ApiError extends Error {
   static conflict(message: string): ApiError {
     return new ApiError(HTTP_STATUS.CONFLICT, "CONFLICT", message);
   }
+
+  static tooManyRequests(message: string): ApiError {
+    return new ApiError(HTTP_STATUS.TOO_MANY_REQUESTS, "TOO_MANY_REQUESTS", message);
+  }
 }

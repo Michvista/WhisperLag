@@ -1,7 +1,7 @@
 import { HTTP_STATUS, PAGINATION, type Whisper } from "@whisperlag/shared";
 import { prisma } from "../../lib/prisma.js";
 import { ApiError } from "../../utils/ApiError.js";
-import type { CreateWhisperInput, UpdateWhisperStatusInput } from "./feedback.schema.js";
+import type { CreateWhisperInput, PublicWhisperInput, UpdateWhisperStatusInput } from "./feedback.schema.js";
 
 /**
  * Feedback service — the heart of WhisperLag.
@@ -19,6 +19,21 @@ export class FeedbackService {
         content: input.content,
         isAnonymous: input.isAnonymous,
         departmentId: input.departmentId ?? null,
+      },
+    });
+    return whisper as unknown as Whisper;
+  }
+
+  /**
+   * Public, no-login submission (the "anon app" flow). The optional UNILAG
+   * email is a soft gate — it is validated upstream and never stored here.
+   */
+  async createPublic(input: PublicWhisperInput): Promise<Whisper> {
+    const whisper = await prisma.whisper.create({
+      data: {
+        category: input.category,
+        content: input.content,
+        isAnonymous: true,
       },
     });
     return whisper as unknown as Whisper;

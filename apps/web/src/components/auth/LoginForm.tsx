@@ -78,17 +78,6 @@ export function LoginForm() {
         >
           {loading ? "Authenticating…" : "Authenticate & Enter"}
         </button>
-        <div className="mt-4 flex items-center justify-between">
-          <span className="h-px flex-1 bg-ink/10" />
-          <span className="px-4 font-label-caps text-label-caps text-onSurfaceVariant">Or</span>
-          <span className="h-px flex-1 bg-ink/10" />
-        </div>
-        <button
-          type="button"
-          className="w-full border border-ink bg-transparent py-4 font-label-caps text-label-caps uppercase tracking-widest text-onSurface transition-colors duration-300 hover:bg-surface-variant"
-        >
-          Register New Account
-        </button>
       </div>
     </form>
   );

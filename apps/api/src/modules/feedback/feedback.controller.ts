@@ -2,13 +2,27 @@ import type { Request, Response } from "express";
 import { HTTP_STATUS } from "@whisperlag/shared";
 import { asyncHandler } from "../../middleware/asyncHandler.js";
 import { feedbackService } from "./feedback.service.js";
-import type { CreateWhisperInput, UpdateWhisperStatusInput } from "./feedback.schema.js";
+import { ApiError } from "../../utils/ApiError.js";
+import { isUnilagEmail } from "../../utils/unilagEmail.js";
+import type { CreateWhisperInput, PublicWhisperInput, UpdateWhisperStatusInput } from "./feedback.schema.js";
 
 export const feedbackController = {
   /** POST /api/v1/feedback — submit a whisper (any authenticated user). */
   create: asyncHandler(async (req: Request, res: Response) => {
     const input = res.locals.validated as CreateWhisperInput;
     const whisper = await feedbackService.create(input);
+    res.status(HTTP_STATUS.CREATED).json({ success: true, data: whisper, error: null });
+  }),
+
+  /** POST /api/v1/feedback/public — no login needed. */
+  createPublic: asyncHandler(async (req: Request, res: Response) => {
+    const input = res.locals.validated as PublicWhisperInput;
+    if (input.unilagEmail && !isUnilagEmail(input.unilagEmail)) {
+      throw ApiError.badRequest(
+        "That email doesn't look like a UNILAG address. Leave it blank to continue anonymously.",
+      );
+    }
+    const whisper = await feedbackService.createPublic(input);
     res.status(HTTP_STATUS.CREATED).json({ success: true, data: whisper, error: null });
   }),
 

@@ -16,3 +16,15 @@ export const updateWhisperStatusSchema = z.object({
 });
 
 export type UpdateWhisperStatusInput = z.infer<typeof updateWhisperStatusSchema>;
+
+/**
+ * Public, no-login whisper. An optional UNILAG email is a soft community gate:
+ * it is validated but never persisted, so the submission stays anonymous.
+ */
+export const publicWhisperSchema = z.object({
+  category: z.string().min(1),
+  content: z.string().min(1).max(2000),
+  unilagEmail: z.string().email().optional().or(z.literal("")),
+});
+
+export type PublicWhisperInput = z.infer<typeof publicWhisperSchema>;
