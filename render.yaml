@@ -1,0 +1,30 @@
+# Render Blueprint for the WhisperLag API.
+# Free tier: web service (sleeps after ~15 min idle, wakes on request).
+# The database stays on Neon (free); only the API is hosted here.
+#
+# To use: push this repo, then in Render "New -> Blueprint" select this repo.
+# Fill in the `sync: false` env vars (DATABASE_URL, JWT_SECRET, CORS_ORIGIN,
+# GROQ_API_KEY) in the Render dashboard after the first deploy.
+services:
+  - type: web
+    name: whisperlag-api
+    runtime: node
+    rootDir: .
+    plan: free
+    buildCommand: npm ci && npm run build -w @whisperlag/shared && npm run prisma:generate -w @whisperlag/api && npm run build -w @whisperlag/api
+    startCommand: node apps/api/dist/index.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GROQ_MODEL
+        value: openai/gpt-oss-120b
+      # Fill these in the Render dashboard after first deploy:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false

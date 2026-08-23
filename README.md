@@ -126,6 +126,44 @@ npm run dev            # api on :4000, web on :3000
 
 ---
 
+## Deploying
+
+Frontend on **Vercel** (free), API on **Render** (free tier), database stays
+on **Neon** (free). There is also a `render.yaml` Blueprint in the repo root
+for one-click Render setup.
+
+### 1. API → Render (free)
+- **Blueprint (easiest):** Render → *New → Blueprint* → select this repo.
+  The `render.yaml` builds from the repo root so npm workspaces resolve
+  `@whisperlag/shared` correctly.
+- **Manual:** Render → *New → Web Service* → select repo → Root directory
+  (leave empty) → Build command:
+  `npm ci && npm run build -w @whisperlag/shared && npm run prisma:generate -w @whisperlag/api && npm run build -w @whisperlag/api`
+  → Start command: `node apps/api/dist/index.js` → Free plan.
+- Set env vars in the dashboard:
+  | Key | Value |
+  |-----|-------|
+  | `DATABASE_URL` | your Neon string |
+  | `JWT_SECRET` | a long random string |
+  | `CORS_ORIGIN` | `https://<your-vercel-app>.vercel.app` |
+  | `GROQ_API_KEY` | optional — enables AI insights |
+  | `GROQ_MODEL` | `openai/gpt-oss-120b` |
+- Note: the free tier **sleeps after ~15 min idle** and wakes on the next
+  request (first hit may take ~30 s). Upgrade to the $7/mo instance for
+  always-awake if you want it hot during judging.
+
+### 2. Web → Vercel (free)
+- Import this repo → Root directory `apps/web` → Framework *Next.js*
+  (build `next build`).
+- Env var: `NEXT_PUBLIC_API_URL=https://<your-render-api>.onrender.com/api/v1`.
+
+### 3. Optional: same-origin API (enables offline PWA caching)
+Add a `vercel.json` in `apps/web` that rewrites `/api/*` to the Render URL,
+and set `NEXT_PUBLIC_API_URL=/api/v1`. Then the service worker can cache
+dashboard responses for offline use.
+
+---
+
 ## API surface (v1)
 
 | Method | Route | Access |
