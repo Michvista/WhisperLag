@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { api } from "@/lib/api";
+import { flushOutbox, submitWhisperOfflineAware } from "@/lib/offline";
 
 const CATEGORIES = ["Academic Issue", "Facility Maintenance", "Student Welfare", "Other"];
 
@@ -15,16 +15,16 @@ function isUnilagEmail(email: string): boolean {
 }
 
 interface WhisperFormProps {
-  redirectToSuccess?: boolean;
   className?: string;
 }
 
 /**
  * Public, no-login whisper form — the "anon app" flow. An optional UNILAG
  * email is a soft community gate: it is validated client- and server-side
- * but NEVER stored or linked to the message.
+ * but NEVER stored or linked to the message. Offline submissions are queued
+ * locally and auto-synced when the connection returns.
  */
-export function WhisperForm({ redirectToSuccess = false, className = "" }: WhisperFormProps) {
+export function WhisperForm({ className = "" }: WhisperFormProps) {
   const router = useRouter();
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [content, setContent] = useState("");
@@ -32,6 +32,15 @@ export function WhisperForm({ redirectToSuccess = false, className = "" }: Whisp
   const [emailError, setEmailError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "submitting">("idle");
+
+  // When the connection returns, push any offline whispers to the server.
+  useEffect(() => {
+    const onOnline = () => {
+      void flushOutbox();
+    };
+    window.addEventListener("online", onOnline);
+    return () => window.removeEventListener("online", onOnline);
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -43,21 +52,13 @@ export function WhisperForm({ redirectToSuccess = false, className = "" }: Whisp
     setEmailError(null);
     setError(null);
     setStatus("submitting");
-    try {
-      await api("/feedback/public", {
-        method: "POST",
-        body: JSON.stringify({ category, content, unilagEmail: unilagEmail.trim() }),
-      });
-      if (redirectToSuccess) {
-        router.push("/whisper/success");
-      } else {
-        setContent("");
-        router.push("/whisper/success");
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not send your whisper. Try again.");
-      setStatus("idle");
-    }
+    const { mode } = await submitWhisperOfflineAware({
+      category,
+      content,
+      unilagEmail: unilagEmail.trim() || undefined,
+    });
+    setStatus("idle");
+    router.push(mode === "queued" ? "/whisper/success?queued=1" : "/whisper/success");
   }
 
   return (

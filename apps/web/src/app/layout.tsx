@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { BRAND } from "@whisperlag/shared";
 import { PwaRegister } from "@/components/PwaRegister";
+import { PwaControls } from "@/components/PwaControls";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen font-body antialiased">
         {children}
         <PwaRegister />
+        <PwaControls />
       </body>
     </html>
   );

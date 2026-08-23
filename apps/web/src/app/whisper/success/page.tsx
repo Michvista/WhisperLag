@@ -3,7 +3,13 @@ import { WhisperLock } from "@/components/ui/WhisperLock";
 import { WhisperLogo } from "@/components/ui/WhisperLogo";
 
 /** Post-submission confirmation — "Your whisper is hidden." */
-export default function WhisperSuccessPage() {
+export default function WhisperSuccessPage({
+  searchParams,
+}: {
+  searchParams: { queued?: string };
+}) {
+  const queued = searchParams.queued === "1";
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-brand-gray px-margin-mobile font-body text-onBackground md:px-margin-desktop">
       <div className="flex w-full max-w-[600px] flex-col items-center space-y-20 text-center">
@@ -17,6 +23,12 @@ export default function WhisperSuccessPage() {
           <div className="mt-8">
             <WhisperLock compact={false} />
           </div>
+          {queued && (
+            <p className="mt-6 max-w-sm border border-tertiary-fixed-dim/40 bg-tertiary-fixed-dim/10 px-4 py-3 font-body-md text-body-md text-onSurfaceVariant">
+              You were offline, so your whisper was saved on this device. It
+              will be delivered automatically the moment you&apos;re back online.
+            </p>
+          )}
         </div>
 
         <div className="h-px w-1/2 bg-ink opacity-10" />

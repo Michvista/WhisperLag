@@ -41,7 +41,7 @@ export default function WhisperPage() {
             <span className="font-mono-label text-mono-label text-onSurfaceVariant">ANONYMOUS SUBMISSION</span>
             <WhisperLock compact />
           </div>
-          <WhisperForm redirectToSuccess />
+          <WhisperForm />
         </section>
       </main>
     </main>

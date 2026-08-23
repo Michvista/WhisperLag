@@ -1,5 +1,5 @@
 /* WhisperLag service worker — offline-first shell for installable PWA. */
-const CACHE = "whisperlag-v1";
+const CACHE = "whisperlag-v2";
 
 self.addEventListener("install", () => {
   self.skipWaiting();
@@ -31,6 +31,21 @@ self.addEventListener("fetch", (event) => {
           return res;
         })
         .catch(() => caches.match(request).then((r) => r || caches.match("/"))),
+    );
+    return;
+  }
+
+  // Same-origin API GETs: network-first with a stale-cache fallback so
+  // dashboards still render the last-known data when offline.
+  if (url.pathname.startsWith("/api/")) {
+    event.respondWith(
+      fetch(request)
+        .then((res) => {
+          const clone = res.clone();
+          caches.open(CACHE).then((c) => c.put(request, clone));
+          return res;
+        })
+        .catch(() => caches.match(request)),
     );
     return;
   }

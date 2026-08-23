@@ -243,43 +243,47 @@ export default function FacultyHubPage() {
               <h2 className="font-label-caps text-label-caps uppercase tracking-widest text-onSurface">Active Courses</h2>
             </div>
 
-            <div className="grid grid-cols-12 gap-4 border-b-2 border-ink/10 pb-4 font-label-caps text-label-caps uppercase text-onSurfaceVariant">
-              <div className="col-span-2">ID</div>
-              <div className="col-span-5">Course Title</div>
-              <div className="col-span-2 text-right">Responses</div>
-              <div className="col-span-3 text-right">Score</div>
-            </div>
+            <div className="no-scrollbar overflow-x-auto">
+              <div className="min-w-[520px]">
+                <div className="grid grid-cols-12 gap-4 border-b-2 border-ink/10 pb-4 font-label-caps text-label-caps uppercase text-onSurfaceVariant">
+                  <div className="col-span-2">ID</div>
+                  <div className="col-span-5">Course Title</div>
+                  <div className="col-span-2 text-right">Responses</div>
+                  <div className="col-span-3 text-right">Score</div>
+                </div>
 
-            {courses.map((course, i) => (
-              <div
-                key={course.id}
-                className="grid grid-cols-12 items-center gap-4 border-b border-ink/5 py-6 transition-colors hover:bg-surface-bright"
-              >
-                <div className="col-span-2 font-mono-label text-lg font-light text-onSurfaceVariant">
-                  {String(i + 1).padStart(2, "0")}
-                </div>
-                <div className="col-span-5">
-                  <div className="font-body-md font-medium text-onSurface">{course.title}</div>
-                  <div className="mt-1 font-label-caps text-label-caps text-onSurfaceVariant">
-                    {course.code} · {course.lecturer?.name ?? "Unassigned"}
-                  </div>
-                </div>
-                <div className="col-span-2 text-right font-mono-label text-mono-label text-onSurface">
-                  {course.agg.responseCount}
-                </div>
-                <div className="col-span-3 text-right">
-                  <span
-                    className={`inline-block px-2 py-1 font-mono-label text-mono-label ${
-                      course.agg.averageRating >= 4
-                        ? "bg-primary/10 text-primary"
-                        : "bg-tertiary-fixed-dim/20 text-tertiary-container"
-                    }`}
+                {courses.map((course, i) => (
+                  <div
+                    key={course.id}
+                    className="grid grid-cols-12 items-center gap-4 border-b border-ink/5 py-6 transition-colors hover:bg-surface-bright"
                   >
-                    {course.agg.averageRating.toFixed(1)}
-                  </span>
-                </div>
+                    <div className="col-span-2 font-mono-label text-lg font-light text-onSurfaceVariant">
+                      {String(i + 1).padStart(2, "0")}
+                    </div>
+                    <div className="col-span-5">
+                      <div className="font-body-md font-medium text-onSurface">{course.title}</div>
+                      <div className="mt-1 font-label-caps text-label-caps text-onSurfaceVariant">
+                        {course.code} · {course.lecturer?.name ?? "Unassigned"}
+                      </div>
+                    </div>
+                    <div className="col-span-2 text-right font-mono-label text-mono-label text-onSurface">
+                      {course.agg.responseCount}
+                    </div>
+                    <div className="col-span-3 text-right">
+                      <span
+                        className={`inline-block px-2 py-1 font-mono-label text-mono-label ${
+                          course.agg.averageRating >= 4
+                            ? "bg-primary/10 text-primary"
+                            : "bg-tertiary-fixed-dim/20 text-tertiary-container"
+                        }`}
+                      >
+                        {course.agg.averageRating.toFixed(1)}
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
           </div>
         </div>
       )}
