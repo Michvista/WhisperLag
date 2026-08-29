@@ -18,18 +18,19 @@ function useNavItems() {
   const items: { href: string; label: string }[] =
     role === "ADMIN"
       ? [
-          { href: "/dashboard", label: "Whispers" },
+          { href: "/whispers", label: "Whispers" },
           { href: "/admin", label: "Command Center" },
           { href: "/collaboration", label: "Collaboration" },
           { href: "/integrations", label: "SIS / LMS" },
+          { href: "/surveys", label: "Surveys" },
           { href: "/reports", label: "Reports" },
           { href: "/insights", label: "AI Insights" },
-          { href: "/surveys", label: "Survey Builder" },
         ]
       : role === "FACULTY"
         ? [
-            { href: "/dashboard", label: "Whispers" },
+            { href: "/whispers", label: "Whispers" },
             { href: "/faculty", label: "Faculty" },
+            { href: "/surveys", label: "Surveys" },
             { href: "/collaboration", label: "Collaboration" },
             { href: "/reports", label: "Reports" },
           ]
@@ -46,7 +47,7 @@ export function Sidebar() {
   return (
     <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-ink/10 bg-surface lg:flex">
       <Link
-        href="/dashboard"
+        href={items[0]?.href ?? "/dashboard"}
         className="px-8 py-8 font-display text-headline-lg font-bold tracking-tighter text-primary"
       >
         WhisperLag

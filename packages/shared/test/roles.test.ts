@@ -52,9 +52,21 @@ describe("RBAC role -> permission matrix", () => {
     expect(can(ROLES.FACULTY, PERMISSIONS.VIEW_EVALUATION_AGGREGATES)).toBe(true);
     expect(can(ROLES.FACULTY, PERMISSIONS.VIEW_REPORTS)).toBe(true);
     expect(can(ROLES.FACULTY, PERMISSIONS.SEND_MESSAGE)).toBe(true);
+    expect(can(ROLES.FACULTY, PERMISSIONS.VIEW_WHISPER_META)).toBe(true);
     expect(can(ROLES.FACULTY, PERMISSIONS.MANAGE_USERS)).toBe(false);
     expect(can(ROLES.FACULTY, PERMISSIONS.VIEW_INSIGHTS)).toBe(false);
     expect(can(ROLES.FACULTY, PERMISSIONS.IMPORT_SIS)).toBe(false);
+  });
+
+  it("allows FACULTY to review survey results but not create surveys", () => {
+    expect(can(ROLES.FACULTY, PERMISSIONS.VIEW_SURVEY_RESULTS)).toBe(true);
+    expect(can(ROLES.FACULTY, PERMISSIONS.CREATE_SURVEY)).toBe(false);
+  });
+
+  it("reserves whisper status management and SIS import for ADMIN", () => {
+    expect(can(ROLES.ADMIN, PERMISSIONS.MANAGE_WHISPERS)).toBe(true);
+    expect(can(ROLES.FACULTY, PERMISSIONS.MANAGE_WHISPERS)).toBe(false);
+    expect(can(ROLES.STUDENT, PERMISSIONS.MANAGE_WHISPERS)).toBe(false);
   });
 
   it("guards AI insights and SIS import as ADMIN-only", () => {

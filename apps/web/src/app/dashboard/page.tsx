@@ -158,7 +158,10 @@ export default function StudentDashboardPage() {
             ) : surveys.error ? (
               <ErrorBlock message={surveys.error} onRetry={surveys.refetch} />
             ) : surveys.data && surveys.data.length > 0 ? (
-              <PollList surveys={surveys.data} onDone={surveys.refetch} />
+              <PollList
+                surveys={surveys.data.filter((s) => s.status === "OPEN")}
+                onDone={surveys.refetch}
+              />
             ) : (
               <p className="font-mono-label text-mono-label text-ink/50">No open polls right now.</p>
             )}
@@ -176,9 +179,12 @@ export default function StudentDashboardPage() {
                   const meta = STATUS_META[w.status];
                   return (
                     <div key={w.id} className="rule-b flex items-start justify-between gap-3 py-4">
-                      <div className="flex flex-col gap-1">
-                        <h3 className="font-body-md text-body-md text-ink">{w.category}</h3>
-                        <p className="font-mono-label text-mono-label text-ink/50">{formatDate(w.createdAt)}</p>
+                      <div className="flex min-w-0 flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-body-md text-body-md text-ink">{w.category}</h3>
+                          <p className="font-mono-label text-mono-label text-ink/50">{formatDate(w.createdAt)}</p>
+                        </div>
+                        <p className="truncate font-body-sm text-body-sm text-ink/60">&ldquo;{w.content}&rdquo;</p>
                       </div>
                       <span className={`shrink-0 px-2 py-1 font-label-caps text-[10px] uppercase tracking-wider ${meta.cls}`}>
                         {meta.label}

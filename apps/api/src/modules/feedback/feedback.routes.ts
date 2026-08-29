@@ -45,7 +45,7 @@ feedbackRoutes.get(
 feedbackRoutes.patch(
   "/:id/status",
   authenticate,
-  authorize(PERMISSIONS.VIEW_WHISPER_META),
+  authorize(PERMISSIONS.MANAGE_WHISPERS),
   validate(updateWhisperStatusSchema),
   feedbackController.updateStatus,
 );

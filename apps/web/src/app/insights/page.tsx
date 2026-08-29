@@ -35,10 +35,9 @@ const SENTIMENT_STYLE: Record<Cluster["sentiment"], string> = {
 };
 
 /**
- * AI Complaint Intelligence. Groups anonymous whispers by shared viewpoint
- * using Groq when a key is configured, with a deterministic algorithm as a
- * zero-dependency fallback.
- */
+   * AI Complaint Intelligence. Groups anonymous whispers by shared viewpoint
+   * with an automatic engine, and flags low-value submissions.
+   */
 export default function InsightsPage() {
   const [result, setResult] = useState<InsightResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -69,9 +68,8 @@ export default function InsightsPage() {
         <div>
           <h1 className="mb-2 font-display text-headline-lg font-semibold text-onSurface">AI Complaint Intelligence</h1>
           <p className="max-w-xl font-body-md text-body-md text-onSurfaceVariant">
-            Group anonymous whispers by shared viewpoint and surface noise.
-            Uses Groq&apos;s LLM when configured; otherwise a deterministic
-            keyword/rule algorithm.
+            Groups anonymous whispers by shared viewpoint and surfaces noise —
+            automatically, with no identities exposed.
           </p>
         </div>
         <button
@@ -97,7 +95,7 @@ export default function InsightsPage() {
                 {result.provider === "groq" ? "auto_awesome" : "tune"}
               </span>
               <span className="font-label-caps text-label-caps uppercase text-onSurface">
-                {result.provider === "groq" ? "Groq LLM" : "Rule Algorithm"}
+                {result.provider === "groq" ? "AI Engine" : "Built-in"}
               </span>
             </span>
             <span className="font-mono-label text-mono-label text-onSurfaceVariant">

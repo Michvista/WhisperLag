@@ -16,9 +16,28 @@ export const surveyController = {
     res.status(HTTP_STATUS.OK).json({ success: true, data: surveys, error: null });
   }),
 
+  /** Public: open surveys for non-logged-in students. */
+  listPublic: asyncHandler(async (_req: Request, res: Response) => {
+    const surveys = await surveyService.listPublic();
+    res.status(HTTP_STATUS.OK).json({ success: true, data: surveys, error: null });
+  }),
+
   respond: asyncHandler(async (req: Request, res: Response) => {
     const input = res.locals.validated as RespondSurveyInput;
     const response = await surveyService.respond(req.params.questionId, input);
     res.status(HTTP_STATUS.CREATED).json({ success: true, data: response, error: null });
+  }),
+
+  /** Public, rate-limited anonymous response. */
+  respondPublic: asyncHandler(async (req: Request, res: Response) => {
+    const input = res.locals.validated as RespondSurveyInput;
+    const response = await surveyService.respond(req.params.questionId, input);
+    res.status(HTTP_STATUS.CREATED).json({ success: true, data: response, error: null });
+  }),
+
+  /** Staff: aggregated results for a survey. */
+  results: asyncHandler(async (req: Request, res: Response) => {
+    const result = await surveyService.results(req.params.id);
+    res.status(HTTP_STATUS.OK).json({ success: true, data: result, error: null });
   }),
 };

@@ -6,7 +6,9 @@ import { AppShell } from "@/components/layout/AppShell";
 import { RoleGate } from "@/components/ui/RoleGate";
 import { ROLES } from "@whisperlag/shared";
 import { ErrorBlock, LoadingBlock } from "@/components/ui/States";
-import { api, getToken, API_BASE } from "@/lib/api";
+import { api, getToken } from "@/lib/api";
+import { downloadCsv } from "@/lib/download";
+import { toast } from "@/lib/toast";
 
 interface Overview {
   totalWhispers: number;
@@ -228,13 +230,17 @@ export default function ReportsPage() {
                     </p>
                   </div>
                   <div className="flex gap-4">
-                    <a
-                      href={`${API_BASE}/reports/${report.id}/export?format=csv`}
-                      title="Export CSV"
+                    <button
+                      onClick={() => {
+                        downloadCsv(report.id, report.title)
+                          .then(() => toast("Report exported as CSV."))
+                          .catch(() => toast("Export failed", "error"));
+                      }}
+                      title="Download CSV"
                       className="text-onSurfaceVariant transition-colors hover:text-primary"
                     >
                       <span className="material-symbols-outlined">table_view</span>
-                    </a>
+                    </button>
                   </div>
                 </div>
               ))}

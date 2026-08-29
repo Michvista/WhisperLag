@@ -39,7 +39,7 @@ export class FeedbackService {
     return whisper as unknown as Whisper;
   }
 
-  /** Admin view of whisper metadata (counts, categories, statuses). */
+  /** Admin/faculty view of anonymous whispers (no identities, ever). */
   async listAdmin(page: number, limit: number) {
     const skip = (page - 1) * limit;
     const [items, total] = await Promise.all([
@@ -47,6 +47,7 @@ export class FeedbackService {
         orderBy: { createdAt: "desc" },
         skip,
         take: limit,
+        include: { department: { select: { id: true, name: true } } },
       }),
       prisma.whisper.count(),
     ]);

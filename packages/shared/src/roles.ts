@@ -62,6 +62,8 @@ export const PERMISSIONS = {
   // Collaboration (internal messaging)
   SEND_MESSAGE: "messages:send",
   VIEW_MESSAGES: "messages:view",
+  // Whispers feed
+  MANAGE_WHISPERS: "whispers:manage",
   // AI insights (admin-only)
   VIEW_INSIGHTS: "insights:view",
   // SIS/LMS integration (admin-only)
@@ -86,7 +88,9 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     PERMISSIONS.SUBMIT_WHISPER,
     PERMISSIONS.SUBMIT_EVALUATION,
     PERMISSIONS.RESPOND_SURVEY,
+    PERMISSIONS.VIEW_WHISPER_META,
     PERMISSIONS.VIEW_EVALUATION_AGGREGATES,
+    PERMISSIONS.VIEW_SURVEY_RESULTS,
     PERMISSIONS.VIEW_REPORTS,
     PERMISSIONS.VIEW_DEPARTMENT,
     PERMISSIONS.SEND_MESSAGE,
@@ -106,6 +110,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     PERMISSIONS.VIEW_REPORTS,
     PERMISSIONS.SEND_MESSAGE,
     PERMISSIONS.VIEW_MESSAGES,
+    PERMISSIONS.MANAGE_WHISPERS,
     PERMISSIONS.VIEW_INSIGHTS,
     PERMISSIONS.IMPORT_SIS,
     PERMISSIONS.MANAGE_USERS,

@@ -16,6 +16,14 @@ interface SisStatus {
   status: string;
 }
 
+interface SyncedCourse {
+  id: string;
+  code: string;
+  title: string;
+  department: { id: string; name: string } | null;
+  lecturer: { id: string; name: string } | null;
+}
+
 const EXAMPLE_PAYLOAD = JSON.stringify(
   {
     courses: [
@@ -30,6 +38,7 @@ const EXAMPLE_PAYLOAD = JSON.stringify(
 /** SIS / LMS integration console (admin). */
 export default function IntegrationsPage() {
   const [status, setStatus] = useState<SisStatus | null>(null);
+  const [courses, setCourses] = useState<SyncedCourse[] | null>(null);
   const [payload, setPayload] = useState(EXAMPLE_PAYLOAD);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -40,7 +49,12 @@ export default function IntegrationsPage() {
     setLoading(true);
     setError(null);
     try {
-      setStatus(await api<SisStatus>("/integrations/sis/status", { token: getToken(), cache: "no-store" }));
+      const [st, cs] = await Promise.all([
+        api<SisStatus>("/integrations/sis/status", { token: getToken(), cache: "no-store" }),
+        api<SyncedCourse[]>("/courses", { token: getToken(), cache: "no-store" }),
+      ]);
+      setStatus(st);
+      setCourses(cs);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load status");
     } finally {
@@ -119,6 +133,30 @@ export default function IntegrationsPage() {
                     <span className="font-body-md text-body-md text-onSurfaceVariant">Departments</span>
                     <span className="font-display text-headline-md font-semibold text-onSurface">{status.departments}</span>
                   </div>
+                </div>
+
+                <h2 className="rule-b mt-10 mb-4 font-label-caps text-label-caps uppercase tracking-widest text-onSurface">
+                  Synced Courses
+                </h2>
+                <div className="no-scrollbar max-h-72 overflow-y-auto border-t border-ink/10">
+                  {(courses ?? []).map((c, i) => (
+                    <div key={c.id} className="rule-b flex items-center gap-4 py-3">
+                      <span className="font-mono-label text-lg font-light text-onSurfaceVariant/40">
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-body-md text-body-md text-onSurface">{c.title}</p>
+                        <p className="font-label-caps text-label-caps text-onSurfaceVariant">
+                          {c.code} · {c.department?.name ?? "—"} · {c.lecturer?.name ?? "Unassigned"}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                  {courses !== null && courses.length === 0 && (
+                    <p className="py-4 font-body-sm text-body-sm text-onSurfaceVariant">
+                      No courses synced yet — import one on the right.
+                    </p>
+                  )}
                 </div>
               </div>
 

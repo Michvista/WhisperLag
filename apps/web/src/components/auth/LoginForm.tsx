@@ -27,7 +27,9 @@ export function LoginForm() {
       });
       storeSession(result.token, result.user.role);
       toast(`Signed in as ${result.user.role.toLowerCase()}.`);
-      router.push("/dashboard");
+      router.push(
+        result.user.role === "ADMIN" ? "/admin" : result.user.role === "FACULTY" ? "/faculty" : "/dashboard",
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign in failed");
       toast(err instanceof Error ? err.message : "Sign in failed", "error");
