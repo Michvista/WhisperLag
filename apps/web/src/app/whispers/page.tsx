@@ -17,6 +17,13 @@ interface WhisperItem {
   status: "NEW" | "ACKNOWLEDGED" | "ACTIONED";
   createdAt: string;
   department: { id: string; name: string } | null;
+  aiTag: {
+    courseCode?: string;
+    courseTitle?: string;
+    lecturer?: string;
+    department?: string;
+    confidence?: number;
+  } | null;
 }
 
 interface WhisperFeed {
@@ -49,6 +56,7 @@ export default function WhispersFeedPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [tagging, setTagging] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -87,6 +95,19 @@ export default function WhispersFeedPage() {
     }
   }
 
+  async function tagAll() {
+    setTagging(true);
+    try {
+      const res = await api<{ tagged: number }>("/feedback/analyze", { method: "POST", token: getToken() });
+      toast(res.tagged > 0 ? `Routed ${res.tagged} whisper${res.tagged === 1 ? "" : "s"} to courses.` : "No untagged whispers left.");
+      await load();
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "Tagging failed", "error");
+    } finally {
+      setTagging(false);
+    }
+  }
+
   const items = (feed?.items ?? []).filter((w) =>
     filter === "All" ? true : STATUS_META[w.status].label === filter,
   );
@@ -94,7 +115,7 @@ export default function WhispersFeedPage() {
   return (
     <RoleGate minRole={ROLES.FACULTY}>
       <AppShell>
-        <header className="rule-b mb-10 flex items-end justify-between pb-8">
+        <header className="rule-b mb-10 flex flex-wrap items-end justify-between gap-6 pb-8">
           <div>
             <h1 className="mb-2 font-display text-headline-lg font-semibold text-onSurface">
               Anonymous Whispers
@@ -103,6 +124,16 @@ export default function WhispersFeedPage() {
               Every submission, with no identity attached. {feed?.total ?? 0} total.
             </p>
           </div>
+          {isAdmin && (
+            <button
+              onClick={tagAll}
+              disabled={tagging}
+              className="flex items-center gap-2 border border-ink px-4 py-2 font-label-caps text-label-caps uppercase tracking-wider text-onSurface transition-colors hover:bg-surface-variant disabled:opacity-50"
+            >
+              <span className="material-symbols-outlined text-[16px]">auto_awesome</span>
+              {tagging ? "Routing…" : "Route with AI"}
+            </button>
+          )}
         </header>
 
         {/* Status filter */}
@@ -147,6 +178,13 @@ export default function WhispersFeedPage() {
                       {w.department && (
                         <span className="font-mono-label text-mono-label text-onSurfaceVariant">
                           {w.department.name}
+                        </span>
+                      )}
+                      {w.aiTag?.courseCode && (
+                        <span className="flex items-center gap-1 bg-primary/10 px-2 py-0.5 font-label-caps text-[10px] uppercase tracking-wider text-primary">
+                          <span className="material-symbols-outlined text-[12px]">school</span>
+                          {w.aiTag.courseCode}
+                          {w.aiTag.lecturer ? ` · ${w.aiTag.lecturer}` : ""}
                         </span>
                       )}
                       <span className="ml-auto font-mono-label text-mono-label text-onSurfaceVariant">

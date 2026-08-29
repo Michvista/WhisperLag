@@ -82,6 +82,8 @@ model Whisper {
   departmentId String?
   department   Department?  @relation(fields: [departmentId], references: [id])
   status       WhisperStatus @default(NEW)
+  // AI routing: inferred course/lecturer/department, if tagged. Never identity.
+  aiTag        Json?
   createdAt    DateTime     @default(now())
 }
 

@@ -23,6 +23,14 @@ feedbackRoutes.post(
 // Public "Have I been heard?" feed.
 feedbackRoutes.get("/public-recent", feedbackController.publicRecent);
 
+// Admin: AI-route untagged whispers to courses/lecturers.
+feedbackRoutes.post(
+  "/analyze",
+  authenticate,
+  authorize(PERMISSIONS.MANAGE_WHISPERS),
+  feedbackController.analyze,
+);
+
 feedbackRoutes.post(
   "/",
   authenticate,

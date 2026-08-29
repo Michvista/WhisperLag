@@ -52,4 +52,10 @@ export const feedbackController = {
     const items = await feedbackService.recent();
     res.status(HTTP_STATUS.OK).json({ success: true, data: items, error: null });
   }),
+
+  /** POST /api/v1/feedback/analyze — AI-routes untagged whispers to courses. */
+  analyze: asyncHandler(async (_req: Request, res: Response) => {
+    const result = await feedbackService.analyzeAll();
+    res.status(HTTP_STATUS.OK).json({ success: true, data: result, error: null });
+  }),
 };
