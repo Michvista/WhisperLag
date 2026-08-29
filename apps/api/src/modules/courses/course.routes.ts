@@ -7,6 +7,7 @@ import { createCourseSchema } from "./course.schema.js";
 
 export const courseRoutes = Router();
 
+courseRoutes.get("/public", courseController.publicList);
 courseRoutes.get("/", authenticate, courseController.list);
 courseRoutes.post(
   "/",

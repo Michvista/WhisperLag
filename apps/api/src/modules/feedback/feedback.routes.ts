@@ -20,6 +20,9 @@ feedbackRoutes.post(
   feedbackController.createPublic,
 );
 
+// Public "Have I been heard?" feed.
+feedbackRoutes.get("/public-recent", feedbackController.publicRecent);
+
 feedbackRoutes.post(
   "/",
   authenticate,

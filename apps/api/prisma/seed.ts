@@ -20,6 +20,7 @@ async function main() {
   await prisma.evaluation.deleteMany();
   await prisma.whisper.deleteMany();
   await prisma.course.deleteMany();
+  await prisma.rubric.deleteMany();
 
   // --- Departments ---
   const depts = [

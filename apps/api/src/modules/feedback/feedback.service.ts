@@ -27,6 +27,7 @@ export class FeedbackService {
   /**
    * Public, no-login submission (the "anon app" flow). The optional UNILAG
    * email is a soft gate — it is validated upstream and never stored here.
+   * The optional department tags the complaint for staff routing.
    */
   async createPublic(input: PublicWhisperInput): Promise<Whisper> {
     const whisper = await prisma.whisper.create({
@@ -34,6 +35,7 @@ export class FeedbackService {
         category: input.category,
         content: input.content,
         isAnonymous: true,
+        departmentId: input.departmentId ?? null,
       },
     });
     return whisper as unknown as Whisper;

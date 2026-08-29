@@ -12,6 +12,13 @@ export const evaluationController = {
     res.status(HTTP_STATUS.CREATED).json({ success: true, data: evaluation, error: null });
   }),
 
+  /** POST /api/v1/evaluations/public — anonymous, no login, rate limited. */
+  createPublic: asyncHandler(async (req: Request, res: Response) => {
+    const input = res.locals.validated as CreateEvaluationInput;
+    const evaluation = await evaluationService.create(input);
+    res.status(HTTP_STATUS.CREATED).json({ success: true, data: evaluation, error: null });
+  }),
+
   /** GET /api/v1/evaluations/aggregate/:courseId — faculty/admin only. */
   aggregate: asyncHandler(async (req: Request, res: Response) => {
     const result = await evaluationService.aggregateByCourse(req.params.courseId);

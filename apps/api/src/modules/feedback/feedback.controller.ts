@@ -46,4 +46,10 @@ export const feedbackController = {
     const items = await feedbackService.recent();
     res.status(HTTP_STATUS.OK).json({ success: true, data: items, error: null });
   }),
+
+  /** GET /api/v1/feedback/public-recent — public "Have I been heard?" feed. */
+  publicRecent: asyncHandler(async (_req: Request, res: Response) => {
+    const items = await feedbackService.recent();
+    res.status(HTTP_STATUS.OK).json({ success: true, data: items, error: null });
+  }),
 };

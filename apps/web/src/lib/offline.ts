@@ -16,7 +16,7 @@ const STORE = "outbox";
 
 interface QueuedWhisper {
   id: string;
-  payload: { category: string; content: string; unilagEmail?: string };
+  payload: { category: string; content: string; unilagEmail?: string; departmentId?: string };
   createdAt: string;
 }
 

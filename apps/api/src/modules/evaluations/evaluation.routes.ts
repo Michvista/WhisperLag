@@ -2,10 +2,18 @@ import { Router } from "express";
 import { PERMISSIONS } from "@whisperlag/shared";
 import { authenticate, authorize } from "../../middleware/auth.js";
 import { validate } from "../../middleware/asyncHandler.js";
+import { rateLimit } from "../../middleware/rateLimit.js";
 import { evaluationController } from "./evaluation.controller.js";
 import { createEvaluationSchema } from "./evaluation.schema.js";
 
 export const evaluationRoutes = Router();
+
+evaluationRoutes.post(
+  "/public",
+  rateLimit,
+  validate(createEvaluationSchema),
+  evaluationController.createPublic,
+);
 
 evaluationRoutes.post(
   "/",

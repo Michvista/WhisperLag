@@ -10,6 +10,12 @@ export const courseController = {
     res.status(HTTP_STATUS.OK).json({ success: true, data: courses, error: null });
   }),
 
+  /** Public course list (for anonymous evaluation) — no auth needed. */
+  publicList: asyncHandler(async (_req: Request, res: Response) => {
+    const courses = await courseService.list();
+    res.status(HTTP_STATUS.OK).json({ success: true, data: courses, error: null });
+  }),
+
   create: asyncHandler(async (req: Request, res: Response) => {
     const input = res.locals.validated as CreateCourseInput;
     const course = await courseService.create(input);

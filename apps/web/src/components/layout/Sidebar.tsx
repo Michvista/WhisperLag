@@ -34,7 +34,7 @@ function useNavItems() {
             { href: "/collaboration", label: "Collaboration" },
             { href: "/reports", label: "Reports" },
           ]
-        : [{ href: "/dashboard", label: "Drop a Whisper" }];
+        : [{ href: "/dashboard", label: "Drop a Whisper" }, { href: "/evaluate", label: "Rate a Course" }];
   return { items, role };
 }
 

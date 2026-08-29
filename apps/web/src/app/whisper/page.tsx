@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { WhisperForm } from "@/components/feedback/WhisperForm";
 import { PublicPolls } from "@/components/feedback/PublicPolls";
+import { PublicRecent } from "@/components/feedback/PublicRecent";
 import { WhisperLock } from "@/components/ui/WhisperLock";
 import { WhisperLogo } from "@/components/ui/WhisperLogo";
 
@@ -44,6 +45,7 @@ export default function WhisperPage() {
           </div>
           <WhisperForm />
           <PublicPolls />
+          <PublicRecent />
         </section>
       </main>
     </main>

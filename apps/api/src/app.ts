@@ -15,6 +15,7 @@ import { feedbackRoutes } from "./modules/feedback/feedback.routes.js";
 import { insightsRoutes } from "./modules/insights/insights.routes.js";
 import { integrationRoutes } from "./modules/integrations/integration.routes.js";
 import { reportRoutes } from "./modules/reports/report.routes.js";
+import { rubricRoutes } from "./modules/rubrics/rubric.routes.js";
 import { statsRoutes } from "./modules/stats/stats.routes.js";
 import { surveyRoutes } from "./modules/surveys/survey.routes.js";
 
@@ -48,6 +49,7 @@ export function createApp(): Express {
   app.use("/api/v1/surveys", surveyRoutes);
   app.use("/api/v1/departments", departmentRoutes);
   app.use("/api/v1/courses", courseRoutes);
+  app.use("/api/v1/rubrics", rubricRoutes);
   app.use("/api/v1/stats", statsRoutes);
   app.use("/api/v1/insights", insightsRoutes);
   app.use("/api/v1/integrations", integrationRoutes);

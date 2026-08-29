@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { flushOutbox, submitWhisperOfflineAware } from "@/lib/offline";
 import { toast } from "@/lib/toast";
+import { api } from "@/lib/api";
 
 const CATEGORIES = ["Academic Issue", "Facility Maintenance", "Student Welfare", "Other"];
 
@@ -15,24 +16,37 @@ function isUnilagEmail(email: string): boolean {
   return UNILAG_DOMAINS.includes(domain);
 }
 
+interface Department {
+  id: string;
+  name: string;
+}
+
 interface WhisperFormProps {
   className?: string;
 }
 
 /**
- * Public, no-login whisper form — the "anon app" flow. An optional UNILAG
- * email is a soft community gate: it is validated client- and server-side
- * but NEVER stored or linked to the message. Offline submissions are queued
- * locally and auto-synced when the connection returns.
+ * Public, no-login whisper form — the "anon app" flow. The optional UNILAG
+ * email is a soft community gate (validated, never stored); the optional
+ * department tags the complaint for staff routing. Offline submissions are
+ * queued locally and auto-synced.
  */
 export function WhisperForm({ className = "" }: WhisperFormProps) {
   const router = useRouter();
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [content, setContent] = useState("");
   const [unilagEmail, setUnilagEmail] = useState("");
+  const [departmentId, setDepartmentId] = useState("");
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "submitting">("idle");
+
+  useEffect(() => {
+    api<Department[]>("/departments/public", { cache: "no-store" })
+      .then(setDepartments)
+      .catch(() => setDepartments([]));
+  }, []);
 
   // When the connection returns, push any offline whispers to the server.
   useEffect(() => {
@@ -56,6 +70,7 @@ export function WhisperForm({ className = "" }: WhisperFormProps) {
     const { mode } = await submitWhisperOfflineAware({
       category,
       content,
+      departmentId: departmentId || undefined,
       unilagEmail: unilagEmail.trim() || undefined,
     });
     setStatus("idle");
@@ -87,7 +102,23 @@ export function WhisperForm({ className = "" }: WhisperFormProps) {
 
       <div className="relative">
         <label className="absolute -top-5 left-0 font-label-caps text-label-caps text-onSurfaceVariant">
-          02 // UNILAG Email (optional — never stored)
+          02 // Department (optional)
+        </label>
+        <select
+          value={departmentId}
+          onChange={(e) => setDepartmentId(e.target.value)}
+          className="input-minimal w-full font-body-md text-body-md text-onSurface"
+        >
+          <option value="">Select department…</option>
+          {departments.map((d) => (
+            <option key={d.id} value={d.id}>{d.name}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="relative">
+        <label className="absolute -top-5 left-0 font-label-caps text-label-caps text-onSurfaceVariant">
+          03 // UNILAG Email (optional — never stored)
         </label>
         <input
           type="email"

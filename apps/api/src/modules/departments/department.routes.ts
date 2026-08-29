@@ -7,6 +7,7 @@ import { createDepartmentSchema } from "./department.schema.js";
 
 export const departmentRoutes = Router();
 
+departmentRoutes.get("/public", departmentController.publicList);
 departmentRoutes.get("/", authenticate, authorize(PERMISSIONS.VIEW_DEPARTMENT), departmentController.list);
 departmentRoutes.post(
   "/",
