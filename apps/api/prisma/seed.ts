@@ -52,7 +52,7 @@ async function main() {
   });
   const faculty = await prisma.user.upsert({
     where: { email: "faculty@whisperlag.test" },
-    update: {},
+    update: { name: "Dr. Ada Obi" },
     create: {
       email: "faculty@whisperlag.test",
       name: "Dr. Ada Obi",
