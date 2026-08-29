@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { env } from "../../config/env.js";
 import { prisma } from "../../lib/prisma.js";
 import type { SisImportInput } from "./integration.schema.js";
@@ -29,16 +30,22 @@ export class IntegrationService {
       const departmentId = c.department ? (byName.get(c.department.toLowerCase())?.id ?? null) : null;
       const lecturerId = c.lecturer ? (byNameUsers.get(c.lecturer.toLowerCase())?.id ?? null) : null;
 
+      const lmsData = {
+        semester: c.semester ?? null,
+        credits: c.credits ?? null,
+        syllabus: c.syllabus ? (c.syllabus as Prisma.InputJsonValue) : Prisma.DbNull,
+      };
+
       const existing = await prisma.course.findUnique({ where: { code: c.code } });
       if (existing) {
         await prisma.course.update({
           where: { code: c.code },
-          data: { title: c.title, departmentId, lecturerId },
+          data: { title: c.title, departmentId, lecturerId, ...lmsData },
         });
         updated += 1;
       } else {
         await prisma.course.create({
-          data: { code: c.code, title: c.title, departmentId, lecturerId },
+          data: { code: c.code, title: c.title, departmentId, lecturerId, ...lmsData },
         });
         created += 1;
       }

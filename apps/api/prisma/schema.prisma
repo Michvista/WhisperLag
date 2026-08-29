@@ -60,6 +60,10 @@ model Course {
   id            String       @id @default(cuid())
   code          String       @unique
   title         String
+  // LMS-style metadata (imported from the Learning Management System)
+  semester      String?
+  credits       Int?
+  syllabus      Json?        // outline: array of module/topic titles
   departmentId  String?
   department    Department?  @relation(fields: [departmentId], references: [id])
   lecturerId    String?

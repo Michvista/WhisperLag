@@ -89,14 +89,14 @@ async function main() {
 
   // --- Courses (each department gets one, lectured by the seeded faculty) ---
   const courseDefs = [
-    { code: "NUR301", title: "Foundations of Nursing Practice", dept: "Nursing Science" },
-    { code: "SEN401", title: "Systems Modelling & Simulation", dept: "Systems Engineering" },
-    { code: "EEE305", title: "Digital Signal Processing", dept: "Electrical & Electronics Engineering" },
-    { code: "CSC201", title: "Data Structures & Algorithms", dept: "Computer Science" },
-    { code: "PHA101", title: "Pharmaceutical Chemistry I", dept: "Pharmacy" },
-    { code: "BUS202", title: "Organisational Behaviour", dept: "Business Administration" },
-    { code: "MAS101", title: "Introduction to Mass Communication", dept: "Mass Communication" },
-    { code: "LAW102", title: "Nigerian Legal System", dept: "Law" },
+    { code: "NUR301", title: "Foundations of Nursing Practice", dept: "Nursing Science", semester: "2025/2026 · First", credits: 4, syllabus: ["Introduction to Nursing", "Patient Assessment", "Care Planning", "Clinical Practice"] },
+    { code: "SEN401", title: "Systems Modelling & Simulation", dept: "Systems Engineering", semester: "2025/2026 · First", credits: 3, syllabus: ["System Concepts", "Mathematical Modelling", "Simulation Tools", "Validation"] },
+    { code: "EEE305", title: "Digital Signal Processing", dept: "Electrical & Electronics Engineering", semester: "2025/2026 · Second", credits: 3, syllabus: ["Signals & Systems", "Z-Transforms", "Filters", "Applications"] },
+    { code: "CSC201", title: "Data Structures & Algorithms", dept: "Computer Science", semester: "2025/2026 · First", credits: 4, syllabus: ["Complexity Analysis", "Linked Structures", "Trees & Graphs", "Searching & Sorting"] },
+    { code: "PHA101", title: "Pharmaceutical Chemistry I", dept: "Pharmacy", semester: "2025/2026 · First", credits: 4, syllabus: ["Organic Foundations", "Reaction Mechanisms", "Drug Synthesis", "Lab Work"] },
+    { code: "BUS202", title: "Organisational Behaviour", dept: "Business Administration", semester: "2025/2026 · Second", credits: 3, syllabus: ["Individual Behaviour", "Teams", "Leadership", "Organisational Culture"] },
+    { code: "MAS101", title: "Introduction to Mass Communication", dept: "Mass Communication", semester: "2025/2026 · First", credits: 3, syllabus: ["Communication Theory", "Media History", "News Writing", "Ethics"] },
+    { code: "LAW102", title: "Nigerian Legal System", dept: "Law", semester: "2025/2026 · First", credits: 4, syllabus: ["Sources of Law", "Court Structure", "Litigation", "Legal Writing"] },
   ];
   const courses = await Promise.all(
     courseDefs.map((c) =>
@@ -106,6 +106,9 @@ async function main() {
           title: c.title,
           departmentId: byName[c.dept].id,
           lecturerId: faculty.id,
+          semester: c.semester,
+          credits: c.credits,
+          syllabus: c.syllabus,
         },
       }),
     ),

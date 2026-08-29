@@ -20,6 +20,7 @@ function useNavItems() {
       ? [
           { href: "/whispers", label: "Whispers" },
           { href: "/admin", label: "Command Center" },
+          { href: "/courses", label: "Course Hub" },
           { href: "/collaboration", label: "Collaboration" },
           { href: "/integrations", label: "SIS / LMS" },
           { href: "/surveys", label: "Surveys" },
@@ -30,6 +31,7 @@ function useNavItems() {
         ? [
             { href: "/whispers", label: "Whispers" },
             { href: "/faculty", label: "Faculty" },
+            { href: "/courses", label: "Course Hub" },
             { href: "/surveys", label: "Surveys" },
             { href: "/collaboration", label: "Collaboration" },
             { href: "/reports", label: "Reports" },

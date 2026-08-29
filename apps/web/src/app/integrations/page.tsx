@@ -27,8 +27,24 @@ interface SyncedCourse {
 const EXAMPLE_PAYLOAD = JSON.stringify(
   {
     courses: [
-      { code: "CSC301", title: "Operating Systems", department: "Computer Science", lecturer: "Dr. Ada Obi" },
-      { code: "NUR305", title: "Community Health Nursing", department: "Nursing Science", lecturer: "Dr. Ada Obi" },
+      {
+        code: "CSC301",
+        title: "Operating Systems",
+        department: "Computer Science",
+        lecturer: "Dr. Ada Obi",
+        semester: "2025/2026 · Second",
+        credits: 4,
+        syllabus: ["Processes & Threads", "Memory Management", "File Systems", "Scheduling"],
+      },
+      {
+        code: "NUR305",
+        title: "Community Health Nursing",
+        department: "Nursing Science",
+        lecturer: "Dr. Ada Obi",
+        semester: "2025/2026 · First",
+        credits: 4,
+        syllabus: ["Community Assessment", "Health Promotion", "Field Clinics"],
+      },
     ],
   },
   null,
@@ -171,7 +187,9 @@ export default function IntegrationsPage() {
 {`{
   "courses": [
     { "code": "CSC301", "title": "Operating Systems",
-      "department": "Computer Science", "lecturer": "Dr. Ada Obi" }
+      "department": "Computer Science", "lecturer": "Dr. Ada Obi",
+      "semester": "2025/2026 · Second", "credits": 4,
+      "syllabus": ["Processes", "Memory", "File Systems"] }
   ]
 }`}
                 </pre>
@@ -198,7 +216,8 @@ export default function IntegrationsPage() {
                 />
                 <p className="mt-2 font-body-sm text-body-sm text-onSurfaceVariant">
                   <span className="font-medium text-onSurface">Required:</span> code, title.
-                  <span className="font-medium text-onSurface"> Optional:</span> department, lecturer (matched by exact name).
+                  <span className="font-medium text-onSurface"> Optional:</span> department, lecturer (matched by exact name),
+                  semester, credits, syllabus (the LMS record that powers the Course Hub).
                 </p>
                 <div className="mt-6 flex items-center gap-6">
                   <button

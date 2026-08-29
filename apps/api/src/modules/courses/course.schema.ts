@@ -5,6 +5,9 @@ export const createCourseSchema = z.object({
   title: z.string().min(1),
   departmentId: z.string().optional(),
   lecturerId: z.string().optional(),
+  semester: z.string().optional(),
+  credits: z.coerce.number().int().positive().optional(),
+  syllabus: z.array(z.string()).optional(),
 });
 
 export type CreateCourseInput = z.infer<typeof createCourseSchema>;
