@@ -175,7 +175,8 @@ export default function StudentDashboardPage() {
             ) : recent.error ? (
               <ErrorBlock message={recent.error} onRetry={recent.refetch} />
             ) : items && items.length > 0 ? (
-              <div className="flex flex-col">
+              <div className="max-h-[360px] overflow-y-auto pr-1">
+                <div className="flex flex-col">
                 {items.slice(0, 5).map((w) => {
                   const meta = STATUS_META[w.status];
                   return (
@@ -193,6 +194,7 @@ export default function StudentDashboardPage() {
                     </div>
                   );
                 })}
+                </div>
               </div>
             ) : (
               <p className="font-mono-label text-mono-label text-ink/50">

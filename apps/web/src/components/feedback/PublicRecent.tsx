@@ -42,8 +42,9 @@ export function PublicRecent() {
       <p className="mb-4 font-body-sm text-body-sm text-onSurfaceVariant">
         Recent feedback the university is acting on — no identities.
       </p>
-      <div className="flex flex-col">
-        {items.slice(0, 5).map((w) => {
+      <div className="max-h-[420px] overflow-y-auto pr-2">
+        <div className="flex flex-col">
+          {items.slice(0, 5).map((w) => {
           const meta = STATUS_META[w.status];
           return (
             <div key={w.id} className="rule-b flex items-start justify-between gap-3 py-4">
@@ -60,6 +61,7 @@ export function PublicRecent() {
             </div>
           );
         })}
+        </div>
       </div>
     </div>
   );
