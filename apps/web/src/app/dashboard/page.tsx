@@ -7,6 +7,7 @@ import { ErrorBlock, LoadingBlock } from "@/components/ui/States";
 import { useFetch } from "@/lib/useFetch";
 import { api, getToken } from "@/lib/api";
 import { toast } from "@/lib/toast";
+import { ExpandableText } from "@/components/ui/ExpandableText";
 
 interface RecentWhisper {
   id: string;
@@ -184,7 +185,7 @@ export default function StudentDashboardPage() {
                           <h3 className="font-body-md text-body-md text-ink">{w.category}</h3>
                           <p className="font-mono-label text-mono-label text-ink/50">{formatDate(w.createdAt)}</p>
                         </div>
-                        <p className="truncate font-body-sm text-body-sm text-ink/60">&ldquo;{w.content}&rdquo;</p>
+                        <ExpandableText text={w.content} />
                       </div>
                       <span className={`shrink-0 px-2 py-1 font-label-caps text-[10px] uppercase tracking-wider ${meta.cls}`}>
                         {meta.label}
