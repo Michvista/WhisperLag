@@ -22,31 +22,39 @@ export default function WhisperPage() {
         </div>
       </header>
 
-      <main className="mx-auto flex w-full max-w-[1200px] flex-grow flex-col gap-16 px-margin-mobile py-16 md:flex-row md:px-margin-desktop md:gap-24">
-        {/* Left: context */}
-        <section className="flex w-full flex-col justify-center gap-8 md:w-2/5">
-          <div className="flex flex-col gap-4">
-            <h1 className="font-display text-headline-lg-mobile font-semibold text-onSurface md:text-headline-lg">
-              The Whisper.
-            </h1>
-            <p className="font-body-lg text-body-lg text-onSurfaceVariant">
-              No account. No login. Your message is anonymized before it ever
-              reaches us — even we cannot tell who wrote it.
-            </p>
-          </div>
-          <WhisperLogo size={140} />
-        </section>
+      {/* Submit: context left, form right */}
+      <main className="mx-auto w-full max-w-[1200px] flex-grow px-margin-mobile py-16 md:px-margin-desktop">
+        <div className="flex flex-col gap-16 md:flex-row md:gap-24">
+          <section className="flex w-full flex-col justify-center gap-8 md:w-2/5">
+            <div className="flex flex-col gap-4">
+              <h1 className="font-display text-headline-lg-mobile font-semibold text-onSurface md:text-headline-lg">
+                The Whisper.
+              </h1>
+              <p className="font-body-lg text-body-lg text-onSurfaceVariant">
+                No account. No login. Your message is anonymized before it ever
+                reaches us — even we cannot tell who wrote it.
+              </p>
+            </div>
+            <WhisperLogo size={140} />
+          </section>
 
-        {/* Right: the form */}
-        <section className="w-full md:w-3/5">
-          <div className="mb-8 flex items-center justify-between border-b border-ink/10 pb-4">
-            <span className="font-mono-label text-mono-label text-onSurfaceVariant">ANONYMOUS SUBMISSION</span>
-            <WhisperLock compact />
-          </div>
-          <WhisperForm />
-          <PublicPolls />
-          <PublicRecent />
-        </section>
+          <section className="w-full md:w-3/5">
+            <div className="mb-8 flex items-center justify-between border-b border-ink/10 pb-4">
+              <span className="font-mono-label text-mono-label text-onSurfaceVariant">ANONYMOUS SUBMISSION</span>
+            </div>
+            <WhisperForm />
+          </section>
+        </div>
+
+        {/* Campus engagement: polls + recent activity, full width */}
+        <div className="mx-auto mt-16 grid max-w-[1200px] grid-cols-1 gap-16 border-t border-ink/10 pt-10 md:grid-cols-2">
+          <section>
+            <PublicPolls />
+          </section>
+          <section>
+            <PublicRecent />
+          </section>
+        </div>
       </main>
     </main>
   );

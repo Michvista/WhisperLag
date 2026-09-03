@@ -55,8 +55,8 @@ export function PublicPolls() {
   if (surveys.length === 0) return null;
 
   return (
-    <div className="mt-12">
-      <h2 className="rule-b mb-2 flex items-center gap-2 border-t border-ink/10 pt-6 font-display text-headline-md font-semibold text-onSurface">
+    <div>
+      <h2 className="mb-2 flex items-center gap-2 font-display text-headline-md font-semibold text-onSurface">
         Active Polls
         <span className="inline-block h-2 w-2 rounded-full bg-sun-gold" />
       </h2>

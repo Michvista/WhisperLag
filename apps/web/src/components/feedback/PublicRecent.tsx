@@ -34,8 +34,8 @@ export function PublicRecent() {
   if (!items || items.length === 0) return null;
 
   return (
-    <div className="mt-12">
-      <h2 className="rule-b mb-2 border-t border-ink/10 pt-6 font-display text-headline-md font-semibold text-onSurface">
+    <div>
+      <h2 className="mb-2 font-display text-headline-md font-semibold text-onSurface">
         Recent Activity
       </h2>
       <p className="mb-4 font-body-sm text-body-sm text-onSurfaceVariant">
