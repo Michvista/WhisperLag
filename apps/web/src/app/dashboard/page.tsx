@@ -15,6 +15,7 @@ interface RecentWhisper {
   content: string;
   status: "NEW" | "ACKNOWLEDGED" | "ACTIONED";
   createdAt: string;
+  resolutionNote?: string | null;
 }
 
 interface Survey {
@@ -187,6 +188,11 @@ export default function StudentDashboardPage() {
                           <p className="font-mono-label text-mono-label text-ink/50">{formatDate(w.createdAt)}</p>
                         </div>
                         <ExpandableText text={w.content} />
+                        {w.status === "ACTIONED" && w.resolutionNote && (
+                          <p className="font-body-sm text-body-sm leading-relaxed text-primary">
+                            ✓ {w.resolutionNote}
+                          </p>
+                        )}
                       </div>
                       <span className={`shrink-0 px-2 py-1 font-label-caps text-[10px] uppercase tracking-wider ${meta.cls}`}>
                         {meta.label}

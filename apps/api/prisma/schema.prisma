@@ -69,6 +69,7 @@ model Course {
   lecturerId    String?
   lecturer      User?        @relation("Lecturer", fields: [lecturerId], references: [id])
   evaluations   Evaluation[]
+  surveys       Survey[]
   createdAt     DateTime     @default(now())
 }
 
@@ -88,6 +89,8 @@ model Whisper {
   status       WhisperStatus @default(NEW)
   // AI routing: inferred course/lecturer/department, if tagged. Never identity.
   aiTag        Json?
+  // Public resolution note, set by an admin when a whisper is resolved.
+  resolutionNote String?
   createdAt    DateTime     @default(now())
 }
 
@@ -135,6 +138,8 @@ model Survey {
   description String?
   isAnonymous Boolean     @default(true)
   createdById String?
+  courseId    String?
+  course      Course?     @relation(fields: [courseId], references: [id])
   status      SurveyStatus @default(DRAFT)
   questions   SurveyQuestion[]
   responses   SurveyResponse[]

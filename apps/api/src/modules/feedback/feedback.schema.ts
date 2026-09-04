@@ -10,9 +10,10 @@ export const createWhisperSchema = z.object({
 
 export type CreateWhisperInput = z.infer<typeof createWhisperSchema>;
 
-/** Admin-only status transitions. */
+/** Admin-only status transitions, with an optional public resolution note. */
 export const updateWhisperStatusSchema = z.object({
   status: z.enum(["NEW", "ACKNOWLEDGED", "ACTIONED"]),
+  resolutionNote: z.string().max(1000).optional(),
 });
 
 export type UpdateWhisperStatusInput = z.infer<typeof updateWhisperStatusSchema>;

@@ -17,6 +17,7 @@ interface WhisperItem {
   status: "NEW" | "ACKNOWLEDGED" | "ACTIONED";
   createdAt: string;
   department: { id: string; name: string } | null;
+  resolutionNote?: string | null;
   aiTag: {
     courseCode?: string;
     courseTitle?: string;
@@ -57,6 +58,9 @@ export default function WhispersFeedPage() {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [tagging, setTagging] = useState(false);
+  // inline resolution note, keyed by whisper id
+  const [resolveNote, setResolveNote] = useState<Record<string, string>>({});
+  const [resolvingId, setResolvingId] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
@@ -78,15 +82,16 @@ export default function WhispersFeedPage() {
     void load();
   }, []);
 
-  async function setStatus(id: string, status: WhisperItem["status"]) {
+  async function setStatus(id: string, status: WhisperItem["status"], note?: string) {
     setBusyId(id);
     try {
       await api(`/feedback/${id}/status`, {
         method: "PATCH",
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status, resolutionNote: status === "ACTIONED" ? note : undefined }),
         token: getToken(),
       });
       toast("Whisper updated.");
+      setResolvingId(null);
       await load();
     } catch (e) {
       toast(e instanceof Error ? e.message : "Update failed", "error");
@@ -128,10 +133,15 @@ export default function WhispersFeedPage() {
             <button
               onClick={tagAll}
               disabled={tagging}
-              className="flex items-center gap-2 border border-ink px-4 py-2 font-label-caps text-label-caps uppercase tracking-wider text-onSurface transition-colors hover:bg-surface-variant disabled:opacity-50"
+              title="Reads each untagged whisper and tags the course / lecturer / department it is about"
+              className="group relative flex items-center gap-2 border border-ink px-4 py-2 font-label-caps text-label-caps uppercase tracking-wider text-onSurface transition-colors hover:bg-surface-variant disabled:opacity-50"
             >
-              <span className="material-symbols-outlined text-[16px]">auto_awesome</span>
+              <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
               {tagging ? "Routing…" : "Route with AI"}
+              <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 w-60 -translate-x-1/2 rounded-sm border border-ink/10 bg-surface-container-lowest px-3 py-2 text-left font-body-sm text-body-sm text-onSurface opacity-0 shadow-level-2 transition-opacity group-hover:opacity-100">
+                Reads each whisper and tags the course, lecturer or department
+                it is about — so it reaches the right place.
+              </span>
             </button>
           )}
         </header>
@@ -200,24 +210,49 @@ export default function WhispersFeedPage() {
                       {meta.label}
                     </span>
                     {isAdmin && w.status !== "ACTIONED" && (
-                      <div className="flex gap-2">
-                        {w.status !== "ACKNOWLEDGED" && (
+                      <div className="flex flex-col items-end gap-2">
+                        <div className="flex gap-2">
+                          {w.status !== "ACKNOWLEDGED" && (
+                            <button
+                              onClick={() => setStatus(w.id, "ACKNOWLEDGED")}
+                              disabled={busyId === w.id}
+                              className="border border-ink/20 px-2 py-1 font-label-caps text-[10px] uppercase tracking-wider text-onSurfaceVariant transition-colors hover:border-ink disabled:opacity-40"
+                            >
+                              Under review
+                            </button>
+                          )}
                           <button
-                            onClick={() => setStatus(w.id, "ACKNOWLEDGED")}
+                            onClick={() => setResolvingId(resolvingId === w.id ? null : w.id)}
                             disabled={busyId === w.id}
-                            className="border border-ink/20 px-2 py-1 font-label-caps text-[10px] uppercase tracking-wider text-onSurfaceVariant transition-colors hover:border-ink disabled:opacity-40"
+                            className="bg-ink px-2 py-1 font-label-caps text-[10px] uppercase tracking-wider text-white transition-colors hover:bg-primary disabled:opacity-40"
                           >
-                            Under review
+                            Resolve
                           </button>
+                        </div>
+                        {resolvingId === w.id && (
+                          <div className="flex w-56 flex-col gap-2">
+                            <textarea
+                              value={resolveNote[w.id] ?? ""}
+                              onChange={(e) => setResolveNote((n) => ({ ...n, [w.id]: e.target.value }))}
+                              placeholder="What was done? Students will see this note."
+                              rows={2}
+                              className="input-minimal w-full resize-none font-body-sm text-body-sm"
+                            />
+                            <button
+                              onClick={() => setStatus(w.id, "ACTIONED", resolveNote[w.id]?.trim() || undefined)}
+                              disabled={busyId === w.id}
+                              className="bg-primary px-2 py-1 font-label-caps text-[10px] uppercase tracking-wider text-white disabled:opacity-40"
+                            >
+                              {busyId === w.id ? "Saving…" : "Confirm & resolve"}
+                            </button>
+                          </div>
                         )}
-                        <button
-                          onClick={() => setStatus(w.id, "ACTIONED")}
-                          disabled={busyId === w.id}
-                          className="bg-ink px-2 py-1 font-label-caps text-[10px] uppercase tracking-wider text-white transition-colors hover:bg-primary disabled:opacity-40"
-                        >
-                          Resolve
-                        </button>
                       </div>
+                    )}
+                    {w.status === "ACTIONED" && w.resolutionNote && (
+                      <p className="mt-1 max-w-xs text-right font-body-sm text-body-sm text-onSurfaceVariant">
+                        Resolved: {w.resolutionNote}
+                      </p>
                     )}
                   </div>
                 </div>

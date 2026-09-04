@@ -24,6 +24,22 @@ interface SyncedCourse {
   lecturer: { id: string; name: string } | null;
 }
 
+interface Department {
+  id: string;
+  name: string;
+}
+
+interface Row {
+  key: number;
+  code: string;
+  title: string;
+  department: string;
+  lecturer: string;
+  semester: string;
+  credits: string;
+  syllabus: string;
+}
+
 const EXAMPLE_PAYLOAD = JSON.stringify(
   {
     courses: [
@@ -36,25 +52,23 @@ const EXAMPLE_PAYLOAD = JSON.stringify(
         credits: 4,
         syllabus: ["Processes & Threads", "Memory Management", "File Systems", "Scheduling"],
       },
-      {
-        code: "NUR305",
-        title: "Community Health Nursing",
-        department: "Nursing Science",
-        lecturer: "Dr. Ada Obi",
-        semester: "2025/2026 · First",
-        credits: 4,
-        syllabus: ["Community Assessment", "Health Promotion", "Field Clinics"],
-      },
     ],
   },
   null,
   2,
 );
 
-/** SIS / LMS integration console (admin). */
+function emptyRow(): Row {
+  return { key: Date.now(), code: "", title: "", department: "", lecturer: "", semester: "", credits: "", syllabus: "" };
+}
+
+/** SIS / LMS integration console (admin) — friendly form importer. */
 export default function IntegrationsPage() {
   const [status, setStatus] = useState<SisStatus | null>(null);
   const [courses, setCourses] = useState<SyncedCourse[] | null>(null);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [rows, setRows] = useState<Row[]>([emptyRow()]);
+  const [showJson, setShowJson] = useState(false);
   const [payload, setPayload] = useState(EXAMPLE_PAYLOAD);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -65,12 +79,14 @@ export default function IntegrationsPage() {
     setLoading(true);
     setError(null);
     try {
-      const [st, cs] = await Promise.all([
+      const [st, cs, deps] = await Promise.all([
         api<SisStatus>("/integrations/sis/status", { token: getToken(), cache: "no-store" }),
         api<SyncedCourse[]>("/courses", { token: getToken(), cache: "no-store" }),
+        api<Department[]>("/departments", { token: getToken(), cache: "no-store" }),
       ]);
       setStatus(st);
       setCourses(cs);
+      setDepartments(deps);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load status");
     } finally {
@@ -82,23 +98,54 @@ export default function IntegrationsPage() {
     void loadStatus();
   }, []);
 
-  async function runImport() {
+  function updateRow(key: number, patch: Partial<Row>) {
+    setRows((r) => r.map((row) => (row.key === key ? { ...row, ...patch } : row)));
+  }
+
+  async function runFormImport() {
+    const valid = rows.filter((r) => r.code.trim() && r.title.trim());
+    if (valid.length === 0) {
+      toast("Add at least one course with a code and title.", "error");
+      return;
+    }
+    await doImport({
+      courses: valid.map((r) => ({
+        code: r.code.trim(),
+        title: r.title.trim(),
+        department: r.department || undefined,
+        lecturer: r.lecturer || undefined,
+        semester: r.semester || undefined,
+        credits: r.credits ? Number(r.credits) : undefined,
+        syllabus: r.syllabus.split(",").map((s) => s.trim()).filter(Boolean),
+      })),
+    });
+  }
+
+  async function runJsonImport() {
+    try {
+      await doImport(JSON.parse(payload) as { courses: unknown[] });
+    } catch (e) {
+      setError(e instanceof Error ? "That JSON doesn't parse." : "Invalid payload");
+      toast("That JSON doesn't parse.", "error");
+    }
+  }
+
+  async function doImport(body: { courses: unknown[] }) {
     setImporting(true);
     setError(null);
     setResult(null);
     try {
-      const parsed = JSON.parse(payload) as { courses: { code: string; title: string; department?: string; lecturer?: string }[] };
       const res = await api<{ imported: number; created: number; updated: number }>("/integrations/sis/import", {
         method: "POST",
-        body: JSON.stringify(parsed),
+        body: JSON.stringify(body),
         token: getToken(),
       });
       setResult(`Imported ${res.imported} course${res.imported === 1 ? "" : "s"} — ${res.created} created, ${res.updated} updated.`);
-      toast(`SIS import complete: ${res.created} created, ${res.updated} updated.`);
+      toast(`Import complete: ${res.created} created, ${res.updated} updated.`);
       await loadStatus();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Invalid import payload");
-      toast(e instanceof Error ? e.message : "Invalid import payload", "error");
+      setError(e instanceof Error ? e.message : "Import failed");
+      toast(e instanceof Error ? e.message : "Import failed", "error");
     } finally {
       setImporting(false);
     }
@@ -109,11 +156,13 @@ export default function IntegrationsPage() {
       <AppShell>
         <header className="rule-b mb-12 pb-8">
           <h1 className="mb-2 font-display text-headline-lg font-semibold text-onSurface">SIS / LMS Integration</h1>
-          <p className="font-body-md text-body-md text-onSurfaceVariant">
-            Sync course data from UNILAG&apos;s Student Information System. When a
-            live <span className="font-medium text-onSurface">SIS_API_URL</span> is
-            configured the connector runs automatically; otherwise admins import a
-            standard SIS export below.
+          <p className="max-w-2xl font-body-md text-body-md text-onSurfaceVariant">
+            Bring UNILAG&apos;s official course records into the app so
+            evaluations, department routing, and accreditation reports are
+            built on verified data. Add courses below (the form), or use the
+            JSON import for a bulk export. When a live{" "}
+            <span className="font-medium text-onSurface">SIS_API_URL</span> is set,
+            this runs automatically.
           </p>
         </header>
 
@@ -122,6 +171,7 @@ export default function IntegrationsPage() {
         ) : (
           status && (
             <div className="grid grid-cols-1 gap-16 lg:grid-cols-[40%_60%]">
+              {/* Left: status + synced */}
               <div>
                 <h2 className="rule-b mb-6 font-label-caps text-label-caps uppercase tracking-widest text-onSurface">
                   Connector Status
@@ -170,65 +220,144 @@ export default function IntegrationsPage() {
                   ))}
                   {courses !== null && courses.length === 0 && (
                     <p className="py-4 font-body-sm text-body-sm text-onSurfaceVariant">
-                      No courses synced yet — import one on the right.
+                      No courses synced yet — add one on the right.
                     </p>
                   )}
                 </div>
               </div>
 
+              {/* Right: importer */}
               <div>
-                <h2 className="rule-b mb-6 font-label-caps text-label-caps uppercase tracking-widest text-onSurface">
-                  Import SIS Export
-                </h2>
-                <label className="mb-2 block font-body-sm text-body-sm text-onSurfaceVariant">
-                  Paste the SIS course export (JSON). The standard export shape is:
-                </label>
-                <pre className="mb-4 overflow-x-auto border border-ink/10 bg-surface-container-low p-4 font-mono-label text-mono-label text-onSurface">
-{`{
-  "courses": [
-    { "code": "CSC301", "title": "Operating Systems",
-      "department": "Computer Science", "lecturer": "Dr. Ada Obi",
-      "semester": "2025/2026 · Second", "credits": 4,
-      "syllabus": ["Processes", "Memory", "File Systems"] }
-  ]
-}`}
-                </pre>
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="font-label-caps text-label-caps text-onSurfaceVariant">
-                    Payload
-                  </span>
+                <div className="mb-6 flex items-center justify-between">
+                  <h2 className="font-label-caps text-label-caps uppercase tracking-widest text-onSurface">
+                    Add Courses
+                  </h2>
                   <button
                     type="button"
-                    onClick={() => {
-                      navigator.clipboard.writeText(EXAMPLE_PAYLOAD);
-                      toast("Template copied.");
-                    }}
+                    onClick={() => setShowJson((s) => !s)}
                     className="font-label-caps text-label-caps text-primary hover:underline"
                   >
-                    Copy template
+                    {showJson ? "Use the form" : "Paste JSON instead"}
                   </button>
                 </div>
-                <textarea
-                  value={payload}
-                  onChange={(e) => setPayload(e.target.value)}
-                  spellCheck={false}
-                  className="input-minimal min-h-[200px] w-full resize-none font-mono-label text-mono-label leading-relaxed text-onSurface"
-                />
-                <p className="mt-2 font-body-sm text-body-sm text-onSurfaceVariant">
-                  <span className="font-medium text-onSurface">Required:</span> code, title.
-                  <span className="font-medium text-onSurface"> Optional:</span> department, lecturer (matched by exact name),
-                  semester, credits, syllabus (the LMS record that powers the Course Hub).
-                </p>
-                <div className="mt-6 flex items-center gap-6">
-                  <button
-                    onClick={runImport}
-                    disabled={importing}
-                    className="bg-ink px-8 py-4 font-label-caps text-label-caps uppercase tracking-widest text-white transition-colors duration-300 hover:bg-primary disabled:opacity-60"
-                  >
-                    {importing ? "Importing…" : "Import Courses"}
-                  </button>
-                  {result && <span className="font-mono-label text-mono-label text-primary">{result}</span>}
-                </div>
+
+                {showJson ? (
+                  <div>
+                    <label className="mb-2 block font-body-sm text-body-sm text-onSurfaceVariant">
+                      Paste a bulk SIS/LMS export (JSON).
+                    </label>
+                    <textarea
+                      value={payload}
+                      onChange={(e) => setPayload(e.target.value)}
+                      spellCheck={false}
+                      className="input-minimal min-h-[220px] w-full resize-none font-mono-label text-mono-label leading-relaxed text-onSurface"
+                    />
+                    <div className="mt-6">
+                      <button
+                        onClick={runJsonImport}
+                        disabled={importing}
+                        className="bg-ink px-8 py-4 font-label-caps text-label-caps uppercase tracking-widest text-white transition-colors duration-300 hover:bg-primary disabled:opacity-60"
+                      >
+                        {importing ? "Importing…" : "Import Courses"}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-6">
+                    <div className="rule-b flex flex-wrap items-end gap-3 pb-2 font-label-caps text-label-caps uppercase tracking-wider text-onSurfaceVariant">
+                      <span className="w-28">Code *</span>
+                      <span className="w-56">Title *</span>
+                      <span className="w-44">Department</span>
+                      <span className="w-40">Lecturer</span>
+                      <span className="w-36">Semester</span>
+                      <span className="w-16">Credits</span>
+                    </div>
+
+                    {rows.map((row) => (
+                      <div key={row.key} className="flex flex-wrap items-center gap-3">
+                        <input
+                          value={row.code}
+                          onChange={(e) => updateRow(row.key, { code: e.target.value })}
+                          placeholder="CSC301"
+                          className="input-minimal w-28 font-body-sm text-body-sm"
+                        />
+                        <input
+                          value={row.title}
+                          onChange={(e) => updateRow(row.key, { title: e.target.value })}
+                          placeholder="Operating Systems"
+                          className="input-minimal w-56 font-body-sm text-body-sm"
+                        />
+                        <select
+                          value={row.department}
+                          onChange={(e) => updateRow(row.key, { department: e.target.value })}
+                          className="input-minimal w-44 font-body-sm text-body-sm"
+                        >
+                          <option value="">Select…</option>
+                          {departments.map((d) => (
+                            <option key={d.id} value={d.name}>{d.name}</option>
+                          ))}
+                        </select>
+                        <input
+                          value={row.lecturer}
+                          onChange={(e) => updateRow(row.key, { lecturer: e.target.value })}
+                          placeholder="Dr. Ada Obi"
+                          className="input-minimal w-40 font-body-sm text-body-sm"
+                        />
+                        <input
+                          value={row.semester}
+                          onChange={(e) => updateRow(row.key, { semester: e.target.value })}
+                          placeholder="2025/2026 · Second"
+                          className="input-minimal w-36 font-body-sm text-body-sm"
+                        />
+                        <input
+                          value={row.credits}
+                          onChange={(e) => updateRow(row.key, { credits: e.target.value })}
+                          placeholder="4"
+                          type="number"
+                          min={1}
+                          className="input-minimal w-16 font-body-sm text-body-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setRows((r) => r.filter((x) => x.key !== row.key))}
+                          className="text-onSurfaceVariant transition-colors hover:text-error"
+                          aria-label="Remove row"
+                        >
+                          <span className="material-symbols-outlined text-[20px]">close</span>
+                        </button>
+                        <div className="basis-full">
+                          <input
+                            value={row.syllabus}
+                            onChange={(e) => updateRow(row.key, { syllabus: e.target.value })}
+                            placeholder="Syllabus topics, comma separated (optional)"
+                            className="input-minimal w-full font-body-sm text-body-sm text-onSurfaceVariant"
+                          />
+                        </div>
+                      </div>
+                    ))}
+
+                    <div className="flex items-center gap-4">
+                      <button
+                        type="button"
+                        onClick={() => setRows((r) => [...r, emptyRow()])}
+                        className="flex items-center gap-2 border border-ink px-4 py-2 font-label-caps text-label-caps uppercase tracking-wider text-onSurface transition-colors hover:bg-surface-variant"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">add</span>
+                        Add course
+                      </button>
+                      <button
+                        onClick={runFormImport}
+                        disabled={importing}
+                        className="bg-ink px-8 py-3 font-label-caps text-label-caps uppercase tracking-widest text-white transition-colors duration-300 hover:bg-primary disabled:opacity-60"
+                      >
+                        {importing ? "Importing…" : "Import Courses"}
+                      </button>
+                    </div>
+
+                    {result && <p className="font-mono-label text-mono-label text-primary">{result}</p>}
+                  </div>
+                )}
+
                 {error && (
                   <p className="mt-4 border border-error-container bg-error-container/30 p-3 font-body-sm text-body-sm text-onErrorContainer">
                     {error}

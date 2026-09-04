@@ -81,7 +81,13 @@ export class FeedbackService {
     }
     const updated = await prisma.whisper.update({
       where: { id },
-      data: { status: input.status },
+      data: {
+        status: input.status,
+        // A resolution note is only kept while the item is resolved; it is a
+        // public explanation, never identity.
+        resolutionNote:
+          input.status === "ACTIONED" ? (input.resolutionNote?.trim() || null) : null,
+      },
     });
     return updated as unknown as Whisper;
   }
@@ -107,6 +113,7 @@ export class FeedbackService {
         category: true,
         content: true,
         status: true,
+        resolutionNote: true,
         createdAt: true,
       },
     });

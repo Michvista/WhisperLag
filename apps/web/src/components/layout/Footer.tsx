@@ -10,23 +10,35 @@ const FOOTER_LINKS = [
 /** Editorial footer: rule-separated, institutional sign-off. */
 export function Footer() {
   return (
-    <footer className="mt-auto border-t border-ink/10 bg-surface-dim">
-      <div className="mx-auto flex w-full max-w-wide flex-col items-center justify-between gap-6 px-margin-desktop py-12 md:flex-row">
-        <span className="font-display text-headline-md font-bold text-onSurface">WhisperLag</span>
-        <span className="text-center font-body-md text-body-md text-onSurfaceVariant">
-          © 2026 University of Lagos. End-to-End Encrypted via UNILAG Secure.
-        </span>
-        <nav className="flex flex-wrap justify-center gap-6">
+    <footer className="mt-auto border-t border-ink/10 bg-surface-container-low/40">
+      <div className="mx-auto flex w-full max-w-wide flex-col gap-8 px-margin-desktop py-10 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-1">
+          <span className="font-display text-headline-md font-bold tracking-tighter text-primary">
+            WhisperLag
+          </span>
+          <span className="font-mono-label text-mono-label text-onSurfaceVariant">
+            © 2026 University of Lagos. End-to-End Encrypted via UNILAG Secure.
+          </span>
+        </div>
+
+        <nav className="flex flex-wrap items-center gap-x-6 gap-y-2">
           {FOOTER_LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="font-label-caps text-label-caps uppercase text-onSurfaceVariant underline transition-colors hover:text-onSurface"
+              className="font-label-caps text-label-caps uppercase tracking-wider text-onSurfaceVariant transition-colors hover:text-primary"
             >
               {link.label}
             </Link>
           ))}
         </nav>
+
+        <div className="whisper-lock-glow flex w-fit items-center gap-2 rounded-full bg-surface-container-lowest px-4 py-2">
+          <span className="material-symbols-outlined text-[18px] text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>
+            lock
+          </span>
+          <span className="font-label-caps text-label-caps text-onSurfaceVariant">Whisper Lock Active</span>
+        </div>
       </div>
     </footer>
   );

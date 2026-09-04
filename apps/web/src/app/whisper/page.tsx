@@ -22,14 +22,14 @@ export default function WhisperPage() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-[1200px] flex-grow px-margin-mobile py-12 md:px-margin-desktop md:py-24">
-        <div className="grid grid-cols-1 gap-20 lg:grid-cols-[minmax(0,1fr)_360px]">
+      <main className="mx-auto w-full max-w-[1200px] flex-grow px-margin-mobile py-14 md:px-margin-desktop md:py-24">
+        <div className="grid grid-cols-1 gap-24 lg:grid-cols-[minmax(0,1fr)_380px]">
           {/* Main: the form */}
-          <section className="flex flex-col gap-12">
+          <section className="flex flex-col gap-14">
             {/* Image above the heading, then the copy */}
-            <div className="flex flex-col items-start gap-8">
-              <WhisperLogo size={120} />
-              <div className="flex flex-col gap-4">
+            <div className="flex flex-col items-start gap-10">
+              <WhisperLogo size={132} />
+              <div className="flex flex-col gap-5">
                 <h1 className="font-display text-headline-lg-mobile font-semibold text-onSurface md:text-headline-lg">
                   The Whisper.
                 </h1>
@@ -40,14 +40,14 @@ export default function WhisperPage() {
               </div>
             </div>
 
-            <div className="border-b border-ink/10 pb-5">
+            <div className="border-b border-ink/10 pb-6">
               <span className="font-mono-label text-mono-label text-onSurfaceVariant">ANONYMOUS SUBMISSION</span>
             </div>
             <WhisperForm />
           </section>
 
           {/* Right sidebar: polls + recent activity */}
-          <aside className="flex flex-col gap-16 border-t border-ink/10 pt-12 lg:border-l lg:border-t-0 lg:pl-12 lg:pt-0">
+          <aside className="flex flex-col gap-20 border-t border-ink/10 pt-14 lg:border-l lg:border-t-0 lg:pl-14 lg:pt-0">
             <PublicPolls />
             <PublicRecent />
           </aside>

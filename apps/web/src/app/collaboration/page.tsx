@@ -43,7 +43,8 @@ export default function CollaborationPage() {
         api<Message[]>("/messages", { token: getToken(), cache: "no-store" }),
         api<{ id: string }>("/auth/me", { token: getToken(), cache: "no-store" }),
       ]);
-      setMessages(msgs);
+      // API returns newest-first; show like WhatsApp (oldest at top, newest at bottom).
+      setMessages([...msgs].reverse());
       setMeId(me.id);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load messages");

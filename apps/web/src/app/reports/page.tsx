@@ -93,6 +93,19 @@ export default function ReportsPage() {
           institutional review and compliance reporting. All data maintains
           strict anonymity protocols.
         </p>
+        <div className="mt-6 flex max-w-2xl flex-col gap-2 border border-ink/10 bg-surface-container-low p-4">
+          <p className="font-label-caps text-label-caps uppercase tracking-widest text-onSurfaceVariant">
+            How this is computed
+          </p>
+          <p className="font-body-sm text-body-sm leading-relaxed text-onSurfaceVariant">
+            Every figure is live from the database — no manually entered
+            numbers. &ldquo;Verified Reports&rdquo; counts the report files you&apos;ve
+            generated; &ldquo;Pending Interventions&rdquo; counts whispers still marked
+            New; &ldquo;Compliance Rate&rdquo; is the share of whispers marked Resolved.
+            Reports themselves are built from the current whisper and
+            evaluation totals at the moment you generate them.
+          </p>
+        </div>
       </div>
 
       {/* Filters */}

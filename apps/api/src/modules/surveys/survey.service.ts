@@ -12,25 +12,29 @@ export class SurveyService {
         description: input.description,
         isAnonymous: input.isAnonymous,
         status: "OPEN",
+        courseId: input.courseId ?? null,
         opensAt: input.opensAt ? new Date(input.opensAt) : null,
         closesAt: input.closesAt ? new Date(input.closesAt) : null,
         questions: {
           create: input.questions.filter((q) => q.prompt.trim().length > 0),
         },
       },
-      include: { questions: true },
+      include: { questions: true, course: { select: { id: true, code: true, title: true } } },
     });
   }
 
   async list() {
-    return prisma.survey.findMany({ include: { questions: true }, orderBy: { createdAt: "desc" } });
+    return prisma.survey.findMany({
+      include: { questions: true, course: { select: { id: true, code: true, title: true } } },
+      orderBy: { createdAt: "desc" },
+    });
   }
 
   /** Public: only open surveys, with questions — no auth needed. */
   async listPublic() {
     return prisma.survey.findMany({
       where: { status: "OPEN" },
-      include: { questions: true },
+      include: { questions: true, course: { select: { id: true, code: true, title: true } } },
       orderBy: { createdAt: "desc" },
     });
   }
@@ -53,7 +57,10 @@ export class SurveyService {
   async results(surveyId: string) {
     const survey = await prisma.survey.findUnique({
       where: { id: surveyId },
-      include: { questions: { include: { responses: true } } },
+      include: {
+        course: { select: { id: true, code: true, title: true } },
+        questions: { include: { responses: true } },
+      },
     });
     if (!survey) {
       throw ApiError.notFound("Survey");
@@ -64,11 +71,11 @@ export class SurveyService {
       const texts: string[] = [];
       for (const r of q.responses) {
         const raw = (r.answer as { value?: unknown } | null)?.value ?? r.answer;
-        if (typeof raw === "string" || typeof raw === "number") {
+        if (q.type === "FREE_TEXT") {
+          if (raw) texts.push(String(raw));
+        } else if (typeof raw === "string" || typeof raw === "number") {
           const key = String(raw);
           counts[key] = (counts[key] ?? 0) + 1;
-        } else if (raw) {
-          texts.push(String(raw));
         }
       }
       return {
@@ -81,7 +88,13 @@ export class SurveyService {
       };
     });
 
-    return { id: survey.id, title: survey.title, status: survey.status, questions };
+    return {
+      id: survey.id,
+      title: survey.title,
+      status: survey.status,
+      course: survey.course ? { code: survey.course.code, title: survey.course.title } : null,
+      questions,
+    };
   }
 }
 

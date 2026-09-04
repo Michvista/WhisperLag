@@ -15,7 +15,14 @@ interface Survey {
   description: string | null;
   status: string;
   createdAt: string;
+  course: { id: string; code: string; title: string } | null;
   questions: { id: string; prompt: string; type: string }[];
+}
+
+interface CourseOption {
+  id: string;
+  code: string;
+  title: string;
 }
 
 interface SurveyResults {
@@ -47,6 +54,8 @@ export default function SurveyBuilderPage() {
   const { role } = useAuth();
   const isAdmin = role === "ADMIN";
   const [title, setTitle] = useState("Faculty Feedback 2026");
+  const [courseId, setCourseId] = useState("");
+  const [courses, setCourses] = useState<CourseOption[]>([]);
   const [questions, setQuestions] = useState<DraftQuestion[]>([
     { key: 1, prompt: "How clear were the course objectives?", type: "RATING", options: "" },
   ]);
@@ -58,8 +67,12 @@ export default function SurveyBuilderPage() {
 
   async function loadSurveys() {
     try {
-      const data = await api<Survey[]>("/surveys", { token: getToken(), cache: "no-store" });
+      const [data, cs] = await Promise.all([
+        api<Survey[]>("/surveys", { token: getToken(), cache: "no-store" }),
+        api<CourseOption[]>("/courses", { token: getToken(), cache: "no-store" }),
+      ]);
       setSurveys(data);
+      setCourses(cs);
     } catch {
       setSurveys([]);
     }
@@ -106,6 +119,7 @@ export default function SurveyBuilderPage() {
         body: JSON.stringify({
           title,
           isAnonymous: true,
+          courseId: courseId || undefined,
           questions: questions.map((q) => ({
             prompt: q.prompt,
             type: q.type,
@@ -118,6 +132,7 @@ export default function SurveyBuilderPage() {
       toast("Survey published.");
       setQuestions([]);
       setTitle("");
+      setCourseId("");
       await loadSurveys();
     } catch (e) {
       setNotice(e instanceof Error ? e.message : "Failed to publish");
@@ -156,6 +171,24 @@ export default function SurveyBuilderPage() {
                     placeholder="Enter title..."
                     className="input-minimal w-full font-display text-headline-md text-onSurface"
                   />
+                </div>
+
+                <div className="relative">
+                  <label className="absolute -top-3 left-0 font-label-caps text-label-caps text-onSurfaceVariant">
+                    Linked Course (optional)
+                  </label>
+                  <select
+                    value={courseId}
+                    onChange={(e) => setCourseId(e.target.value)}
+                    className="input-minimal w-full font-body-md text-body-md text-onSurface"
+                  >
+                    <option value="">Not linked to a course</option>
+                    {courses.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.code} — {c.title}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <button
@@ -241,22 +274,28 @@ export default function SurveyBuilderPage() {
               </p>
             ) : (
               <div className="flex flex-col">
-                {surveys.map((s, i) => (
+                {surveys.map((s) => (
                   <div key={s.id} className="rule-b py-4">
                     <button
                       onClick={() => viewResults(s.id)}
                       className="flex w-full items-center justify-between gap-4 text-left"
                     >
                       <div className="flex items-center gap-4">
-                        <span className="font-mono-label text-lg font-light text-onSurfaceVariant/40">{String(i + 1).padStart(2, "0")}</span>
                         <div>
                           <h3 className="font-body-md font-medium text-onSurface">{s.title}</h3>
                           <p className="font-label-caps text-label-caps text-onSurfaceVariant">
                             {s.status} · {s.questions.length} questions · {formatDate(s.createdAt)}
+                            {s.course ? ` · ${s.course.code}` : ""}
                           </p>
                         </div>
                       </div>
-                      <span className="flex items-center gap-2">
+                      <span className="flex items-center gap-3">
+                        <a
+                          href={`/results/${s.id}`}
+                          className="font-label-caps text-label-caps text-primary hover:underline"
+                        >
+                          View results
+                        </a>
                         <span
                           className={`px-2 py-1 font-label-caps text-[10px] uppercase tracking-wider ${
                             s.status === "OPEN" ? "bg-unilag-green/10 text-unilag-green" : "bg-ink/5 text-ink/50"

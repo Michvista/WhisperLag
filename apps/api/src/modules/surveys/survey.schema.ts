@@ -4,6 +4,7 @@ export const createSurveySchema = z.object({
   title: z.string().min(1),
   description: z.string().optional(),
   isAnonymous: z.boolean().default(true),
+  courseId: z.string().optional(),
   opensAt: z.string().datetime().optional(),
   closesAt: z.string().datetime().optional(),
   questions: z

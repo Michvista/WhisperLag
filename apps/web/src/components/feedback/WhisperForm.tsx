@@ -153,7 +153,7 @@ export function WhisperForm({ className = "" }: WhisperFormProps) {
 
       <div className="mt-2 flex items-center justify-between border-t border-ink/10 pt-6">
         <div className="flex items-center gap-2 font-mono-label text-mono-label text-unilag-green">
-          <span className="material-symbols-outlined text-[16px]">verified_user</span>
+          <span className="material-symbols-outlined text-[22px]">verified_user</span>
           Anonymized before it reaches us
         </div>
         <button

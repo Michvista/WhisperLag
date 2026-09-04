@@ -3,12 +3,14 @@
 import { useState } from "react";
 
 /**
- * Whisper text with a preview that can expand to the full message — so a
- * truncated line never hides the actual detail.
+ * Whisper text with a preview that can expand to the full message — a
+ * truncated line never hides the actual detail, and a "Read more" is always
+ * available when the preview is clamped.
  */
 export function ExpandableText({ text, className = "" }: { text: string; className?: string }) {
   const [open, setOpen] = useState(false);
-  const hasMore = text.length > 90;
+  // Preview clamps at 2 lines, so anything that might wrap needs a toggle.
+  const hasMore = text.length > 60;
 
   return (
     <div className={className}>
@@ -16,7 +18,8 @@ export function ExpandableText({ text, className = "" }: { text: string; classNa
         className={
           open
             ? "font-body-sm text-body-sm leading-relaxed text-ink/75"
-            : "font-body-sm text-body-sm leading-relaxed text-ink/75 line-clamp-2"
+            : "font-body-sm text-body-sm leading-relaxed text-ink/75 " +
+              (hasMore ? "line-clamp-2" : "")
         }
       >
         &ldquo;{text}&rdquo;
@@ -24,7 +27,7 @@ export function ExpandableText({ text, className = "" }: { text: string; classNa
       {hasMore && (
         <button
           onClick={() => setOpen((o) => !o)}
-          className="mt-0.5 font-label-caps text-label-caps text-primary hover:underline"
+          className="mt-1 font-label-caps text-label-caps text-primary hover:underline"
         >
           {open ? "Show less" : "Read more"}
         </button>

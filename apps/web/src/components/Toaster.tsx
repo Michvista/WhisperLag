@@ -32,18 +32,23 @@ export function Toaster() {
   }, []);
 
   return (
-    <div className="fixed right-4 top-4 z-[300] flex w-[min(92vw,340px)] flex-col gap-2">
+    <div className="fixed right-4 top-4 z-[300] flex w-[min(94vw,380px)] flex-col gap-3">
       {toasts.map((t) => {
         const style = TYPE_STYLE[t.type];
         return (
           <div
             key={t.id}
-            className={`whisper-lock-glow flex items-start gap-3 border bg-surface-container-lowest px-4 py-3 ${style.ring}`}
+            className={`whisper-lock-glow flex items-start gap-3 border bg-surface-container-lowest px-5 py-4 shadow-level-1 ${style.ring}`}
           >
-            <span className={`material-symbols-outlined text-[18px] ${t.type === "error" ? "text-error" : t.type === "info" ? "text-secondary" : "text-primary"}`} style={{ fontVariationSettings: "'FILL' 1" }}>
+            <span
+              className={`material-symbols-outlined mt-0.5 text-[22px] ${
+                t.type === "error" ? "text-error" : t.type === "info" ? "text-secondary" : "text-primary"
+              }`}
+              style={{ fontVariationSettings: "'FILL' 1" }}
+            >
               {style.icon}
             </span>
-            <p className="font-body-md text-body-md text-onSurface">{t.message}</p>
+            <p className="flex-1 font-body-md text-body-md leading-snug text-onSurface">{t.message}</p>
           </div>
         );
       })}
