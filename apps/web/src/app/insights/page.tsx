@@ -6,11 +6,13 @@ import { AppShell } from "@/components/layout/AppShell";
 import { RoleGate } from "@/components/ui/RoleGate";
 import { ROLES } from "@whisperlag/shared";
 import { api, getToken } from "@/lib/api";
+import { toast } from "@/lib/toast";
 
 interface InsightItem {
   id: string;
   category: string;
   content: string;
+  status: "NEW" | "ACKNOWLEDGED" | "ACTIONED";
 }
 
 interface Cluster {
@@ -35,6 +37,12 @@ const SENTIMENT_STYLE: Record<Cluster["sentiment"], string> = {
   negative: "text-error",
 };
 
+const STATUS_META: Record<InsightItem["status"], { label: string; cls: string }> = {
+  NEW: { label: "New", cls: "bg-ink/5 text-ink/60" },
+  ACKNOWLEDGED: { label: "Under review", cls: "bg-tertiary-fixed-dim/20 text-tertiary-container" },
+  ACTIONED: { label: "Resolved", cls: "bg-primary/10 text-primary" },
+};
+
 /**
    * AI Complaint Intelligence. Groups anonymous whispers by shared viewpoint
    * with an automatic engine, and flags low-value submissions.
@@ -44,6 +52,30 @@ export default function InsightsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
+
+  async function updateStatus(id: string, status: InsightItem["status"]) {
+    try {
+      await api(`/feedback/${id}/status`, {
+        method: "PATCH",
+        body: JSON.stringify({ status }),
+        token: getToken(),
+      });
+      setResult((r) =>
+        r
+          ? {
+              ...r,
+              clusters: r.clusters.map((c) => ({
+                ...c,
+                items: c.items.map((it) => (it.id === id ? { ...it, status } : it)),
+              })),
+            }
+          : r,
+      );
+      toast("Whisper updated.");
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "Update failed", "error");
+    }
+  }
 
   async function analyze() {
     setLoading(true);
@@ -124,12 +156,40 @@ export default function InsightsPage() {
                   </button>
                   {expanded === cluster.id && (
                     <div className="ml-16 mt-4 flex flex-col gap-3">
-                      {cluster.items.map((item) => (
-                        <div key={item.id} className="border-l border-ink/10 pl-4">
-                          <span className="font-label-caps text-label-caps text-onSurfaceVariant">{item.category}</span>
-                          <p className="font-body-md text-body-md text-onSurface">&ldquo;{item.content}&rdquo;</p>
-                        </div>
-                      ))}
+                      {cluster.items.map((item) => {
+                        const meta = STATUS_META[item.status];
+                        return (
+                          <div key={item.id} className="border-l-2 border-ink/10 py-2 pl-4">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-label-caps text-label-caps text-onSurfaceVariant">
+                                {item.category}
+                              </span>
+                              <span className={`px-2 py-0.5 font-label-caps text-[10px] uppercase tracking-wider ${meta.cls}`}>
+                                {meta.label}
+                              </span>
+                              {item.status !== "ACTIONED" && (
+                                <div className="ml-auto flex gap-2">
+                                  {item.status !== "ACKNOWLEDGED" && (
+                                    <button
+                                      onClick={() => updateStatus(item.id, "ACKNOWLEDGED")}
+                                      className="border border-ink/20 px-2 py-1 font-label-caps text-[10px] uppercase tracking-wider text-onSurfaceVariant transition-colors hover:border-ink"
+                                    >
+                                      Under review
+                                    </button>
+                                  )}
+                                  <button
+                                    onClick={() => updateStatus(item.id, "ACTIONED")}
+                                    className="bg-ink px-2 py-1 font-label-caps text-[10px] uppercase tracking-wider text-white transition-colors hover:bg-primary"
+                                  >
+                                    Resolve
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                            <p className="mt-1 font-body-md text-body-md text-onSurface">&ldquo;{item.content}&rdquo;</p>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>

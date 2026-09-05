@@ -15,14 +15,14 @@ interface Cluster {
   summary: string;
   size: number;
   sentiment: "positive" | "neutral" | "negative";
-  items: { id: string; category: string; content: string }[];
+  items: { id: string; category: string; content: string; status: string }[];
 }
 
 interface InsightResult {
   provider: "groq" | "algorithm";
   generatedAt: string;
   clusters: Cluster[];
-  noise: { id: string; category: string; content: string; reason: string }[];
+  noise: { id: string; category: string; content: string; reason: string; status: string }[];
 }
 
 const NOISE_HINTS = /\b(lol|test|asap|pls|please fix|fix this)\b/i;
@@ -37,7 +37,7 @@ function isLikelyNoise(w: WhisperRecord): string | null {
 /** Deterministic fallback: cluster by category, then by a couple of topic keywords. */
 function algorithmCluster(whispers: WhisperRecord[]): InsightResult {
   const kept = whispers.filter((w) => !isLikelyNoise(w));
-  const noise = whispers.filter((w) => isLikelyNoise(w)).map((w) => ({ id: w.id, category: w.category, content: w.content, reason: isLikelyNoise(w) as string }));
+  const noise = whispers.filter((w) => isLikelyNoise(w)).map((w) => ({ id: w.id, category: w.category, content: w.content, reason: isLikelyNoise(w) as string, status: w.status }));
 
   const groups = new Map<string, WhisperRecord[]>();
   for (const w of kept) {
@@ -51,7 +51,7 @@ function algorithmCluster(whispers: WhisperRecord[]): InsightResult {
     summary: `${items.length} whispers grouped under ${category.toLowerCase()}.`,
     size: items.length,
     sentiment: "neutral" as const,
-    items: items.map((i) => ({ id: i.id, category: i.category, content: i.content })),
+    items: items.map((i) => ({ id: i.id, category: i.category, content: i.content, status: i.status })),
   }));
 
   return {
@@ -65,7 +65,7 @@ function algorithmCluster(whispers: WhisperRecord[]): InsightResult {
 /** LLM clustering via Groq : groups whispers by shared viewpoint semantically. */
 async function groqCluster(whispers: WhisperRecord[]): Promise<InsightResult> {
   const kept = whispers.filter((w) => !isLikelyNoise(w));
-  const noise = whispers.filter((w) => isLikelyNoise(w)).map((w) => ({ id: w.id, category: w.category, content: w.content, reason: isLikelyNoise(w) as string }));
+  const noise = whispers.filter((w) => isLikelyNoise(w)).map((w) => ({ id: w.id, category: w.category, content: w.content, reason: isLikelyNoise(w) as string, status: w.status }));
 
   const prompt = `You are the WhisperLag intelligence engine for the University of Lagos.
 Group the anonymous student whispers below into 2-6 clusters of SIMILAR VIEWPOINTS (the underlying issue/opinion, not the category label).
@@ -111,7 +111,7 @@ ${kept.map((w) => `[${w.id}] (${w.category}) ${w.content}`).join("\n")}`;
       sentiment: (["positive", "neutral", "negative"].includes(c.sentiment ?? "")
         ? c.sentiment
         : "neutral") as Cluster["sentiment"],
-      items: items.map((w) => ({ id: w.id, category: w.category, content: w.content })),
+      items: items.map((w) => ({ id: w.id, category: w.category, content: w.content, status: w.status })),
     };
   });
 
