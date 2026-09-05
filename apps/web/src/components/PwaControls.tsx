@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from "@/components/ui/Icon";
 
 import { useEffect, useState } from "react";
 
@@ -64,7 +65,7 @@ export function PwaControls() {
           onClick={install}
           className="fixed bottom-4 right-4 z-[200] flex items-center gap-2 bg-ink px-5 py-3 font-label-caps text-label-caps uppercase tracking-widest text-white shadow-level-1 transition-colors duration-300 hover:bg-primary"
         >
-          <span className="material-symbols-outlined text-[18px]">download</span>
+          <Icon name="download" size={18} />
           Install App
         </button>
       )}

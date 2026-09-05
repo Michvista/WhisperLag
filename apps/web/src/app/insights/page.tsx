@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from "@/components/ui/Icon";
 
 import { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
@@ -77,7 +78,7 @@ export default function InsightsPage() {
           disabled={loading}
           className="flex items-center gap-2 bg-ink px-6 py-4 font-label-caps text-label-caps uppercase tracking-widest text-white transition-colors duration-300 hover:bg-primary disabled:opacity-60"
         >
-          <span className="material-symbols-outlined">auto_awesome</span>
+          <Icon name="auto_awesome" size={24} />
           {loading ? "Analyzing…" : "Analyze with AI"}
         </button>
       </header>
@@ -91,9 +92,7 @@ export default function InsightsPage() {
               Engine
             </span>
             <span className="whisper-lock-glow flex items-center gap-2 rounded-sm bg-surface-container-lowest px-3 py-1.5">
-              <span className="material-symbols-outlined text-primary text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                {result.provider === "groq" ? "auto_awesome" : "tune"}
-              </span>
+              <Icon name={result.provider === "groq" ? "auto_awesome" : "tune"} size={16} className="text-primary" />
               <span className="font-label-caps text-label-caps uppercase text-onSurface">
                 {result.provider === "groq" ? "AI Engine" : "Built-in"}
               </span>
@@ -121,9 +120,7 @@ export default function InsightsPage() {
                       <h3 className="font-display text-headline-md font-semibold text-onSurface">{cluster.title}</h3>
                       <p className="mt-1 font-body-md text-body-md text-onSurfaceVariant">{cluster.summary}</p>
                     </div>
-                    <span className="material-symbols-outlined text-onSurfaceVariant">
-                      {expanded === cluster.id ? "expand_less" : "expand_more"}
-                    </span>
+                    <Icon name={expanded === cluster.id ? "expand_less" : "expand_more"} size={24} className="text-onSurfaceVariant" />
                   </button>
                   {expanded === cluster.id && (
                     <div className="ml-16 mt-4 flex flex-col gap-3">
@@ -148,7 +145,7 @@ export default function InsightsPage() {
               <div className="flex flex-col">
                 {result.noise.map((n) => (
                   <div key={n.id} className="rule-b flex items-start gap-6 py-4 opacity-70">
-                    <span className="material-symbols-outlined text-error">report</span>
+                    <Icon name="report" size={24} className="text-error" />
                     <p className="flex-1 font-body-md text-body-md text-onSurface">&ldquo;{n.content}&rdquo;</p>
                     <span className="font-mono-label text-mono-label text-onSurfaceVariant">{n.reason}</span>
                   </div>

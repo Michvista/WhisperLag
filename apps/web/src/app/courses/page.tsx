@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from "@/components/ui/Icon";
 
 import { useEffect, useState } from "react";
 import {
@@ -131,9 +132,7 @@ export default function CourseHubPage() {
                   ) : (
                     <span className="font-mono-label text-mono-label text-onSurfaceVariant">No ratings yet</span>
                   )}
-                  <span className="material-symbols-outlined text-onSurfaceVariant">
-                    {open === c.id ? "expand_less" : "expand_more"}
-                  </span>
+                  <Icon name={open === c.id ? "expand_less" : "expand_more"} size={24} className="text-onSurfaceVariant" />
                 </button>
 
                 {open === c.id && (

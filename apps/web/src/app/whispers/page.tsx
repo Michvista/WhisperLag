@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from "@/components/ui/Icon";
 
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
@@ -136,7 +137,7 @@ export default function WhispersFeedPage() {
               title="Reads each untagged whisper and tags the course / lecturer / department it is about"
               className="group relative flex items-center gap-2 border border-ink px-4 py-2 font-label-caps text-label-caps uppercase tracking-wider text-onSurface transition-colors hover:bg-surface-variant disabled:opacity-50"
             >
-              <span className="material-symbols-outlined text-[22px]">auto_awesome</span>
+              <Icon name="auto_awesome" size={22} />
               {tagging ? "Routing…" : "Route with AI"}
               <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 w-60 -translate-x-1/2 rounded-sm border border-ink/10 bg-surface-container-lowest px-3 py-2 text-left font-body-sm text-body-sm text-onSurface opacity-0 shadow-level-2 transition-opacity group-hover:opacity-100">
                 Reads each whisper and tags the course, lecturer or department
@@ -192,7 +193,7 @@ export default function WhispersFeedPage() {
                       )}
                       {w.aiTag?.courseCode && (
                         <span className="flex items-center gap-1 bg-primary/10 px-2 py-0.5 font-label-caps text-[10px] uppercase tracking-wider text-primary">
-                          <span className="material-symbols-outlined text-[12px]">school</span>
+                          <Icon name="school" size={12} />
                           {w.aiTag.courseCode}
                           {w.aiTag.lecturer ? ` · ${w.aiTag.lecturer}` : ""}
                         </span>

@@ -1,3 +1,5 @@
+import { Icon } from "@/components/ui/Icon";
+
 /**
  * The signature "Whisper Lock" security indicator. Per the design system this
  * is the only element allowed subtle shadow weight — a safe harbor for voices.
@@ -11,9 +13,7 @@ export function WhisperLock({ compact = true, className = "" }: { compact?: bool
         compact ? "px-4 py-2" : "px-5 py-2.5"
       } ${className}`}
     >
-      <span className="whisper-lock-pulse material-symbols-outlined text-[22px] text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>
-        lock
-      </span>
+      <Icon name="lock" size={22} className="whisper-lock-pulse text-primary" />
       <span className="font-label-caps text-label-caps text-onSurfaceVariant">
         {compact ? "Whisper Lock: Secure" : "End-to-End Encrypted via UNILAG Secure."}
       </span>

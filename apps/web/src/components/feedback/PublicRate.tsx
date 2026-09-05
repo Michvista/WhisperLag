@@ -8,6 +8,7 @@ interface Course {
   id: string;
   code: string;
   title: string;
+  department: { id: string; name: string } | null;
   lecturer: { id: string; name: string } | null;
 }
 
@@ -17,11 +18,18 @@ interface Rubric {
   criteria: { key: string; label: string; weight: number }[];
 }
 
+interface Department {
+  id: string;
+  name: string;
+}
+
 /**
- * Public, no-login course rating widget for the whisper page — students can
- * rank a course right where they drop feedback.
+ * Public, no-login course rating widget for the whisper page. Students pick
+ * their department first, then the courses under it.
  */
 export function PublicRate() {
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [deptId, setDeptId] = useState("");
   const [courses, setCourses] = useState<Course[] | null>(null);
   const [rubric, setRubric] = useState<Rubric | null>(null);
   const [courseId, setCourseId] = useState("");
@@ -30,15 +38,21 @@ export function PublicRate() {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
-    Promise.all([api<Course[]>("/courses/public", { cache: "no-store" }), api<Rubric[]>("/rubrics/public", { cache: "no-store" })])
-      .then(([cs, rs]) => {
+    Promise.all([
+      api<Department[]>("/departments/public", { cache: "no-store" }),
+      api<Course[]>("/courses/public", { cache: "no-store" }),
+      api<Rubric[]>("/rubrics/public", { cache: "no-store" }),
+    ])
+      .then(([deps, cs, rs]) => {
+        setDepartments(deps);
         setCourses(cs.filter((c) => Boolean(c.lecturer?.id)));
         setRubric(rs[0] ?? null);
       })
       .catch(() => setCourses([]));
   }, []);
 
-  const course = courses?.find((c) => c.id === courseId) ?? null;
+  const deptCourses = (courses ?? []).filter((c) => c.department?.id === deptId);
+  const course = deptCourses.find((c) => c.id === courseId) ?? null;
 
   async function submit() {
     if (!course || !rubric) return;
@@ -98,20 +112,37 @@ export function PublicRate() {
       </p>
 
       <select
-        value={courseId}
+        value={deptId}
         onChange={(e) => {
-          setCourseId(e.target.value);
+          setDeptId(e.target.value);
+          setCourseId("");
           setScores({});
         }}
         className="input-minimal w-full font-body-md text-body-md text-onSurface"
       >
-        <option value="">Select a course…</option>
-        {courses.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.code} — {c.title} · {c.lecturer?.name}
-          </option>
+        <option value="">Select your department…</option>
+        {departments.map((d) => (
+          <option key={d.id} value={d.id}>{d.name}</option>
         ))}
       </select>
+
+      {deptId && (
+        <select
+          value={courseId}
+          onChange={(e) => {
+            setCourseId(e.target.value);
+            setScores({});
+          }}
+          className="input-minimal mt-4 w-full font-body-md text-body-md text-onSurface"
+        >
+          <option value="">Select a course…</option>
+          {deptCourses.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.code} — {c.title} · {c.lecturer?.name}
+            </option>
+          ))}
+        </select>
+      )}
 
       {course && (
         <div className="mt-5 flex flex-col gap-4">

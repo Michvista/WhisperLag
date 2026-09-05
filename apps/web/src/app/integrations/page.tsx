@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from "@/components/ui/Icon";
 
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
@@ -323,7 +324,7 @@ export default function IntegrationsPage() {
                           className="text-onSurfaceVariant transition-colors hover:text-error"
                           aria-label="Remove row"
                         >
-                          <span className="material-symbols-outlined text-[20px]">close</span>
+                          <Icon name="close" size={20} />
                         </button>
                         <div className="basis-full">
                           <input
@@ -342,7 +343,7 @@ export default function IntegrationsPage() {
                         onClick={() => setRows((r) => [...r, emptyRow()])}
                         className="flex items-center gap-2 border border-ink px-4 py-2 font-label-caps text-label-caps uppercase tracking-wider text-onSurface transition-colors hover:bg-surface-variant"
                       >
-                        <span className="material-symbols-outlined text-[18px]">add</span>
+                        <Icon name="add" size={18} />
                         Add course
                       </button>
                       <button

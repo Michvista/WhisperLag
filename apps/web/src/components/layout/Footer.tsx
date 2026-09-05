@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Icon } from "@/components/ui/Icon";
 
 const FOOTER_LINKS = [
   { href: "/privacy", label: "Institutional Privacy" },
@@ -34,9 +35,7 @@ export function Footer() {
         </nav>
 
         <div className="whisper-lock-glow flex w-fit items-center gap-2 rounded-full bg-surface-container-lowest px-4 py-2">
-          <span className="material-symbols-outlined text-[22px] text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>
-            lock
-          </span>
+          <Icon name="lock" size={22} className="text-primary" />
           <span className="font-label-caps text-label-caps text-onSurfaceVariant">Whisper Lock Active</span>
         </div>
       </div>

@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from "@/components/ui/Icon";
 
 import { useEffect, useRef, useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
@@ -82,7 +83,7 @@ export default function CollaborationPage() {
         <div className="mx-auto flex h-[calc(100vh-8rem)] max-w-3xl flex-col">
           <header className="rule-b flex items-center gap-3 pb-6">
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-              <span className="material-symbols-outlined text-primary">forum</span>
+              <Icon name="forum" size={24} className="text-primary" />
             </span>
             <div>
               <h1 className="font-display text-headline-md font-semibold text-onSurface">Staff Collaboration</h1>
@@ -148,7 +149,7 @@ export default function CollaborationPage() {
               className="flex h-12 w-12 shrink-0 items-center justify-center bg-ink text-white transition-colors duration-300 hover:bg-primary disabled:opacity-40"
               aria-label="Send"
             >
-              <span className="material-symbols-outlined">send</span>
+              <Icon name="send" size={24} />
             </button>
           </form>
         </div>

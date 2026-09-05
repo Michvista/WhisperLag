@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from "@/components/ui/Icon";
 
 import { useAuth } from "@/lib/useAuth";
 import { atLeast, type Role } from "@whisperlag/shared";
@@ -15,7 +16,7 @@ export function RoleGate({ minRole, children }: { minRole: Role; children: React
   if (!role || !atLeast(role as Role, minRole)) {
     return (
       <div className="flex flex-col items-start gap-4 py-16">
-        <span className="material-symbols-outlined text-3xl text-error">lock</span>
+        <Icon name="lock" size={24} className="text-3xl text-error" />
         <h2 className="font-display text-headline-md font-semibold text-onSurface">
           You don&apos;t have access to this area
         </h2>

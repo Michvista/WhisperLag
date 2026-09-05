@@ -1,5 +1,6 @@
 import { LoginForm } from "@/components/auth/LoginForm";
 import { WhisperLogo } from "@/components/ui/WhisperLogo";
+import { Icon } from "@/components/ui/Icon";
 
 /**
  * Institutional sign-in: an asymmetric 40/60 split. The form lives on the
@@ -32,9 +33,7 @@ export default function LoginPage() {
       <aside className="relative flex flex-1 flex-col items-center justify-center p-margin-mobile md:flex-[0_0_60%] md:p-margin-desktop">
         <div className="absolute right-margin-desktop top-margin-desktop hidden md:block">
           <div className="whisper-lock-glow flex items-center gap-2 rounded-sm bg-surface px-4 py-2">
-            <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>
-              lock
-            </span>
+            <Icon name="lock" size={24} className="text-primary" />
             <span className="font-label-caps text-label-caps text-onSurface">End-to-End Encrypted via UNILAG Secure</span>
           </div>
         </div>

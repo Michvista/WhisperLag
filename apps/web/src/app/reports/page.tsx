@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from "@/components/ui/Icon";
 
 import { useEffect, useState } from "react";
 import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
@@ -142,7 +143,7 @@ export default function ReportsPage() {
               disabled={generating}
               className="flex items-center gap-2 bg-ink px-6 py-4 font-label-caps text-label-caps uppercase tracking-widest text-white transition-colors duration-300 hover:bg-primary disabled:opacity-60"
             >
-              <span className="material-symbols-outlined text-[20px]">add</span>
+              <Icon name="add" size={20} />
               {generating ? "Generating…" : "New Report"}
             </button>
           )}
@@ -201,7 +202,7 @@ export default function ReportsPage() {
             }}
             className="flex w-full items-center justify-center gap-2 border border-ink px-6 py-3 font-label-caps text-label-caps uppercase tracking-wider text-onSurface transition-colors hover:bg-surface-variant md:w-auto"
           >
-            <span className="material-symbols-outlined text-sm">filter_alt_off</span> Reset Filters
+            <Icon name="filter_alt_off" size={24} className="text-sm" /> Reset Filters
           </button>
         </div>
       </div>
@@ -264,9 +265,7 @@ export default function ReportsPage() {
             </div>
             <div className="whisper-lock-glow bg-surface-container-low p-8">
               <div className="mb-4 flex items-center gap-2 text-primary">
-                <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
-                  verified_user
-                </span>
+                <Icon name="verified_user" size={24} />
                 <h3 className="font-label-caps text-label-caps">Data Integrity Confirmed</h3>
               </div>
               <p className="font-body-md text-body-md text-onSurfaceVariant">
@@ -310,7 +309,7 @@ export default function ReportsPage() {
                       title="Download CSV"
                       className="text-onSurfaceVariant transition-colors hover:text-primary"
                     >
-                      <span className="material-symbols-outlined">table_view</span>
+                      <Icon name="table_view" size={24} />
                     </button>
                   </div>
                 </div>

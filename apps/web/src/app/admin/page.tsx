@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from "@/components/ui/Icon";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -263,9 +264,7 @@ export default function AdminCommandCenterPage() {
               <div className="flex flex-col gap-12">
                 <div className="whisper-lock-glow relative flex flex-col gap-6 border border-ink/10 bg-surface-container-lowest p-8">
                   <div className="absolute -top-3 right-6 flex items-center gap-1 bg-surface px-2 text-primary">
-                    <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                      shield
-                    </span>
+                    <Icon name="shield" size={14} />
                     <span className="font-label-caps text-[10px]">Encrypted</span>
                   </div>
                   <h2 className="font-display text-headline-md font-semibold text-onSurface">Accreditation Reporting</h2>
@@ -279,7 +278,7 @@ export default function AdminCommandCenterPage() {
                     disabled={generating}
                     className="flex w-full items-center justify-center gap-2 bg-ink px-6 py-4 text-center font-label-caps text-label-caps uppercase tracking-widest text-white transition-colors duration-300 hover:bg-primary disabled:opacity-60"
                   >
-                    <span className="material-symbols-outlined">summarize</span>
+                    <Icon name="summarize" size={24} />
                     {generating ? "Generating…" : "Generate Accreditation Report"}
                   </button>
                 </div>
@@ -289,17 +288,17 @@ export default function AdminCommandCenterPage() {
                   <ul className="flex flex-col gap-2">
                     <li>
                       <Link href="/surveys" className="flex items-center justify-between font-body-md text-body-md transition-colors hover:text-primary">
-                        Manage Survey Templates <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                        Manage Survey Templates <Icon name="arrow_forward" size={16} />
                       </Link>
                     </li>
                     <li>
                       <Link href="/insights" className="flex items-center justify-between font-body-md text-body-md transition-colors hover:text-primary">
-                        AI Complaint Intelligence <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                        AI Complaint Intelligence <Icon name="arrow_forward" size={16} />
                       </Link>
                     </li>
                     <li>
                       <Link href="/reports" className="flex items-center justify-between font-body-md text-body-md transition-colors hover:text-primary">
-                        Audit Logs &amp; Reports <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                        Audit Logs &amp; Reports <Icon name="arrow_forward" size={16} />
                       </Link>
                     </li>
                   </ul>

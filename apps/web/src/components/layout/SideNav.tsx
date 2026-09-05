@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from "@/components/ui/Icon";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -45,12 +46,7 @@ export function SideNav() {
                   : "text-onSurfaceVariant hover:bg-surface-container-high"
               }`}
             >
-              <span
-                className="material-symbols-outlined"
-                style={active ? { fontVariationSettings: "'FILL' 1" } : undefined}
-              >
-                {item.icon}
-              </span>
+              <Icon name={item.icon} size={20} />
               {item.label}
             </Link>
           );
@@ -61,7 +57,7 @@ export function SideNav() {
         href="/whisper"
         className="flex min-h-[48px] items-center justify-center gap-2 rounded-lg bg-primary font-label-md text-label-md text-onPrimary shadow-level-1 transition-all hover:shadow-level-2"
       >
-        <span className="material-symbols-outlined text-[18px]">add</span>
+        <Icon name="add" size={18} />
         New Whisper
       </Link>
 
@@ -70,14 +66,14 @@ export function SideNav() {
           href="/help"
           className="flex items-center gap-3 rounded-lg px-4 py-2 text-onSurfaceVariant transition-all hover:bg-surface-container-low"
         >
-          <span className="material-symbols-outlined">help</span>
+          <Icon name="help" size={24} />
           <span className="font-label-md text-label-md">Help</span>
         </Link>
         <Link
           href="/logout"
           className="flex items-center gap-3 rounded-lg px-4 py-2 text-onSurfaceVariant transition-all hover:bg-surface-container-low"
         >
-          <span className="material-symbols-outlined">logout</span>
+          <Icon name="logout" size={24} />
           <span className="font-label-md text-label-md">Logout</span>
         </Link>
       </div>

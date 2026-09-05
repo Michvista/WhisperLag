@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from "@/components/ui/Icon";
 
 import { useState } from "react";
 import { LOGO_URL } from "@/lib/brand";
@@ -15,12 +16,9 @@ export function WhisperLogo({ size = 128, className = "" }: { size?: number; cla
     return (
       <span
         className={`flex items-center justify-center rounded-full border border-unilag-green/30 bg-unilag-green/10 ${className}`}
-        style={{ width: size, height: size }}
         aria-hidden
       >
-        <span className="material-symbols-outlined text-unilag-green" style={{ fontSize: size * 0.55, fontVariationSettings: "'FILL' 1" }}>
-          lock
-        </span>
+        <Icon name="lock" size={24} className="text-unilag-green" />
       </span>
     );
   }

@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from "@/components/ui/Icon";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -85,7 +86,7 @@ export function Sidebar() {
           onClick={logout}
           className="flex w-full items-center justify-center gap-2 border border-ink px-4 py-2.5 font-label-caps text-label-caps uppercase tracking-wider text-onSurface transition-colors duration-300 hover:bg-surface-variant"
         >
-          <span className="material-symbols-outlined text-[16px]">logout</span>
+          <Icon name="logout" size={16} />
           Sign Out
         </button>
       </div>

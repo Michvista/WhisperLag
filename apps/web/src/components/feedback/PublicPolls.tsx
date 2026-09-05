@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from "@/components/ui/Icon";
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
@@ -92,9 +93,7 @@ export function PublicPolls() {
                   {s.questions.length} question{s.questions.length === 1 ? "" : "s"}
                 </p>
               </div>
-              <span className="material-symbols-outlined text-ink/40">
-                {open === s.id ? "expand_less" : "expand_more"}
-              </span>
+              <Icon name={open === s.id ? "expand_less" : "expand_more"} size={24} className="text-ink/40" />
             </button>
             {open === s.id && (
               <div className="ml-10 mt-4 flex flex-col gap-4">
@@ -137,9 +136,7 @@ export function PublicPolls() {
                       <div className="mt-2">
                         {done ? (
                           <span className="flex items-center gap-1 font-body-sm text-body-sm text-primary">
-                            <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>
-                              check_circle
-                            </span>
+                            <Icon name="check_circle" size={24} className="text-sm" />
                             Submitted
                           </span>
                         ) : (

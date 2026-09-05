@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from "@/components/ui/Icon";
 
 import { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
@@ -72,7 +73,7 @@ function PollList({ surveys, onDone }: { surveys: Survey[]; onDone: () => void }
                 {survey.status === "OPEN" ? "Open" : survey.status.toLowerCase()} · {survey.questions.length} question{survey.questions.length === 1 ? "" : "s"}
               </p>
             </div>
-            <span className="material-symbols-outlined text-ink/40">{open === survey.id ? "expand_less" : "expand_more"}</span>
+            <Icon name={open === survey.id ? "expand_less" : "expand_more"} size={24} className="text-ink/40" />
           </button>
 
           {open === survey.id && (

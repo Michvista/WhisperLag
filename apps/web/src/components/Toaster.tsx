@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from "@/components/ui/Icon";
 
 import { useEffect, useState } from "react";
 import type { ToastType } from "@/lib/toast";
@@ -40,14 +41,13 @@ export function Toaster() {
             key={t.id}
             className={`whisper-lock-glow flex items-start gap-3 border bg-surface-container-lowest px-5 py-4 shadow-level-1 ${style.ring}`}
           >
-            <span
-              className={`material-symbols-outlined mt-0.5 text-[22px] ${
+            <Icon
+              name={style.icon}
+              size={22}
+              className={`mt-0.5 ${
                 t.type === "error" ? "text-error" : t.type === "info" ? "text-secondary" : "text-primary"
               }`}
-              style={{ fontVariationSettings: "'FILL' 1" }}
-            >
-              {style.icon}
-            </span>
+            />
             <p className="flex-1 font-body-md text-body-md leading-snug text-onSurface">{t.message}</p>
           </div>
         );

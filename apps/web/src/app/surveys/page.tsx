@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from "@/components/ui/Icon";
 
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
@@ -195,7 +196,7 @@ export default function SurveyBuilderPage() {
                   onClick={addQuestion}
                   className="flex items-center gap-2 border border-ink px-4 py-2 font-label-caps text-label-caps uppercase tracking-wider text-onSurface transition-colors hover:bg-surface-container-highest"
                 >
-                  <span className="material-symbols-outlined text-lg">add</span>
+                  <Icon name="add" size={24} className="text-lg" />
                   Add Question
                 </button>
 
@@ -207,7 +208,7 @@ export default function SurveyBuilderPage() {
                         {TYPES.find((t) => t.value === q.type)?.label ?? q.type}
                       </span>
                       <button onClick={() => removeQuestion(q.key)} className="text-onSurfaceVariant transition-colors hover:text-error">
-                        <span className="material-symbols-outlined text-sm">delete</span>
+                        <Icon name="delete" size={24} className="text-sm" />
                       </button>
                     </div>
                     <input
@@ -303,9 +304,7 @@ export default function SurveyBuilderPage() {
                         >
                           {s.status}
                         </span>
-                        <span className="material-symbols-outlined text-onSurfaceVariant">
-                          {openResults === s.id ? "expand_less" : "expand_more"}
-                        </span>
+                        <Icon name={openResults === s.id ? "expand_less" : "expand_more"} size={24} className="text-onSurfaceVariant" />
                       </span>
                     </button>
 

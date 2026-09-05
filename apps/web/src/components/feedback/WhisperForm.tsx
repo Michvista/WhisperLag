@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from "@/components/ui/Icon";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -153,7 +154,7 @@ export function WhisperForm({ className = "" }: WhisperFormProps) {
 
       <div className="mt-2 flex items-center justify-between border-t border-ink/10 pt-6">
         <div className="flex items-center gap-2 font-mono-label text-mono-label text-unilag-green">
-          <span className="material-symbols-outlined text-[22px]">verified_user</span>
+          <Icon name="verified_user" size={22} />
           Anonymized before it reaches us
         </div>
         <button

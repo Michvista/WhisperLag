@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from "@/components/ui/Icon";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -60,13 +61,13 @@ export function TopNav() {
           aria-label="Notifications"
           className="rounded-full p-2 transition-colors hover:bg-surface-container-low active:scale-95"
         >
-          <span className="material-symbols-outlined">notifications</span>
+          <Icon name="notifications" size={24} />
         </button>
         <button
           aria-label="Account"
           className="rounded-full p-2 transition-colors hover:bg-surface-container-low active:scale-95"
         >
-          <span className="material-symbols-outlined">account_circle</span>
+          <Icon name="account_circle" size={24} />
         </button>
       </div>
     </motion.header>

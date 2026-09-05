@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from "@/components/ui/Icon";
 
 import Link from "next/link";
 import { motion, type Variants, useReducedMotion } from "framer-motion";
@@ -167,9 +168,7 @@ export default function LandingPage() {
             <div className="relative flex aspect-square w-full flex-col items-center justify-center overflow-hidden bg-surface p-8">
               <WhisperLogo size={200} className="z-10" />
               <div className="z-10 mt-6 flex items-center gap-2 font-label-caps text-label-caps uppercase tracking-widest text-onSurfaceVariant">
-                <span className="material-symbols-outlined text-unilag-green" style={{ fontVariationSettings: "'FILL' 1" }}>
-                  lock
-                </span>
+                <Icon name="lock" size={24} className="text-unilag-green" />
                 End-to-End Encrypted
               </div>
             </div>

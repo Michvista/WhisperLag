@@ -99,7 +99,38 @@ export class ReportService {
       csv.push(`${c.category},${c._count._all}`);
     }
     csv.push("");
-    csv.push("Note,All whispers are anonymous and carry no identity. Totals are computed at export time.");
+    csv.push("Whisper details (anonymous)");
+    csv.push("Category,Department,Status,Date,Message");
+    const whispers = await prisma.whisper.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      take: 200,
+      include: { department: { select: { name: true } } },
+    });
+    for (const w of whispers) {
+      csv.push(
+        `${w.category},${w.department?.name ?? "—"},${w.status},${w.createdAt.toISOString()},"${w.content.replace(/"/g, '""')}"`,
+      );
+    }
+    csv.push("");
+    csv.push("Evaluation details");
+    csv.push("Course,Lecturer,Overall /5,Criteria,Comment");
+    const evals = await prisma.evaluation.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      take: 200,
+      include: { course: { select: { code: true, title: true } }, lecturer: { select: { name: true } } },
+    });
+    for (const e of evals) {
+      const scores = e.scores as Record<string, number>;
+      csv.push(
+        `${e.course?.code ?? "—"},${e.lecturer?.name ?? "—"},${e.overallRating},"${Object.entries(scores)
+          .map(([k, v]) => `${k}:${v}`)
+          .join(" | ")}","${(e.comment ?? "").replace(/"/g, '""')}"`,
+      );
+    }
+    csv.push("");
+    csv.push("Note,All whispers and evaluations are anonymous and carry no identity. Totals are computed at export time.");
 
     const safe = report.title.replace(/[^\w-]+/g, "_");
     return { filename: `${safe}.csv`, csv: csv.join("\n") };

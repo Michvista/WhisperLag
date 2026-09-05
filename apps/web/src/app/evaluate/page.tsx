@@ -9,8 +9,8 @@ interface Course {
   id: string;
   code: string;
   title: string;
-  lecturer: { id: string; name: string } | null;
   department: { id: string; name: string } | null;
+  lecturer: { id: string; name: string } | null;
 }
 
 interface Rubric {
@@ -19,11 +19,18 @@ interface Rubric {
   criteria: { key: string; label: string; weight: number }[];
 }
 
+interface Department {
+  id: string;
+  name: string;
+}
+
 /**
  * Anonymous course evaluation — no login needed. Ratings are aggregated for
  * faculty; identities are never shown, only averages and distributions.
  */
 export default function EvaluatePage() {
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [deptId, setDeptId] = useState("");
   const [courses, setCourses] = useState<Course[] | null>(null);
   const [rubric, setRubric] = useState<Rubric | null>(null);
   const [courseId, setCourseId] = useState("");
@@ -38,10 +45,12 @@ export default function EvaluatePage() {
       setLoading(true);
       setError(null);
       try {
-        const [cs, rs] = await Promise.all([
+        const [deps, cs, rs] = await Promise.all([
+          api<Department[]>("/departments/public", { cache: "no-store" }),
           api<Course[]>("/courses/public", { cache: "no-store" }),
           api<Rubric[]>("/rubrics/public", { cache: "no-store" }),
         ]);
+        setDepartments(deps);
         setCourses(cs);
         setRubric(rs[0] ?? null);
       } catch (e) {
@@ -52,7 +61,8 @@ export default function EvaluatePage() {
     })();
   }, []);
 
-  const course = courses?.find((c) => c.id === courseId) ?? null;
+  const deptCourses = (courses ?? []).filter((c) => c.department?.id === deptId);
+  const course = deptCourses.find((c) => c.id === courseId) ?? null;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -104,7 +114,28 @@ export default function EvaluatePage() {
           <form onSubmit={submit} className="flex max-w-2xl flex-col gap-10">
             <div className="relative">
               <label className="absolute -top-5 left-0 font-label-caps text-label-caps text-onSurfaceVariant">
-                01 // Course
+                01 // Your department
+              </label>
+              <select
+                value={deptId}
+                onChange={(e) => {
+                  setDeptId(e.target.value);
+                  setCourseId("");
+                  setScores({});
+                }}
+                required
+                className="input-minimal w-full font-body-md text-body-md text-onSurface"
+              >
+                <option value="">Select your department…</option>
+                {departments.map((d) => (
+                  <option key={d.id} value={d.id}>{d.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="relative">
+              <label className="absolute -top-5 left-0 font-label-caps text-label-caps text-onSurfaceVariant">
+                02 // Course
               </label>
               <select
                 value={courseId}
@@ -116,13 +147,11 @@ export default function EvaluatePage() {
                 className="input-minimal w-full font-body-md text-body-md text-onSurface"
               >
                 <option value="">Select a course…</option>
-                {(courses ?? [])
-                  .filter((c) => Boolean(c.lecturer?.id))
-                  .map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.code} — {c.title} · {c.lecturer?.name}
-                    </option>
-                  ))}
+                {deptCourses.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.code} — {c.title} · {c.lecturer?.name ?? "Unassigned"}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -130,7 +159,7 @@ export default function EvaluatePage() {
               <>
                 <div>
                   <p className="mb-4 font-label-caps text-label-caps uppercase tracking-wider text-onSurfaceVariant">
-                    02 // {rubric.name}
+                    03 // {rubric.name}
                   </p>
                   <div className="flex flex-col gap-6 border-t border-ink/10">
                     {rubric.criteria.map((c) => (
@@ -162,7 +191,7 @@ export default function EvaluatePage() {
 
                 <div className="flex flex-col gap-2">
                   <label className="font-label-caps text-label-caps uppercase tracking-wider text-onSurfaceVariant">
-                    03 // Comment (optional)
+                    04 // Comment (optional)
                   </label>
                   <textarea
                     value={comment}

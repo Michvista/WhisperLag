@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from "@/components/ui/Icon";
 
 import { useEffect, useState } from "react";
 import { api, getToken } from "@/lib/api";
@@ -140,9 +141,7 @@ export function SurveyList() {
                   <div className="mt-2 flex items-center justify-end gap-2">
                     {done ? (
                       <span className="flex items-center gap-1 font-body-sm text-body-sm text-primary">
-                        <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>
-                          check_circle
-                        </span>
+                        <Icon name="check_circle" size={24} className="text-sm" />
                         Submitted
                       </span>
                     ) : (
