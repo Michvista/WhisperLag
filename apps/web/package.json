@@ -9,9 +9,10 @@
     "typecheck": "tsc --noEmit",
     "lint": "next lint"
   },
-  "dependencies": {
+"dependencies": {
     "@whisperlag/shared": "*",
-    "framer-motion": "^13.1.0",
+    "framer-motion": "^11.0.0",
+    "hugeicons-react": "^0.4.0",
     "next": "14.2.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
