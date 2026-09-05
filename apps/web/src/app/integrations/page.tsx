@@ -158,13 +158,14 @@ export default function IntegrationsPage() {
         <header className="rule-b mb-12 pb-8">
           <h1 className="mb-2 font-display text-headline-lg font-semibold text-onSurface">SIS / LMS Integration</h1>
           <p className="max-w-2xl font-body-md text-body-md text-onSurfaceVariant">
-            <span className="font-medium text-onSurface">SIS</span> is the
-            university&apos;s official record of students, courses and departments.{" "}
-            <span className="font-medium text-onSurface">LMS</span> is where courses are
-            taught online. WhisperLag reads these records so evaluations, reports and
-            department routing all use the official course list — nothing is typed in by
-            hand. Add courses in the form below, paste a bigger export, or connect a live
-            feed.
+            <span className="font-medium text-onSurface">SIS (Student Information System)</span>{" "}
+            is the university&apos;s official record of students, courses and
+            departments.{" "}
+            <span className="font-medium text-onSurface">LMS (Learning Management System)</span>{" "}
+            is where courses are taught online. WhisperLag reads these records
+            so evaluations, reports and department routing all use the official
+            course list : nothing is typed in by hand. Add courses in the form
+            below, paste a bigger export, or connect a live feed.
           </p>
         </header>
 

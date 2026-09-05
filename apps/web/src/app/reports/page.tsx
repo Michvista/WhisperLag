@@ -126,48 +126,37 @@ export default function ReportsPage() {
   return (
     <RoleGate minRole={ROLES.FACULTY}>
       <AppShell>
-      <div className="mb-20">
-        <div className="flex flex-wrap items-start justify-between gap-6">
-          <div className="md:w-2/3">
-            <h1 className="mb-6 font-display text-4xl font-bold text-onSurface md:text-display-xl">
-              Institutional Reports &amp; Accreditation Data
+      <div className="mb-10">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h1 className="font-display text-headline-lg font-bold text-onSurface">
+              Institutional Reports
             </h1>
-            <p className="font-body-lg text-body-lg text-onSurfaceVariant">
-              Secure access to verified whisper data summaries designed for
-              institutional review and compliance reporting. All data maintains
-              strict anonymity protocols.
+            <p className="mt-1 font-body-md text-body-md text-onSurfaceVariant">
+              Verified whisper &amp; evaluation summaries for accreditation review. All anonymous.
             </p>
           </div>
           {isAdmin && (
             <button
               onClick={generate}
               disabled={generating}
-              className="flex items-center gap-2 bg-ink px-6 py-4 font-label-caps text-label-caps uppercase tracking-widest text-white transition-colors duration-300 hover:bg-primary disabled:opacity-60"
+              className="flex items-center gap-2 bg-ink px-5 py-3 font-label-caps text-label-caps uppercase tracking-widest text-white transition-colors duration-300 hover:bg-primary disabled:opacity-60"
             >
               <Icon name="add" size={20} />
               {generating ? "Generating…" : "New Report"}
             </button>
           )}
         </div>
-        <div className="mt-6 flex max-w-2xl flex-col gap-3 border border-ink/10 bg-surface-container-low p-4">
-          <p className="font-label-caps text-label-caps uppercase tracking-widest text-onSurfaceVariant">
-            What you&apos;re looking at
-          </p>
-          <p className="font-body-sm text-body-sm leading-relaxed text-onSurfaceVariant">
-            Everything here is pulled live from the database : nothing is typed
-            by hand. <span className="font-medium text-onSurface">Verified Reports</span>{" "}
-            is the number of report files created;{" "}
-            <span className="font-medium text-onSurface">Pending Interventions</span> is
-            how many whispers are still waiting for action;{" "}
-            <span className="font-medium text-onSurface">Compliance Rate</span> is the
-            share of whispers that have been resolved. To create a new report,
-            administrators press <span className="font-medium text-onSurface">New Report</span>{" "}
-            and it captures a snapshot of the current totals. If the numbers
-            haven&apos;t changed since your last report, a new one will look the
-            same: it&apos;s a snapshot, not a simulation. Add fresh whispers or
-            evaluations, then regenerate to see them move.
-          </p>
-        </div>
+        <p className="mt-4 max-w-2xl font-body-sm text-body-sm leading-relaxed text-onSurfaceVariant">
+          <span className="font-medium text-onSurface">Verified Reports</span> = report
+          files created · <span className="font-medium text-onSurface">Pending Interventions</span>{" "}
+          = whispers still waiting for action ·{" "}
+          <span className="font-medium text-onSurface">Compliance Rate</span> = share of
+          whispers resolved. Everything is pulled live from the database.{" "}
+          <span className="font-medium text-onSurface">New Report</span> captures a snapshot
+          of the current totals: if the numbers haven&apos;t changed, a new report looks the
+          same. Add fresh whispers or evaluations, then regenerate.
+        </p>
       </div>
 
       {/* Filters */}

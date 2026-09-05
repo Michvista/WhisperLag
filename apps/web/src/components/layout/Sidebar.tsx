@@ -14,9 +14,9 @@ const ROLE_LABELS: Record<string, string> = {
   GUEST: "External Review",
 };
 
-/** One-line explanation shown on hover for items whose names aren't obvious. */
+/** One-line explanation shown via the native browser tooltip on hover. */
 const NAV_HINTS: Record<string, string> = {
-  "SIS / LMS": "SIS = the university's official student & course records. LMS = where courses are taught online. This page syncs them into the app.",
+  "SIS / LMS": "SIS (Student Information System) is the university's official student & course records. LMS (Learning Management System) is where courses are taught online. This page syncs them into the app.",
   "AI Insights": "Automatically groups anonymous whispers by shared viewpoint.",
   "Course Hub": "Each course's syllabus beside its anonymous student ratings.",
 };
@@ -90,11 +90,6 @@ export function Sidebar() {
                   {active && <span className="absolute left-0 h-1 w-1 rounded-full bg-sun-gold" />}
                   {item.label}
                 </Link>
-                {hint && (
-                  <span className="pointer-events-none absolute left-full top-1/2 z-30 ml-3 w-60 -translate-y-1/2 rounded-sm border border-ink/10 bg-surface-container-lowest px-3 py-2 font-body-sm text-body-sm normal-case tracking-normal text-onSurface opacity-0 shadow-level-2 transition-opacity group-hover:opacity-100">
-                    {hint}
-                  </span>
-                )}
               </li>
             );
           })}
