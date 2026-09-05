@@ -8,7 +8,7 @@ import { api } from "./api";
  * When the device is offline (or a network submit fails), the whisper is
  * stored locally and auto-synced to the server as soon as connectivity
  * returns. This is what makes WhisperLag usable on campus where connectivity
- * drops — your proposal's "offline-first surveys" promise, now real.
+ * drops : your proposal's "offline-first surveys" promise, now real.
  */
 
 const DB_NAME = "whisperlag";
@@ -102,7 +102,7 @@ export async function submitWhisperOfflineAware(payload: QueuedWhisper["payload"
       });
       return { mode: "online" };
     } catch {
-      // Network failed mid-request — fall through to the queue.
+      // Network failed mid-request : fall through to the queue.
     }
   }
   await queueWhisper(payload);

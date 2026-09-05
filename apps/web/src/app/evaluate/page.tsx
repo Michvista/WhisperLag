@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ErrorBlock, LoadingBlock } from "@/components/ui/States";
 import { api } from "@/lib/api";
+import { Picker } from "@/components/ui/Picker";
 import { toast } from "@/lib/toast";
 
 interface Course {
@@ -25,7 +26,7 @@ interface Department {
 }
 
 /**
- * Anonymous course evaluation — no login needed. Ratings are aggregated for
+ * Anonymous course evaluation : no login needed. Ratings are aggregated for
  * faculty; identities are never shown, only averages and distributions.
  */
 export default function EvaluatePage() {
@@ -61,8 +62,10 @@ export default function EvaluatePage() {
     })();
   }, []);
 
-  const deptCourses = (courses ?? []).filter((c) => c.department?.id === deptId);
-  const course = deptCourses.find((c) => c.id === courseId) ?? null;
+  const shownCourses = deptId
+      ? (courses ?? []).filter((c) => c.department?.id === deptId)
+      : (courses ?? []);
+  const course = shownCourses.find((c) => c.id === courseId) ?? null;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -101,7 +104,7 @@ export default function EvaluatePage() {
         <header className="rule-b mb-12 pb-8">
           <h1 className="mb-2 font-display text-headline-lg font-semibold text-onSurface">Rate a Course</h1>
           <p className="font-body-md text-body-md text-onSurfaceVariant">
-            Honest, anonymous course evaluations. No account needed — faculty
+            Honest, anonymous course evaluations. No account needed : faculty
             see only averages, never who rated what.
           </p>
         </header>
@@ -114,7 +117,7 @@ export default function EvaluatePage() {
           <form onSubmit={submit} className="flex max-w-2xl flex-col gap-10">
             <div className="relative">
               <label className="absolute -top-5 left-0 font-label-caps text-label-caps text-onSurfaceVariant">
-                01 // Your department
+                Department (optional filter)
               </label>
               <select
                 value={deptId}
@@ -126,7 +129,7 @@ export default function EvaluatePage() {
                 required
                 className="input-minimal w-full font-body-md text-body-md text-onSurface"
               >
-                <option value="">Select your department…</option>
+                <option value="">All departments (you can take courses in any)</option>
                 {departments.map((d) => (
                   <option key={d.id} value={d.id}>{d.name}</option>
                 ))}
@@ -137,22 +140,15 @@ export default function EvaluatePage() {
               <label className="absolute -top-5 left-0 font-label-caps text-label-caps text-onSurfaceVariant">
                 02 // Course
               </label>
-              <select
+              <Picker
+                placeholder="Select a course…"
                 value={courseId}
-                onChange={(e) => {
-                  setCourseId(e.target.value);
+                onChange={(v) => {
+                  setCourseId(v);
                   setScores({});
                 }}
-                required
-                className="input-minimal w-full font-body-md text-body-md text-onSurface"
-              >
-                <option value="">Select a course…</option>
-                {deptCourses.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.code} — {c.title} · {c.lecturer?.name ?? "Unassigned"}
-                  </option>
-                ))}
-              </select>
+                options={shownCourses.map((c) => ({ value: c.id, label: `${c.code} : ${c.title} : ${c.lecturer?.name ?? "Unassigned"}` }))}
+              />
             </div>
 
             {course && rubric && (
@@ -213,7 +209,7 @@ export default function EvaluatePage() {
 
             {course && !rubric && (
               <p className="font-body-md text-body-md text-onSurfaceVariant">
-                No scoring rubric is configured yet — ask an administrator.
+                No scoring rubric is configured yet : ask an administrator.
               </p>
             )}
           </form>

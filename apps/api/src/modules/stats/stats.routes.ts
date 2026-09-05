@@ -5,7 +5,7 @@ import { statsController } from "./stats.controller.js";
 
 export const statsRoutes = Router();
 
-// Public aggregates — no auth, used by the landing page.
+// Public aggregates : no auth, used by the landing page.
 statsRoutes.get("/public", statsController.public);
 
 statsRoutes.get(

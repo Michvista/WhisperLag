@@ -56,7 +56,7 @@ export function PwaControls() {
         <div className="fixed inset-x-0 bottom-4 z-[200] flex justify-center px-4">
           <span className="whisper-lock-glow flex items-center gap-2 rounded-full bg-surface-container-lowest px-4 py-2 font-label-caps text-label-caps text-onSurfaceVariant">
             <span className="h-2 w-2 rounded-full bg-sun-gold" />
-            Offline — whispers are saved and will sync when you reconnect
+            Offline : whispers are saved and will sync when you reconnect
           </span>
         </div>
       )}

@@ -2,7 +2,7 @@ import { Icon } from "@/components/ui/Icon";
 
 /**
  * The signature "Whisper Lock" security indicator. Per the design system this
- * is the only element allowed subtle shadow weight — a safe harbor for voices.
+ * is the only element allowed subtle shadow weight : a safe harbor for voices.
  * (Plain markup + CSS animation; kept out of framer-motion so server-rendered
  * transactional pages stay stable.)
  */

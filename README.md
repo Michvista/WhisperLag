@@ -3,13 +3,13 @@
 > **A mobile-first, anonymous-by-design Quality Assurance System for the University of Lagos.**
 > *"A student who whispers is still speaking. A system that listens quietly still hears everything."*
 
-WhisperLag digitises UNILAG's quality assurance processes — monitoring,
-evaluation, feedback, performance measurement, and accreditation support —
+WhisperLag digitises UNILAG's quality assurance processes : monitoring,
+evaluation, feedback, performance measurement, and accreditation support :
 into a single, role-based platform. Its defining idea is the **Whisper Lock**:
 a permanent, visual guarantee of anonymity on every student screen, enforced
 at the **database level** so a whisper truly stays a whisper.
 
-Submission for the **UNILAG Quality Assurance & SERVICOM Unit — Student
+Submission for the **UNILAG Quality Assurance & SERVICOM Unit : Student
 Innovation Award 2026**.
 
 ---
@@ -17,7 +17,7 @@ Innovation Award 2026**.
 ## Why the architecture matters (for judges)
 
 WhisperLag is a **monorepo** with a clear, layered architecture. We chose this
-so the codebase reads cleanly, scales, and — most importantly — is easy to
+so the codebase reads cleanly, scales, and : most importantly : is easy to
 explain and defend.
 
 ```
@@ -44,19 +44,19 @@ WhisperLag/
 
 ### Architecture decisions worth pointing out
 
-1. **Single source of truth** — `@whisperlag/shared` holds roles, the RBAC
+1. **Single source of truth** : `@whisperlag/shared` holds roles, the RBAC
    permission matrix, module labels, and brand tokens. Both apps import it, so
    a permission change propagates everywhere and the frontend can't drift from
    the backend contract.
-2. **RBAC is declarative** — the role→permission matrix in
+2. **RBAC is declarative** : the role→permission matrix in
    `packages/shared/src/roles.ts` is the one authority the `authorize()`
    middleware consults. Adding a capability is a one-line change.
-3. **Anonymity by structure, not discipline** — the `Whisper` Prisma model has
+3. **Anonymity by structure, not discipline** : the `Whisper` Prisma model has
    **no** `userId` column. An anonymous whisper cannot leak an identity because
    there is nowhere to store one.
-4. **Express is a thin layer** — routes only parse/validate; services hold all
+4. **Express is a thin layer** : routes only parse/validate; services hold all
    business logic. This keeps handlers tiny and unit-testable.
-5. **Consistent envelopes** — every API response uses the shared
+5. **Consistent envelopes** : every API response uses the shared
    `ApiResponse<T>` shape, and errors pass through one global handler.
 
 ---
@@ -87,7 +87,7 @@ WhisperLag/
 
 ### Prerequisites
 - Node.js ≥ 18
-- Docker (for PostgreSQL/Redis) — or point `DATABASE_URL` at an existing Postgres
+- Docker (for PostgreSQL/Redis) : or point `DATABASE_URL` at an existing Postgres
 
 ### 1. Install dependencies
 ```bash
@@ -146,7 +146,7 @@ for one-click Render setup.
   | `DATABASE_URL` | your Neon string |
   | `JWT_SECRET` | a long random string |
   | `CORS_ORIGIN` | `https://<your-vercel-app>.vercel.app` |
-  | `GROQ_API_KEY` | optional — enables AI insights |
+  | `GROQ_API_KEY` | optional : enables AI insights |
   | `GROQ_MODEL` | `openai/gpt-oss-120b` |
 - Note: the free tier **sleeps after ~15 min idle** and wakes on the next
   request (first hit may take ~30 s). Upgrade to the $7/mo instance for
@@ -198,25 +198,25 @@ dashboard responses for offline use.
 
 ---
 
-## The "Whisper Lock" — our differentiator
+## The "Whisper Lock" : our differentiator
 
 Most QA systems offer an *optional* anonymous checkbox. WhisperLag makes
 anonymity the **default and the guarantee**:
 
 - Every student screen carries a persistent indicator: *"Your whisper is
   hidden. Nobody knows it is you."*
-- The `Whisper` model stores **no** submitting user — anonymity is enforced by
+- The `Whisper` model stores **no** submitting user : anonymity is enforced by
   the database schema itself.
-- Faculty see **aggregates only** (averages, distributions) — never individual
-  names — enforced at the query layer.
+- Faculty see **aggregates only** (averages, distributions) : never individual
+  names : enforced at the query layer.
 
 ---
 
 ## Team
 
-- **Koyinsola Samuel** — UI/UX Lead (Nursing Science)
-- **Olumide Michelle** — FullStack Developer (Nursing Science)
-- **Chime Jael** — Researcher / QA (Nursing Science)
+- **Koyinsola Samuel** : UI/UX Lead (Nursing Science)
+- **Olumide Michelle** : FullStack Developer (Nursing Science)
+- **Chime Jael** : Researcher / QA (Nursing Science)
 
 Contact: Koyinsola.samuel3@gmail.com
 

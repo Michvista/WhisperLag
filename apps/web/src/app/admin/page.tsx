@@ -44,7 +44,7 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
-/** Admin command center — institutional overview, live. */
+/** Admin command center : institutional overview, live. */
 export default function AdminCommandCenterPage() {
   const [overview, setOverview] = useState<Overview | null>(null);
   const [reports, setReports] = useState<Report[] | null>(null);
@@ -78,9 +78,10 @@ export default function AdminCommandCenterPage() {
     setGenerating(true);
     setNotice(null);
     try {
+      const stamp = new Date().toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
       await api("/reports/generate", {
         method: "POST",
-        body: JSON.stringify({ title: "Accreditation Report", type: "ACCREDITATION" }),
+        body: JSON.stringify({ title: `Accreditation Report: ${stamp}`, type: "ACCREDITATION" }),
         token: getToken(),
       });
       setNotice("Accreditation report generated. View it in Reports.");
@@ -149,7 +150,7 @@ export default function AdminCommandCenterPage() {
             <section className="grid grid-cols-1 gap-16 pt-16 lg:grid-cols-[60%_40%]">
               <div>
                 <h2 className="rule-b mb-6 font-label-caps text-label-caps uppercase tracking-widest text-onSurface">
-                  Whisper &amp; Evaluation Activity — 14 days
+                  Whisper &amp; Evaluation Activity : 14 days
                 </h2>
                 <div className="h-64 w-full">
                   <ResponsiveContainer width="100%" height="100%">

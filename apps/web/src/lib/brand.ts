@@ -1,6 +1,6 @@
 /**
  * Brand assets for WhisperLag. The Whisper Lock signature mark is the asset
- * generated in Stitch (a lock inside a speech bubble) — it is the only
+ * generated in Stitch (a lock inside a speech bubble) : it is the only
  * recurring element of soft visual weight in the design system.
  */
 export const LOGO_URL =

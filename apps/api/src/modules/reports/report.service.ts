@@ -71,23 +71,13 @@ export class ReportService {
       prisma.whisper.groupBy({ by: ["category"], where, _count: { _all: true } }),
     ]);
 
-    const scope =
-      typeof content.scope === "string"
-        ? content.scope
-        : content.scope
-          ? JSON.stringify(content.scope)
-          : "University-wide";
-
     const totalWhispers = content.metrics?.whispers ?? 0;
     const resolvedRate = totalWhispers > 0 ? Math.round((resolved / totalWhispers) * 1000) / 10 : 0;
     const avgRating = avgEval._avg.overallRating ? Math.round(avgEval._avg.overallRating * 100) / 100 : 0;
 
     const csv: string[] = [];
-    csv.push("WhisperLag — Institutional Report");
+    csv.push("WhisperLag : Institutional Report");
     csv.push(`Title,${report.title}`);
-    csv.push(`Type,${content.type ?? "REPORT"}`);
-    csv.push(`Scope,${scope}`);
-    csv.push(`Generated,${content.generatedAt ?? report.createdAt.toISOString()}`);
     csv.push("");
     csv.push("Key indicators (live from the database)");
     csv.push("Departments covered,Evaluations collected,Whispers received,Resolved,Resolution rate %,Average rating /5");
@@ -109,7 +99,7 @@ export class ReportService {
     });
     for (const w of whispers) {
       csv.push(
-        `${w.category},${w.department?.name ?? "—"},${w.status},${w.createdAt.toISOString()},"${w.content.replace(/"/g, '""')}"`,
+        `${w.category},${w.department?.name ?? ":"},${w.status},${w.createdAt.toISOString()},"${w.content.replace(/"/g, '""')}"`,
       );
     }
     csv.push("");
@@ -124,13 +114,11 @@ export class ReportService {
     for (const e of evals) {
       const scores = e.scores as Record<string, number>;
       csv.push(
-        `${e.course?.code ?? "—"},${e.lecturer?.name ?? "—"},${e.overallRating},"${Object.entries(scores)
-          .map(([k, v]) => `${k}:${v}`)
+        `${e.course?.code ?? ":"},${e.lecturer?.name ?? ":"},${e.overallRating},"${Object.entries(scores)
+          .map(([k, v]) => `${k}: ${v}`)
           .join(" | ")}","${(e.comment ?? "").replace(/"/g, '""')}"`,
       );
     }
-    csv.push("");
-    csv.push("Note,All whispers and evaluations are anonymous and carry no identity. Totals are computed at export time.");
 
     const safe = report.title.replace(/[^\w-]+/g, "_");
     return { filename: `${safe}.csv`, csv: csv.join("\n") };

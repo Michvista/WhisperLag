@@ -46,7 +46,7 @@ function formatDate(iso: string) {
 }
 
 /**
- * Anonymous whispers feed — for faculty & administrators. Shows every whisper
+ * Anonymous whispers feed : for faculty & administrators. Shows every whisper
  * with NO identity, in a scrollable list, with status filtering and (for
  * admins) the ability to move items through review.
  */
@@ -141,7 +141,7 @@ export default function WhispersFeedPage() {
               {tagging ? "Routing…" : "Route with AI"}
               <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 w-60 -translate-x-1/2 rounded-sm border border-ink/10 bg-surface-container-lowest px-3 py-2 text-left font-body-sm text-body-sm text-onSurface opacity-0 shadow-level-2 transition-opacity group-hover:opacity-100">
                 Reads each whisper and tags the course, lecturer or department
-                it is about — so it reaches the right place.
+                it is about : so it reaches the right place.
               </span>
             </button>
           )}

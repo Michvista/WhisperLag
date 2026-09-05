@@ -47,40 +47,38 @@ async function main() {
     }
   }
 
-  // --- Department heads (one faculty login per department) ---
-  const HODS: Record<string, { name: string; slug: string }> = {
-    "Nursing Science": { name: "Prof. Adaeze Nwosu", slug: "nursing" },
-    Physiotherapy: { name: "Dr. Emeka Obi", slug: "physio" },
-    "Computer Science": { name: "Prof. Yetunde Akin", slug: "compsci" },
-    "Electrical & Electronics Engineering": { name: "Engr. Funmilayo Okafor", slug: "elec" },
-    "Systems Engineering": { name: "Dr. Tunde Bakare", slug: "systems" },
-    "Business Administration": { name: "Prof. Grace Adeyemi", slug: "business" },
-    Accounting: { name: "Dr. Sesan Ilori", slug: "accounting" },
-    "Mass Communication": { name: "Dr. Bisi Aluko", slug: "masscomm" },
-    Economics: { name: "Prof. Ngozi Eze", slug: "economics" },
+  // --- Faculty leads (one staff login per FACULTY, not per department) ---
+  const FACULTY_LEADS: Record<string, { name: string; slug: string }> = {
+    "Health Professions": { name: "Prof. Adaeze Nwosu", slug: "health" },
+    "Computing & Informatics": { name: "Prof. Yetunde Akin", slug: "computing" },
+    Engineering: { name: "Engr. Funmilayo Okafor", slug: "engineering" },
+    "Management Sciences": { name: "Prof. Grace Adeyemi", slug: "management" },
+    "Social Sciences": { name: "Prof. Ngozi Eze", slug: "socialsciences" },
     Law: { name: "Prof. Ibrahim Sanni", slug: "law" },
     Pharmacy: { name: "Prof. Kemi Ogun", slug: "pharmacy" },
-    Medicine: { name: "Prof. Chuka Mba", slug: "medicine" },
-    "Community Health and Primary Care": { name: "Dr. Aisha Yusuf", slug: "community" },
-    Chemistry: { name: "Dr. Lanre Adebayo", slug: "chemistry" },
-    Physics: { name: "Prof. Dapo Olu", slug: "physics" },
-    Microbiology: { name: "Dr. Ifeoma Nnaji", slug: "micro" },
+    "Clinical Sciences": { name: "Prof. Chuka Mba", slug: "clinicalsciences" },
+    Science: { name: "Prof. Dapo Olu", slug: "science" },
   };
 
-  const hods: Record<string, string> = {}; // dept name -> user id
-  for (const [dept, h] of Object.entries(HODS)) {
+  const deptLead: Record<string, string> = {}; // dept name -> faculty user id
+  const leads: Record<string, string> = {}; // faculty name -> user id
+  for (const [faculty, lead] of Object.entries(FACULTY_LEADS)) {
+    const firstDept = FACULTIES[faculty][0];
     const user = await prisma.user.upsert({
-      where: { email: `faculty.${h.slug}@whisperlag.test` },
-      update: { name: h.name, departmentId: departments[dept] },
+      where: { email: `faculty.${lead.slug}@whisperlag.test` },
+      update: { name: lead.name, departmentId: departments[firstDept] },
       create: {
-        email: `faculty.${h.slug}@whisperlag.test`,
-        name: h.name,
+        email: `faculty.${lead.slug}@whisperlag.test`,
+        name: lead.name,
         passwordHash,
         role: Role.FACULTY,
-        departmentId: departments[dept],
+        departmentId: departments[firstDept],
       },
     });
-    hods[dept] = user.id;
+    leads[faculty] = user.id;
+    for (const dept of FACULTIES[faculty]) {
+      deptLead[dept] = user.id;
+    }
   }
 
   // --- Core demo accounts ---
@@ -156,7 +154,7 @@ async function main() {
           code: c.code,
           title: c.title,
           departmentId: departments[c.dept],
-          lecturerId: hods[c.dept] ?? faculty.id,
+          lecturerId: deptLead[c.dept] ?? faculty.id,
           semester: c.semester,
           credits: c.credits,
           syllabus: c.syllabus,
@@ -201,7 +199,7 @@ async function main() {
     { category: "Student Welfare", content: "Hostel water supply is irregular over the weekends.", status: WhisperStatus.ACKNOWLEDGED },
     { category: "Academic Issue", content: "Grading turnaround for assignments should be faster.", status: WhisperStatus.NEW },
     { category: "Facility Maintenance", content: "The engineering lab needs more oscilloscopes.", status: WhisperStatus.NEW },
-    { category: "Academic Issue", content: "BUS202 tutorials are overcrowded — no seats by 9am.", status: WhisperStatus.NEW },
+    { category: "Academic Issue", content: "BUS202 tutorials are overcrowded : no seats by 9am.", status: WhisperStatus.NEW },
     { category: "Student Welfare", content: "More shuttle stops near the health centre would help.", status: WhisperStatus.ACTIONED },
   ];
   const deptNames = Object.keys(departments);
@@ -249,7 +247,7 @@ async function main() {
               ? { value: 3 + (i % 3) }
               : q.type === "MULTIPLE_CHOICE"
                 ? { value: "Facilities" }
-                : { value: "Keep up the good work — it feels anonymous and safe." },
+                : { value: "Keep up the good work : it feels anonymous and safe." },
           createdAt: new Date(Date.now() - i * 2.4e6),
         },
       });
@@ -274,7 +272,7 @@ async function main() {
   });
   await prisma.report.create({
     data: {
-      title: "Departmental Snapshot — Nursing Science",
+      title: "Departmental Snapshot : Nursing Science",
       type: "DEPARTMENT_SNAPSHOT",
       generatedById: admin.id,
       content: {
@@ -291,7 +289,7 @@ async function main() {
   console.log({
     departments: Object.keys(departments).length,
     faculties: Object.keys(FACULTIES).length,
-    hodLogins: Object.values(HODS).map((h) => `faculty.${h.slug}@whisperlag.test`),
+    facultyLogins: Object.values(FACULTY_LEADS).map((l) => `faculty.${l.slug}@whisperlag.test`),
     courses: courses.map((c) => c.code),
     evaluations: createdEvals,
     whispers: 40,

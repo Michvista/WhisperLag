@@ -28,7 +28,7 @@ export class EvaluationService {
   }
 
   /**
-   * Aggregated results for a course. This is what faculty see — averages
+   * Aggregated results for a course. This is what faculty see : averages
    * and distributions only, never any identity. Personal data is excluded
    * at the query level.
    */
@@ -68,7 +68,7 @@ export class EvaluationService {
   /**
    * University-wide aggregate summary for the faculty hub: overall average,
    * response volume, pending interventions, per-criterion averages, and the
-   * recurring themes derived from whisper categories. Aggregate only — no
+   * recurring themes derived from whisper categories. Aggregate only : no
    * individual identities are ever returned.
    */
   async summary() {

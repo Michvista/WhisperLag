@@ -16,13 +16,13 @@ export const reportController = {
     res.status(HTTP_STATUS.OK).json({ success: true, data: reports, error: null });
   }),
 
-  /** GET /api/v1/reports/:id — single report detail. */
+  /** GET /api/v1/reports/:id : single report detail. */
   get: asyncHandler(async (req: Request, res: Response) => {
     const report = await reportService.get(req.params.id);
     res.status(HTTP_STATUS.OK).json({ success: true, data: report, error: null });
   }),
 
-  /** GET /api/v1/reports/:id/export?format=csv — download as spreadsheet. */
+  /** GET /api/v1/reports/:id/export?format=csv : download as spreadsheet. */
   export: asyncHandler(async (req: Request, res: Response) => {
     const { filename, csv } = await reportService.toCsv(req.params.id);
     res.setHeader("Content-Type", "text/csv; charset=utf-8");

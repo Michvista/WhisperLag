@@ -12,7 +12,7 @@ import {
 
 export const feedbackRoutes = Router();
 
-// Public, no-login whisper — rate limited to keep the channel usable.
+// Public, no-login whisper : rate limited to keep the channel usable.
 feedbackRoutes.post(
   "/public",
   rateLimit,

@@ -1,10 +1,10 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../../lib/prisma.js";
 import { ApiError } from "../../utils/ApiError.js";
-import type { CreateSurveyInput, RespondSurveyInput } from "./survey.schema.js";
+import type { CreateSurveyInput, RespondBatchInput, RespondSurveyInput, UpdateSurveyInput } from "./survey.schema.js";
 
 export class SurveyService {
-  /** Publish a survey — it is created OPEN so students can answer immediately. */
+  /** Publish a survey : it is created OPEN so students can answer immediately. */
   async create(input: CreateSurveyInput) {
     return prisma.survey.create({
       data: {
@@ -30,7 +30,7 @@ export class SurveyService {
     });
   }
 
-  /** Public: only open surveys, with questions — no auth needed. */
+  /** Public: only open surveys, with questions : no auth needed. */
   async listPublic() {
     return prisma.survey.findMany({
       where: { status: "OPEN" },
@@ -50,6 +50,45 @@ export class SurveyService {
         questionId,
         answer: input.answer as Prisma.InputJsonValue,
       },
+    });
+  }
+
+  /** Submit answers to several questions of one survey in a single call. */
+  async respondBatch(input: RespondBatchInput) {
+    const results = [];
+    for (const a of input.answers) {
+      const question = await prisma.surveyQuestion.findUnique({ where: { id: a.questionId } });
+      if (!question || question.surveyId !== input.surveyId) {
+        throw ApiError.badRequest("One of the questions does not belong to this survey.");
+      }
+      results.push(
+        await prisma.surveyResponse.create({
+          data: {
+            surveyId: input.surveyId,
+            questionId: a.questionId,
+            answer: a.answer as Prisma.InputJsonValue,
+          },
+        }),
+      );
+    }
+    return { submitted: results.length };
+  }
+
+  /** Edit survey metadata (title, description, linked course, status). */
+  async update(id: string, input: UpdateSurveyInput) {
+    const existing = await prisma.survey.findUnique({ where: { id } });
+    if (!existing) {
+      throw ApiError.notFound("Survey");
+    }
+    return prisma.survey.update({
+      where: { id },
+      data: {
+        title: input.title,
+        description: input.description,
+        courseId: input.courseId ?? null,
+        status: input.status,
+      },
+      include: { questions: true, course: { select: { id: true, code: true, title: true } } },
     });
   }
 

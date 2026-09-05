@@ -1,16 +1,24 @@
 "use client";
-import { Icon } from "@/components/ui/Icon";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/lib/useAuth";
 import { WhisperLock } from "@/components/ui/WhisperLock";
+import { Icon } from "@/components/ui/Icon";
 
 const ROLE_LABELS: Record<string, string> = {
   STUDENT: "Student",
   FACULTY: "Faculty",
   ADMIN: "Administrator",
   GUEST: "External Review",
+};
+
+/** One-line explanation shown on hover for items whose names aren't obvious. */
+const NAV_HINTS: Record<string, string> = {
+  "SIS / LMS": "SIS = the university's official student & course records. LMS = where courses are taught online. This page syncs them into the app.",
+  "AI Insights": "Automatically groups anonymous whispers by shared viewpoint.",
+  "Course Hub": "Each course's syllabus beside its anonymous student ratings.",
 };
 
 /** Sidebar items, gated by role. Students just drop a whisper; staff see the console. */
@@ -46,6 +54,12 @@ export function Sidebar() {
   const pathname = usePathname();
   const { items, role } = useNavItems();
   const { logout } = useAuth();
+  const [signingOut, setSigningOut] = useState(false);
+
+  function handleLogout() {
+    setSigningOut(true);
+    logout();
+  }
 
   return (
     <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-ink/10 bg-surface lg:flex">
@@ -63,10 +77,12 @@ export function Sidebar() {
         <ul className="flex flex-col gap-1">
           {items.map((item) => {
             const active = pathname.startsWith(item.href);
+            const hint = NAV_HINTS[item.label];
             return (
-              <li key={item.href}>
+              <li key={item.href} className="group relative">
                 <Link
                   href={item.href}
+                  title={hint}
                   className={`relative flex items-center gap-3 px-4 py-3 font-label-caps text-label-caps uppercase tracking-wider transition-colors duration-300 ${
                     active ? "font-semibold text-primary" : "text-onSurfaceVariant/70 hover:text-primary"
                   }`}
@@ -74,6 +90,11 @@ export function Sidebar() {
                   {active && <span className="absolute left-0 h-1 w-1 rounded-full bg-sun-gold" />}
                   {item.label}
                 </Link>
+                {hint && (
+                  <span className="pointer-events-none absolute left-full top-1/2 z-30 ml-3 w-60 -translate-y-1/2 rounded-sm border border-ink/10 bg-surface-container-lowest px-3 py-2 font-body-sm text-body-sm normal-case tracking-normal text-onSurface opacity-0 shadow-level-2 transition-opacity group-hover:opacity-100">
+                    {hint}
+                  </span>
+                )}
               </li>
             );
           })}
@@ -83,11 +104,16 @@ export function Sidebar() {
       <div className="space-y-4 border-t border-ink/10 px-6 py-6">
         <WhisperLock compact className="w-full justify-center" />
         <button
-          onClick={logout}
-          className="flex w-full items-center justify-center gap-2 border border-ink px-4 py-2.5 font-label-caps text-label-caps uppercase tracking-wider text-onSurface transition-colors duration-300 hover:bg-surface-variant"
+          onClick={handleLogout}
+          disabled={signingOut}
+          className="flex w-full items-center justify-center gap-2 border border-ink px-4 py-2.5 font-label-caps text-label-caps uppercase tracking-wider text-onSurface transition-colors duration-300 hover:bg-surface-variant disabled:opacity-50"
         >
-          <Icon name="logout" size={16} />
-          Sign Out
+          {signingOut ? (
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-ink border-t-transparent" />
+          ) : (
+            <Icon name="logout" size={16} />
+          )}
+          {signingOut ? "Signing out…" : "Sign Out"}
         </button>
       </div>
     </aside>

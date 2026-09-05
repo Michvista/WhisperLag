@@ -64,7 +64,7 @@ function Counter({ value, suffix = "" }: { value: number; suffix?: string }) {
 
 /** Shows a dash while stats load, then the animated counter. */
 function StatValue({ value, suffix }: { value: number | null; suffix?: string }) {
-  if (value === null) return <span className="font-display text-5xl font-bold text-onSurfaceVariant/50 md:text-6xl">—</span>;
+  if (value === null) return <span className="font-display text-5xl font-bold text-onSurfaceVariant/50 md:text-6xl">:</span>;
   return <Counter value={value} suffix={suffix} />;
 }
 
@@ -103,7 +103,7 @@ export default function LandingPage() {
 
   return (
     <main className="flex min-h-screen flex-col bg-surface font-body text-onSurface">
-      {/* Public nav — Sign In only (no dashboard link for logged-out visitors) */}
+      {/* Public nav : Sign In only (no dashboard link for logged-out visitors) */}
       <header className="border-b border-ink/10">
         <div className="mx-auto flex w-full max-w-wide items-center justify-between px-margin-mobile py-4 md:px-margin-desktop">
           <Link href="/" className="font-display text-headline-md font-bold tracking-tighter text-primary">
@@ -129,7 +129,7 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* Hero — Speak Now leads to sign in (a student must authenticate first) */}
+      {/* Hero : Speak Now leads to sign in (a student must authenticate first) */}
       <section className="mx-auto w-full max-w-wide px-margin-mobile py-section-gap md:px-margin-desktop">
         <div className="flex flex-col gap-gutter md:flex-row">
           <motion.div variants={containerVariants} initial="hidden" animate="visible" className="flex w-full flex-col justify-center md:w-3/5">
@@ -207,7 +207,7 @@ export default function LandingPage() {
         </div>
         {failed && (
           <p className="mt-4 text-center font-mono-label text-mono-label text-onSurfaceVariant/60">
-            Live feed unreachable right now — it will retry automatically.
+            Live feed unreachable right now : it will retry automatically.
           </p>
         )}
       </section>
@@ -223,7 +223,7 @@ export default function LandingPage() {
           <div className="flex w-full flex-col gap-12 md:w-2/3">
             <p className="max-w-3xl font-display text-headline-md font-semibold leading-relaxed text-onSurface">
               At the University of Lagos, we believe candid feedback is the
-              cornerstone of academic excellence — but voicing concerns can be daunting.
+              cornerstone of academic excellence : but voicing concerns can be daunting.
             </p>
             <p className="max-w-2xl font-body-lg text-body-lg leading-relaxed text-onSurfaceVariant">
               WhisperLag is an editorial, secure channel designed entirely around

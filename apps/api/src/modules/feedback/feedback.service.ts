@@ -15,7 +15,7 @@ interface RouteTag {
 }
 
 /**
- * Feedback service — the heart of WhisperLag.
+ * Feedback service : the heart of WhisperLag.
  *
  * Anonymity invariant (the "Whisper Lock"): an anonymous whisper never
  * stores a reference to the submitting user. The row simply has no owner.
@@ -37,7 +37,7 @@ export class FeedbackService {
 
   /**
    * Public, no-login submission (the "anon app" flow). The optional UNILAG
-   * email is a soft gate — it is validated upstream and never stored here.
+   * email is a soft gate : it is validated upstream and never stored here.
    * The optional department tags the complaint for staff routing.
    */
   async createPublic(input: PublicWhisperInput): Promise<Whisper> {
@@ -167,7 +167,7 @@ export class FeedbackService {
     courses: { code: string; title: string; lecturer: { name: string } | null; department: { name: string } | null }[],
   ): Promise<RouteTag[]> {
     const courseIndex = courses
-      .map((c, i) => `${i}: ${c.code} — ${c.title} (${c.lecturer?.name ?? "unassigned"}, ${c.department?.name ?? "no dept"})`)
+      .map((c, i) => `${i}: ${c.code} : ${c.title} (${c.lecturer?.name ?? "unassigned"}, ${c.department?.name ?? "no dept"})`)
       .join("\n");
 
     const prompt = `You are WhisperLag's routing engine for UNILAG.

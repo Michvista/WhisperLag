@@ -6,14 +6,14 @@ import { messageService } from "./message.service.js";
 import type { SendMessageInput } from "./message.schema.js";
 
 export const messageController = {
-  /** POST /api/v1/messages — send an internal note. */
+  /** POST /api/v1/messages : send an internal note. */
   send: asyncHandler(async (req: Request, res: Response) => {
     const input = res.locals.validated as SendMessageInput;
     const message = await messageService.send(input, req.principal!.id, req.principal!.role);
     res.status(HTTP_STATUS.CREATED).json({ success: true, data: message, error: null });
   }),
 
-  /** GET /api/v1/messages — the collaboration feed, scoped by role. */
+  /** GET /api/v1/messages : the collaboration feed, scoped by role. */
   list: asyncHandler(async (req: Request, res: Response) => {
     const principal = req.principal!;
     const user = await prisma.user.findUnique({ where: { id: principal.id } });

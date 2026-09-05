@@ -4,7 +4,12 @@ import { authenticate, authorize } from "../../middleware/auth.js";
 import { validate } from "../../middleware/asyncHandler.js";
 import { rateLimit } from "../../middleware/rateLimit.js";
 import { surveyController } from "./survey.controller.js";
-import { createSurveySchema, respondSurveySchema } from "./survey.schema.js";
+import {
+  createSurveySchema,
+  respondBatchSchema,
+  respondSurveySchema,
+  updateSurveySchema,
+} from "./survey.schema.js";
 
 export const surveyRoutes = Router();
 
@@ -16,6 +21,12 @@ surveyRoutes.post(
   validate(respondSurveySchema),
   surveyController.respondPublic,
 );
+surveyRoutes.post(
+  "/respond-batch",
+  rateLimit,
+  validate(respondBatchSchema),
+  surveyController.respondBatch,
+);
 
 surveyRoutes.get("/", authenticate, surveyController.list);
 surveyRoutes.post(
@@ -24,6 +35,13 @@ surveyRoutes.post(
   authorize(PERMISSIONS.CREATE_SURVEY),
   validate(createSurveySchema),
   surveyController.create,
+);
+surveyRoutes.patch(
+  "/:id",
+  authenticate,
+  authorize(PERMISSIONS.CREATE_SURVEY),
+  validate(updateSurveySchema),
+  surveyController.update,
 );
 surveyRoutes.post(
   "/questions/:questionId/respond",

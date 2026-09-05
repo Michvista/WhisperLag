@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { toast } from "@/lib/toast";
+import { Picker } from "@/components/ui/Picker";
 
 interface Course {
   id: string;
@@ -51,8 +52,10 @@ export function PublicRate() {
       .catch(() => setCourses([]));
   }, []);
 
-  const deptCourses = (courses ?? []).filter((c) => c.department?.id === deptId);
-  const course = deptCourses.find((c) => c.id === courseId) ?? null;
+  const shownCourses = deptId
+      ? (courses ?? []).filter((c) => c.department?.id === deptId)
+      : (courses ?? []);
+  const course = shownCourses.find((c) => c.id === courseId) ?? null;
 
   async function submit() {
     if (!course || !rubric) return;
@@ -88,7 +91,7 @@ export function PublicRate() {
       <div>
         <h2 className="mb-3 font-display text-headline-md font-semibold text-onSurface">Rate a Course</h2>
         <p className="font-body-sm text-body-sm leading-relaxed text-primary">
-          ✓ Thanks — your rating was submitted anonymously.
+          ✓ Thanks : your rating was submitted anonymously.
         </p>
         <button
           onClick={() => {
@@ -108,7 +111,7 @@ export function PublicRate() {
     <div>
       <h2 className="mb-2 font-display text-headline-md font-semibold text-onSurface">Rate a Course</h2>
       <p className="mb-4 font-body-sm text-body-sm text-onSurfaceVariant">
-        Anonymous, no account needed — helps departments improve.
+        Anonymous, no account needed : helps departments improve.
       </p>
 
       <select
@@ -120,29 +123,23 @@ export function PublicRate() {
         }}
         className="input-minimal w-full font-body-md text-body-md text-onSurface"
       >
-        <option value="">Select your department…</option>
+        <option value="">All departments</option>
         {departments.map((d) => (
           <option key={d.id} value={d.id}>{d.name}</option>
         ))}
       </select>
 
-      {deptId && (
-        <select
+      <div className="mt-4">
+        <Picker
+          placeholder="Select a course…"
           value={courseId}
-          onChange={(e) => {
-            setCourseId(e.target.value);
+          onChange={(v) => {
+            setCourseId(v);
             setScores({});
           }}
-          className="input-minimal mt-4 w-full font-body-md text-body-md text-onSurface"
-        >
-          <option value="">Select a course…</option>
-          {deptCourses.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.code} — {c.title} · {c.lecturer?.name}
-            </option>
-          ))}
-        </select>
-      )}
+          options={shownCourses.map((c) => ({ value: c.id, label: `${c.code} : ${c.title} : ${c.lecturer?.name ?? ""}` }))}
+        />
+      </div>
 
       {course && (
         <div className="mt-5 flex flex-col gap-4">

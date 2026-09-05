@@ -42,7 +42,7 @@ function toBarData(b: Record<string, number>, count: number) {
 }
 
 /**
- * Course Hub — QA connected to where teaching happens. Each course shows its
+ * Course Hub : QA connected to where teaching happens. Each course shows its
  * LMS metadata (semester, credits, syllabus outline) beside its live
  * evaluation aggregates, all from the same registry.
  */
@@ -87,7 +87,7 @@ export default function CourseHubPage() {
           <h1 className="mb-2 font-display text-headline-lg font-semibold text-onSurface">Course Hub</h1>
           <p className="font-body-md text-body-md text-onSurfaceVariant">
             Each course&apos;s LMS record (semester, credits, syllabus) beside
-            its live, anonymous evaluation results — QA connected to where
+            its live, anonymous evaluation results : QA connected to where
             teaching happens.
           </p>
         </header>
@@ -115,7 +115,7 @@ export default function CourseHubPage() {
                       </span>
                     </div>
                     <p className="mt-1 font-mono-label text-mono-label text-onSurfaceVariant">
-                      {c.lecturer?.name ?? "Unassigned"} · {c.department?.name ?? "—"} ·{" "}
+                      {c.lecturer?.name ?? "Unassigned"} · {c.department?.name ?? ":"} ·{" "}
                       {c.semester ?? "Semester TBA"} · {c.credits ?? 0} credits
                     </p>
                   </div>
@@ -179,7 +179,7 @@ export default function CourseHubPage() {
                         </div>
                       ) : (
                         <p className="font-body-sm text-body-sm text-onSurfaceVariant">
-                          No evaluations yet — students can rate this course on /evaluate.
+                          No evaluations yet : students can rate this course on /evaluate.
                         </p>
                       )}
                     </div>

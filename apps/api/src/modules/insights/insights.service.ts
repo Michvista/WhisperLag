@@ -62,7 +62,7 @@ function algorithmCluster(whispers: WhisperRecord[]): InsightResult {
   };
 }
 
-/** LLM clustering via Groq — groups whispers by shared viewpoint semantically. */
+/** LLM clustering via Groq : groups whispers by shared viewpoint semantically. */
 async function groqCluster(whispers: WhisperRecord[]): Promise<InsightResult> {
   const kept = whispers.filter((w) => !isLikelyNoise(w));
   const noise = whispers.filter((w) => isLikelyNoise(w)).map((w) => ({ id: w.id, category: w.category, content: w.content, reason: isLikelyNoise(w) as string }));

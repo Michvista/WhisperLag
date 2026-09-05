@@ -58,7 +58,7 @@ interface CourseAggregate {
 
 const TREND_COLORS = { whispers: "#006b2d", evaluations: "#00668a" };
 
-/** Faculty hub — aggregate-only, live, with Recharts visualizations. */
+/** Faculty hub : aggregate-only, live, with Recharts visualizations. */
 export default function FacultyHubPage() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [me, setMe] = useState<Me | null>(null);
@@ -154,7 +154,7 @@ export default function FacultyHubPage() {
                   <div className="mb-2 flex items-end justify-between">
                     <span className="font-body-md text-body-md text-onSurfaceVariant">Overall Sentiment Score</span>
                     <span className="font-display text-headline-md font-semibold text-onSurface">
-                      {summary ? summary.averageRating.toFixed(1) : "—"}
+                      {summary ? summary.averageRating.toFixed(1) : ":"}
                       <span className="text-sm text-onSurfaceVariant">/5</span>
                     </span>
                   </div>
@@ -162,14 +162,14 @@ export default function FacultyHubPage() {
                     <div className="h-1 bg-primary" style={{ width: `${sentimentPct}%` }} />
                   </div>
                   <p className="mt-2 font-label-caps text-label-caps text-onSurfaceVariant">
-                    {summary ? `${summary.responseCount} anonymous responses` : "—"}
+                    {summary ? `${summary.responseCount} anonymous responses` : ":"}
                   </p>
                 </div>
                 <div>
                   <div className="mb-2 flex items-end justify-between">
                     <span className="font-body-md text-body-md text-onSurfaceVariant">Pending Interventions</span>
                     <span className="font-display text-headline-md font-semibold text-error">
-                      {summary?.pendingInterventions ?? "—"}
+                      {summary?.pendingInterventions ?? ":"}
                     </span>
                   </div>
                   <div className="h-1 w-full bg-surface-container-high">
@@ -198,7 +198,7 @@ export default function FacultyHubPage() {
 
             <div>
               <h2 className="mb-6 font-label-caps text-label-caps uppercase tracking-widest text-onSurface">
-                Activity Trend — 14 days
+                Activity Trend : 14 days
               </h2>
               <div className="h-48 w-full">
                 <ResponsiveContainer width="100%" height="100%">
@@ -243,7 +243,7 @@ export default function FacultyHubPage() {
               <h2 className="font-label-caps text-label-caps uppercase tracking-widest text-onSurface">Active Courses</h2>
             </div>
 
-            <div className="no-scrollbar overflow-x-auto">
+            <div className="no-scrollbar max-h-[480px] overflow-x-auto overflow-y-auto">
               <div className="min-w-[520px]">
                 <div className="grid grid-cols-12 gap-4 border-b-2 border-ink/10 pb-4 font-label-caps text-label-caps uppercase text-onSurfaceVariant">
                   <div className="col-span-2">ID</div>

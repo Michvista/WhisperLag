@@ -23,7 +23,7 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
-/** Public "Have I been heard?" feed — recent anonymous whispers with status. */
+/** Public "Have I been heard?" feed : recent anonymous whispers with status. */
 export function PublicRecent() {
   const [items, setItems] = useState<RecentWhisper[] | null>(null);
 
@@ -52,7 +52,7 @@ export function PublicRecent() {
         Recent Activity
       </h2>
       <p className="mb-4 font-body-sm text-body-sm text-onSurfaceVariant">
-        Recent feedback the university is acting on — no identities.
+        Recent feedback the university is acting on : no identities.
       </p>
       <div className="max-h-[420px] overflow-y-auto pr-2">
         <div className="flex flex-col">

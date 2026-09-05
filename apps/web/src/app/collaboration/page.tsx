@@ -26,7 +26,7 @@ function formatTime(iso: string) {
   return new Date(iso).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
-/** Secure staff group chat — coordination without student identities. */
+/** Secure staff group chat : coordination without student identities. */
 export default function CollaborationPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [body, setBody] = useState("");
@@ -101,7 +101,7 @@ export default function CollaborationPage() {
               <ErrorBlock message={error} onRetry={load} />
             ) : messages.length === 0 ? (
               <p className="py-10 text-center font-body-md text-body-md text-onSurfaceVariant">
-                No messages yet. Say hello — this is your staff coordination space.
+                No messages yet. Say hello : this is your staff coordination space.
               </p>
             ) : (
               <div className="flex flex-col gap-4">

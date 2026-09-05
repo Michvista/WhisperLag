@@ -43,14 +43,14 @@ const TYPE_LABELS: Record<string, string> = {
 const TYPE_HINTS: Record<string, string> = {
   ACCREDITATION: "University-wide totals for external review (NUC-style).",
   DEPARTMENT_SNAPSHOT: "A single department's whispers and evaluations.",
-  TREND: "Activity over time — spots spikes in complaints or ratings.",
+  TREND: "Activity over time : spots spikes in complaints or ratings.",
 };
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
-/** Reports & accreditation — editorial 40/60 presentation of live data. */
+/** Reports & accreditation : editorial 40/60 presentation of live data. */
 export default function ReportsPage() {
   const { role } = useAuth();
   const isAdmin = role === "ADMIN";
@@ -66,12 +66,13 @@ export default function ReportsPage() {
   async function generate() {
     setGenerating(true);
     try {
+      const stamp = new Date().toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
       await api("/reports/generate", {
         method: "POST",
-        body: JSON.stringify({ title: "Accreditation Report", type: "ACCREDITATION" }),
+        body: JSON.stringify({ title: `Accreditation Report: ${stamp}`, type: "ACCREDITATION" }),
         token: getToken(),
       });
-      toast("Report generated — refresh the list.");
+      toast("Report generated.");
       setLoading(true);
       setError(null);
       try {
@@ -153,7 +154,7 @@ export default function ReportsPage() {
             What you&apos;re looking at
           </p>
           <p className="font-body-sm text-body-sm leading-relaxed text-onSurfaceVariant">
-            Everything here is pulled live from the database — nothing is typed
+            Everything here is pulled live from the database : nothing is typed
             by hand. <span className="font-medium text-onSurface">Verified Reports</span>{" "}
             is the number of report files created;{" "}
             <span className="font-medium text-onSurface">Pending Interventions</span> is
@@ -161,7 +162,10 @@ export default function ReportsPage() {
             <span className="font-medium text-onSurface">Compliance Rate</span> is the
             share of whispers that have been resolved. To create a new report,
             administrators press <span className="font-medium text-onSurface">New Report</span>{" "}
-            — it takes a snapshot of the current totals in one click.
+            and it captures a snapshot of the current totals. If the numbers
+            haven&apos;t changed since your last report, a new one will look the
+            same: it&apos;s a snapshot, not a simulation. Add fresh whispers or
+            evaluations, then regenerate to see them move.
           </p>
         </div>
       </div>

@@ -9,7 +9,7 @@ import { Icon } from "@/components/ui/Icon";
 export default function LoginPage() {
   return (
     <main className="flex min-h-screen flex-col bg-background font-body text-onBackground md:flex-row">
-      {/* Left pane — the form */}
+      {/* Left pane : the form */}
       <section className="relative flex flex-1 flex-col justify-center border-b border-ink/10 p-margin-mobile md:flex-[0_0_40%] md:border-b-0 md:border-r md:p-margin-desktop">
         <div className="absolute left-margin-desktop top-margin-desktop hidden md:block">
           <h1 className="font-display text-headline-lg font-bold tracking-tighter text-primary">WhisperLag</h1>
@@ -19,7 +19,7 @@ export default function LoginPage() {
             <h2 className="mb-2 font-display text-headline-lg font-semibold text-onSurface">Staff &amp; Student Access</h2>
             <p className="font-body-md text-body-md text-onSurfaceVariant">
               Faculty and administrators sign in here. Students don&apos;t need
-              an account — just <span className="font-medium text-onSurface">Speak Now</span>.
+              an account : just <span className="font-medium text-onSurface">Speak Now</span>.
             </p>
           </div>
           <LoginForm />
@@ -29,7 +29,7 @@ export default function LoginPage() {
         </div>
       </section>
 
-      {/* Right pane — trust context */}
+      {/* Right pane : trust context */}
       <aside className="relative flex flex-1 flex-col items-center justify-center p-margin-mobile md:flex-[0_0_60%] md:p-margin-desktop">
         <div className="absolute right-margin-desktop top-margin-desktop hidden md:block">
           <div className="whisper-lock-glow flex items-center gap-2 rounded-sm bg-surface px-4 py-2">

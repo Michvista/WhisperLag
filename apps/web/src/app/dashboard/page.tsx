@@ -38,23 +38,32 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
-/** Compact expandable poll list wired to the respond endpoint. */
+/** Compact expandable poll list wired to the batch respond endpoint. */
 function PollList({ surveys, onDone }: { surveys: Survey[]; onDone: () => void }) {
   const [open, setOpen] = useState<string | null>(null);
   const [answer, setAnswer] = useState<Record<string, unknown>>({});
+  const [done, setDone] = useState<Record<string, boolean>>({});
   const [busy, setBusy] = useState<string | null>(null);
 
-  async function respond(questionId: string) {
-    const value = answer[questionId];
-    if (value === undefined) return;
-    setBusy(questionId);
+  async function submitAll(surveyId: string) {
+    const survey = surveys.find((s) => s.id === surveyId);
+    if (!survey) return;
+    const toSend = survey.questions
+      .filter((q) => answer[q.id] !== undefined)
+      .map((q) => ({ questionId: q.id, answer: { value: answer[q.id] } }));
+    if (toSend.length === 0) {
+      toast("Answer at least one question first.", "error");
+      return;
+    }
+    setBusy(surveyId);
     try {
-      await api(`/surveys/questions/${questionId}/respond`, {
+      await api("/surveys/respond-batch", {
         method: "POST",
-        body: JSON.stringify({ answer: { value } }),
+        body: JSON.stringify({ surveyId, answers: toSend }),
         token: getToken(),
       });
-      toast("Response submitted anonymously.");
+      setDone((d) => ({ ...d, [surveyId]: true }));
+      toast("Responses submitted anonymously.");
       onDone();
     } finally {
       setBusy(null);
@@ -70,13 +79,14 @@ function PollList({ surveys, onDone }: { surveys: Survey[]; onDone: () => void }
             <div className="flex flex-1 flex-col gap-1">
               <h3 className="font-body-md text-body-md text-ink transition-colors hover:text-unilag-green">{survey.title}</h3>
               <p className="font-mono-label text-mono-label text-ink/50">
-                {survey.status === "OPEN" ? "Open" : survey.status.toLowerCase()} · {survey.questions.length} question{survey.questions.length === 1 ? "" : "s"}
-              </p>
+                  {survey.status === "OPEN" ? "Open" : survey.status.toLowerCase()} · {survey.questions.length} question{survey.questions.length === 1 ? "" : "s"}
+                  {done[survey.id] ? " · Submitted" : ""}
+                </p>
             </div>
             <Icon name={open === survey.id ? "expand_less" : "expand_more"} size={24} className="text-ink/40" />
           </button>
 
-          {open === survey.id && (
+          {open === survey.id && !done[survey.id] && (
             <div className="ml-10 mt-4 flex flex-col gap-4">
               {survey.questions.map((q) => (
                 <div key={q.id}>
@@ -87,7 +97,7 @@ function PollList({ surveys, onDone }: { surveys: Survey[]; onDone: () => void }
                         <button
                           key={n}
                           onClick={() => setAnswer((a) => ({ ...a, [q.id]: n }))}
-                          className={`h-8 w-8 border font-mono-label text-mono-label transition-colors ${
+                          className={`h-9 w-9 border font-mono-label text-mono-label transition-colors ${
                             answer[q.id] === n ? "border-ink bg-ink text-white" : "border-ink/20 hover:border-ink"
                           }`}
                         >
@@ -110,16 +120,22 @@ function PollList({ surveys, onDone }: { surveys: Survey[]; onDone: () => void }
                       className="input-minimal w-full resize-none font-body-md text-body-md"
                     />
                   )}
-                  <button
-                    onClick={() => respond(q.id)}
-                    disabled={busy === q.id || answer[q.id] === undefined}
-                    className="mt-2 border border-ink px-4 py-1.5 font-label-caps text-label-caps uppercase tracking-wider transition-colors hover:bg-surface-variant disabled:opacity-40"
-                  >
-                    {busy === q.id ? "Sending…" : "Submit"}
-                  </button>
                 </div>
               ))}
+              <button
+                onClick={() => submitAll(survey.id)}
+                disabled={busy === survey.id}
+                className="mt-2 w-fit border border-ink px-5 py-2.5 font-label-caps text-label-caps uppercase tracking-wider transition-colors hover:bg-surface-variant disabled:opacity-40"
+              >
+                {busy === survey.id ? "Submitting…" : "Submit responses"}
+              </button>
             </div>
+          )}
+          {open === survey.id && done[survey.id] && (
+            <p className="ml-10 mt-4 flex items-center gap-1 font-body-sm text-body-sm text-primary">
+              <Icon name="check_circle" size={16} className="text-primary" />
+              Thanks, your answers were submitted anonymously.
+            </p>
           )}
         </div>
       ))}
@@ -127,7 +143,7 @@ function PollList({ surveys, onDone }: { surveys: Survey[]; onDone: () => void }
   );
 }
 
-/** Student dashboard — editorial split layout, fully live. */
+/** Student dashboard : editorial split layout, fully live. */
 export default function StudentDashboardPage() {
   const recent = useFetch<RecentWhisper[]>("/feedback/recent");
   const surveys = useFetch<Survey[]>("/surveys");
@@ -205,7 +221,7 @@ export default function StudentDashboardPage() {
               </div>
             ) : (
               <p className="font-mono-label text-mono-label text-ink/50">
-                Nothing yet. Submit your first whisper — it stays anonymous.
+                Nothing yet. Submit your first whisper : it stays anonymous.
               </p>
             )}
           </section>

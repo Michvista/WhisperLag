@@ -69,7 +69,7 @@ export default function SurveyResultsPage() {
                 <h1 className="mb-2 font-display text-headline-lg font-semibold text-onSurface">{data.title}</h1>
                 <p className="font-mono-label text-mono-label text-onSurfaceVariant">
                   {data.status} · {total} total responses
-                  {data.course ? ` · Linked course: ${data.course.code} — ${data.course.title}` : ""}
+                  {data.course ? ` · Linked course: ${data.course.code} : ${data.course.title}` : ""}
                 </p>
               </header>
 

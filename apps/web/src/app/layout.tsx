@@ -6,7 +6,7 @@ import { Toaster } from "@/components/Toaster";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: `${BRAND.name} — Quality Assurance System`,
+  title: `${BRAND.name} : Quality Assurance System`,
   description: BRAND.tagline,
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, statusBarStyle: "default", title: "WhisperLag" },

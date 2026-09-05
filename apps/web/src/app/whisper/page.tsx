@@ -7,7 +7,7 @@ import { WhisperLock } from "@/components/ui/WhisperLock";
 import { WhisperLogo } from "@/components/ui/WhisperLogo";
 
 /**
- * The Whisper — public, no-login submission. Main form on the left, with
+ * The Whisper : public, no-login submission. Main form on the left, with
  * Active Polls + Recent Activity in a structured right sidebar. Stacks to a
  * single column on mobile/tablet.
  */
@@ -36,7 +36,7 @@ export default function WhisperPage() {
                 </h1>
                 <p className="max-w-lg font-body-lg text-body-lg leading-relaxed text-onSurfaceVariant">
                   No account. No login. Your message is anonymized before it
-                  ever reaches us — even we cannot tell who wrote it.
+                  ever reaches us : even we cannot tell who wrote it.
                 </p>
               </div>
             </div>

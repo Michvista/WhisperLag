@@ -13,7 +13,7 @@ export function PwaRegister() {
     if (!("serviceWorker" in navigator)) return;
     if (process.env.NODE_ENV !== "production") return;
     navigator.serviceWorker.register("/sw.js").catch(() => {
-      // Non-fatal — the app still works without a service worker.
+      // Non-fatal : the app still works without a service worker.
     });
   }, []);
 

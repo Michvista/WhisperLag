@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 /**
- * Whisper text with a preview that can expand to the full message — a
+ * Whisper text with a preview that can expand to the full message : a
  * truncated line never hides the actual detail, and a "Read more" is always
  * available when the preview is clamped.
  */

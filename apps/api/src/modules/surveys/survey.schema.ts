@@ -26,3 +26,21 @@ export const respondSurveySchema = z.object({
 });
 
 export type RespondSurveyInput = z.infer<typeof respondSurveySchema>;
+
+/** One answer per question, submitted together. */
+export const respondBatchSchema = z.object({
+  surveyId: z.string().min(1),
+  answers: z.array(z.object({ questionId: z.string().min(1), answer: z.unknown() })).min(1),
+});
+
+export type RespondBatchInput = z.infer<typeof respondBatchSchema>;
+
+/** Edit an existing survey's metadata (keeps responses intact). */
+export const updateSurveySchema = z.object({
+  title: z.string().min(1).optional(),
+  description: z.string().optional(),
+  courseId: z.string().optional().nullable(),
+  status: z.enum(["OPEN", "CLOSED"]).optional(),
+});
+
+export type UpdateSurveyInput = z.infer<typeof updateSurveySchema>;

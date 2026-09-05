@@ -63,7 +63,7 @@ function emptyRow(): Row {
   return { key: Date.now(), code: "", title: "", department: "", lecturer: "", semester: "", credits: "", syllabus: "" };
 }
 
-/** SIS / LMS integration console (admin) — friendly form importer. */
+/** SIS / LMS integration console (admin) : friendly form importer. */
 export default function IntegrationsPage() {
   const [status, setStatus] = useState<SisStatus | null>(null);
   const [courses, setCourses] = useState<SyncedCourse[] | null>(null);
@@ -141,7 +141,7 @@ export default function IntegrationsPage() {
         body: JSON.stringify(body),
         token: getToken(),
       });
-      setResult(`Imported ${res.imported} course${res.imported === 1 ? "" : "s"} — ${res.created} created, ${res.updated} updated.`);
+      setResult(`Imported ${res.imported} course${res.imported === 1 ? "" : "s"} : ${res.created} created, ${res.updated} updated.`);
       toast(`Import complete: ${res.created} created, ${res.updated} updated.`);
       await loadStatus();
     } catch (e) {
@@ -158,12 +158,13 @@ export default function IntegrationsPage() {
         <header className="rule-b mb-12 pb-8">
           <h1 className="mb-2 font-display text-headline-lg font-semibold text-onSurface">SIS / LMS Integration</h1>
           <p className="max-w-2xl font-body-md text-body-md text-onSurfaceVariant">
-            Bring UNILAG&apos;s official course records into the app so
-            evaluations, department routing, and accreditation reports are
-            built on verified data. Add courses below (the form), or use the
-            JSON import for a bulk export. When a live{" "}
-            <span className="font-medium text-onSurface">SIS_API_URL</span> is set,
-            this runs automatically.
+            <span className="font-medium text-onSurface">SIS</span> is the
+            university&apos;s official record of students, courses and departments.{" "}
+            <span className="font-medium text-onSurface">LMS</span> is where courses are
+            taught online. WhisperLag reads these records so evaluations, reports and
+            department routing all use the official course list — nothing is typed in by
+            hand. Add courses in the form below, paste a bigger export, or connect a live
+            feed.
           </p>
         </header>
 
@@ -175,21 +176,21 @@ export default function IntegrationsPage() {
               {/* Left: status + synced */}
               <div>
                 <h2 className="rule-b mb-6 font-label-caps text-label-caps uppercase tracking-widest text-onSurface">
-                  Connector Status
+                  Connection Status
                 </h2>
                 <div className="flex flex-col border-t border-ink/10">
                   <div className="rule-b flex items-center justify-between py-5">
-                    <span className="font-body-md text-body-md text-onSurfaceVariant">Mode</span>
+                    <span className="font-body-md text-body-md text-onSurfaceVariant">How courses are added</span>
                     <span
                       className={`px-2 py-1 font-label-caps text-[10px] uppercase tracking-wider ${
                         status.configured ? "bg-primary/10 text-primary" : "bg-tertiary-fixed-dim/20 text-tertiary-container"
                       }`}
                     >
-                      {status.status}
+                      {status.configured ? "Automatic feed" : "Typed or pasted"}
                     </span>
                   </div>
                   <div className="rule-b flex items-center justify-between py-5">
-                    <span className="font-body-md text-body-md text-onSurfaceVariant">Endpoint</span>
+                    <span className="font-body-md text-body-md text-onSurfaceVariant">Source</span>
                     <span className="font-mono-label text-mono-label text-onSurface">{status.endpoint ?? "manual import"}</span>
                   </div>
                   <div className="rule-b flex items-center justify-between py-5">
@@ -214,14 +215,14 @@ export default function IntegrationsPage() {
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-body-md text-body-md text-onSurface">{c.title}</p>
                         <p className="font-label-caps text-label-caps text-onSurfaceVariant">
-                          {c.code} · {c.department?.name ?? "—"} · {c.lecturer?.name ?? "Unassigned"}
+                          {c.code} · {c.department?.name ?? ":"} · {c.lecturer?.name ?? "Unassigned"}
                         </p>
                       </div>
                     </div>
                   ))}
                   {courses !== null && courses.length === 0 && (
                     <p className="py-4 font-body-sm text-body-sm text-onSurfaceVariant">
-                      No courses synced yet — add one on the right.
+                      No courses synced yet : add one on the right.
                     </p>
                   )}
                 </div>

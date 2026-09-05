@@ -12,7 +12,7 @@ const CATEGORIES = ["Academic Issue", "Facility Maintenance", "Student Welfare",
 const UNILAG_DOMAINS = ["unilag.edu.ng", "live.unilag.edu.ng"];
 
 function isUnilagEmail(email: string): boolean {
-  if (!email) return true; // optional — blank is allowed
+  if (!email) return true; // optional : blank is allowed
   const domain = email.trim().toLowerCase().split("@").pop() ?? "";
   return UNILAG_DOMAINS.includes(domain);
 }
@@ -27,7 +27,7 @@ interface WhisperFormProps {
 }
 
 /**
- * Public, no-login whisper form — the "anon app" flow. The optional UNILAG
+ * Public, no-login whisper form : the "anon app" flow. The optional UNILAG
  * email is a soft community gate (validated, never stored); the optional
  * department tags the complaint for staff routing. Offline submissions are
  * queued locally and auto-synced.
@@ -119,7 +119,7 @@ export function WhisperForm({ className = "" }: WhisperFormProps) {
 
       <div className="relative">
         <label className="absolute -top-5 left-0 font-label-caps text-label-caps text-onSurfaceVariant">
-          03 // UNILAG Email (optional — never stored)
+          03 // UNILAG Email (optional : never stored)
         </label>
         <input
           type="email"

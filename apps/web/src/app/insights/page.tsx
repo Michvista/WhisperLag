@@ -69,7 +69,7 @@ export default function InsightsPage() {
         <div>
           <h1 className="mb-2 font-display text-headline-lg font-semibold text-onSurface">AI Complaint Intelligence</h1>
           <p className="max-w-xl font-body-md text-body-md text-onSurfaceVariant">
-            Groups anonymous whispers by shared viewpoint and surfaces noise —
+            Groups anonymous whispers by shared viewpoint and surfaces noise :
             automatically, with no identities exposed.
           </p>
         </div>

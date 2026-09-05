@@ -50,7 +50,7 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
-/** Surveys — admins build & publish; staff review anonymous results. */
+/** Surveys : admins build & publish; staff review anonymous results. */
 export default function SurveyBuilderPage() {
   const { role } = useAuth();
   const isAdmin = role === "ADMIN";
@@ -65,6 +65,12 @@ export default function SurveyBuilderPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [results, setResults] = useState<Record<string, SurveyResults>>({});
   const [openResults, setOpenResults] = useState<string | null>(null);
+  // edit an existing survey's metadata
+  const [editing, setEditing] = useState<Survey | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editCourseId, setEditCourseId] = useState("");
+  const [editStatus, setEditStatus] = useState<"OPEN" | "CLOSED">("OPEN");
+  const [savingEdit, setSavingEdit] = useState(false);
 
   async function loadSurveys() {
     try {
@@ -143,6 +149,36 @@ export default function SurveyBuilderPage() {
     }
   }
 
+  async function saveEdit() {
+    if (!editing) return;
+    setSavingEdit(true);
+    try {
+      await api(`/surveys/${editing.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          title: editTitle,
+          courseId: editCourseId || null,
+          status: editStatus,
+        }),
+        token: getToken(),
+      });
+      toast("Survey updated.");
+      setEditing(null);
+      await loadSurveys();
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "Update failed", "error");
+    } finally {
+      setSavingEdit(false);
+    }
+  }
+
+  function startEdit(s: Survey) {
+    setEditing(s);
+    setEditTitle(s.title);
+    setEditCourseId(s.course?.id ?? "");
+    setEditStatus(s.status === "OPEN" ? "OPEN" : "CLOSED");
+  }
+
   return (
     <RoleGate minRole={ROLES.FACULTY}>
       <AppShell>
@@ -186,7 +222,7 @@ export default function SurveyBuilderPage() {
                     <option value="">Not linked to a course</option>
                     {courses.map((c) => (
                       <option key={c.id} value={c.id}>
-                        {c.code} — {c.title}
+                        {c.code} : {c.title}
                       </option>
                     ))}
                   </select>
@@ -267,11 +303,61 @@ export default function SurveyBuilderPage() {
             <h2 className="rule-b mb-4 font-label-caps text-label-caps uppercase tracking-widest text-onSurface">
               Published Surveys
             </h2>
+
+            {editing && (
+              <div className="mb-6 flex flex-col gap-4 border border-ink/10 bg-surface-container-low p-5">
+                <p className="font-label-caps text-label-caps uppercase tracking-widest text-onSurfaceVariant">
+                  Edit survey
+                </p>
+                <input
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="input-minimal w-full font-body-md text-body-md text-onSurface"
+                />
+                <div className="flex flex-wrap items-center gap-4">
+                  <select
+                    value={editCourseId}
+                    onChange={(e) => setEditCourseId(e.target.value)}
+                    className="input-minimal flex-1 font-body-sm text-body-sm text-onSurface"
+                  >
+                    <option value="">Not linked to a course</option>
+                    {courses.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.code}: {c.title}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    value={editStatus}
+                    onChange={(e) => setEditStatus(e.target.value as "OPEN" | "CLOSED")}
+                    className="input-minimal font-body-sm text-body-sm text-onSurface"
+                  >
+                    <option value="OPEN">Open</option>
+                    <option value="CLOSED">Closed</option>
+                  </select>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={saveEdit}
+                      disabled={savingEdit}
+                      className="bg-ink px-5 py-2 font-label-caps text-label-caps uppercase tracking-wider text-white transition-colors hover:bg-primary disabled:opacity-40"
+                    >
+                      {savingEdit ? "Saving…" : "Save"}
+                    </button>
+                    <button
+                      onClick={() => setEditing(null)}
+                      className="border border-ink px-5 py-2 font-label-caps text-label-caps uppercase tracking-wider text-onSurface hover:bg-surface-variant"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
             {surveys === null ? (
               <LoadingBlock label="Loading…" />
             ) : surveys.length === 0 ? (
               <p className="font-body-md text-body-md text-onSurfaceVariant">
-                None yet{isAdmin ? " — publish your first survey on the left." : "."}
+                None yet{isAdmin ? " : publish your first survey on the left." : "."}
               </p>
             ) : (
               <div className="flex flex-col">
@@ -297,6 +383,14 @@ export default function SurveyBuilderPage() {
                         >
                           View results
                         </a>
+                        {isAdmin && (
+                          <button
+                            onClick={() => startEdit(s)}
+                            className="font-label-caps text-label-caps text-onSurfaceVariant hover:text-primary"
+                          >
+                            Edit
+                          </button>
+                        )}
                         <span
                           className={`px-2 py-1 font-label-caps text-[10px] uppercase tracking-wider ${
                             s.status === "OPEN" ? "bg-unilag-green/10 text-unilag-green" : "bg-ink/5 text-ink/50"

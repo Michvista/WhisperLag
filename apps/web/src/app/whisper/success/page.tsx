@@ -2,7 +2,7 @@ import Link from "next/link";
 import { WhisperLock } from "@/components/ui/WhisperLock";
 import { WhisperLogo } from "@/components/ui/WhisperLogo";
 
-/** Post-submission confirmation — "Your whisper is hidden." */
+/** Post-submission confirmation : "Your whisper is hidden." */
 export default function WhisperSuccessPage({
   searchParams,
 }: {
