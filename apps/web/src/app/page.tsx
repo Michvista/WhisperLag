@@ -64,7 +64,12 @@ function Counter({ value, suffix = "" }: { value: number; suffix?: string }) {
 
 /** Shows a dash while stats load, then the animated counter. */
 function StatValue({ value, suffix }: { value: number | null; suffix?: string }) {
-  if (value === null) return <span className="font-display text-5xl font-bold text-onSurfaceVariant/50 md:text-6xl">:</span>;
+  if (value === null)
+    return (
+      <span className="flex h-14 items-center text-5xl font-bold text-onSurfaceVariant/50 md:text-6xl" aria-label="Loading">
+        <span className="inline-block h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </span>
+    );
   return <Counter value={value} suffix={suffix} />;
 }
 
