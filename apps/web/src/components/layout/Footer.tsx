@@ -34,7 +34,7 @@ export function Footer() {
         </nav>
 
         <div className="whisper-lock-glow flex w-fit items-center gap-2 rounded-full bg-surface-container-lowest px-4 py-2">
-          <span className="material-symbols-outlined text-[18px] text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>
+          <span className="material-symbols-outlined text-[22px] text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>
             lock
           </span>
           <span className="font-label-caps text-label-caps text-onSurfaceVariant">Whisper Lock Active</span>

@@ -9,6 +9,7 @@ import { ErrorBlock, LoadingBlock } from "@/components/ui/States";
 import { api, getToken } from "@/lib/api";
 import { downloadCsv } from "@/lib/download";
 import { toast } from "@/lib/toast";
+import { useAuth } from "@/lib/useAuth";
 
 interface Overview {
   totalWhispers: number;
@@ -34,8 +35,14 @@ interface Department {
 
 const TYPE_LABELS: Record<string, string> = {
   ACCREDITATION: "Accreditation Summary",
-  DEPARTMENT_SNAPSHOT: "Faculty Feedback Aggregate",
-  TREND: "Compliance Audit",
+  DEPARTMENT_SNAPSHOT: "Department Snapshot",
+  TREND: "Trend Report",
+};
+
+const TYPE_HINTS: Record<string, string> = {
+  ACCREDITATION: "University-wide totals for external review (NUC-style).",
+  DEPARTMENT_SNAPSHOT: "A single department's whispers and evaluations.",
+  TREND: "Activity over time — spots spikes in complaints or ratings.",
 };
 
 function formatDate(iso: string) {
@@ -44,6 +51,8 @@ function formatDate(iso: string) {
 
 /** Reports & accreditation — editorial 40/60 presentation of live data. */
 export default function ReportsPage() {
+  const { role } = useAuth();
+  const isAdmin = role === "ADMIN";
   const [reports, setReports] = useState<Report[] | null>(null);
   const [overview, setOverview] = useState<Overview | null>(null);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -51,6 +60,37 @@ export default function ReportsPage() {
   const [deptFilter, setDeptFilter] = useState("All");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
+
+  async function generate() {
+    setGenerating(true);
+    try {
+      await api("/reports/generate", {
+        method: "POST",
+        body: JSON.stringify({ title: "Accreditation Report", type: "ACCREDITATION" }),
+        token: getToken(),
+      });
+      toast("Report generated — refresh the list.");
+      setLoading(true);
+      setError(null);
+      try {
+        const [rep, ov, deps] = await Promise.all([
+          api<Report[]>("/reports", { token: getToken(), cache: "no-store" }),
+          api<Overview>("/stats/overview", { token: getToken(), cache: "no-store" }),
+          api<Department[]>("/departments", { token: getToken(), cache: "no-store" }),
+        ]);
+        setReports(rep);
+        setOverview(ov);
+        setDepartments(deps);
+      } finally {
+        setLoading(false);
+      }
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "Generation failed", "error");
+    } finally {
+      setGenerating(false);
+    }
+  }
 
   useEffect(() => {
     (async () => {
@@ -85,25 +125,42 @@ export default function ReportsPage() {
     <RoleGate minRole={ROLES.FACULTY}>
       <AppShell>
       <div className="mb-20">
-        <h1 className="mb-6 font-display text-4xl font-bold text-onSurface md:w-2/3 md:text-display-xl">
-          Institutional Reports &amp; Accreditation Data
-        </h1>
-        <p className="font-body-lg text-body-lg text-onSurfaceVariant md:w-1/2">
-          Secure access to verified whisper data summaries designed for
-          institutional review and compliance reporting. All data maintains
-          strict anonymity protocols.
-        </p>
-        <div className="mt-6 flex max-w-2xl flex-col gap-2 border border-ink/10 bg-surface-container-low p-4">
+        <div className="flex flex-wrap items-start justify-between gap-6">
+          <div className="md:w-2/3">
+            <h1 className="mb-6 font-display text-4xl font-bold text-onSurface md:text-display-xl">
+              Institutional Reports &amp; Accreditation Data
+            </h1>
+            <p className="font-body-lg text-body-lg text-onSurfaceVariant">
+              Secure access to verified whisper data summaries designed for
+              institutional review and compliance reporting. All data maintains
+              strict anonymity protocols.
+            </p>
+          </div>
+          {isAdmin && (
+            <button
+              onClick={generate}
+              disabled={generating}
+              className="flex items-center gap-2 bg-ink px-6 py-4 font-label-caps text-label-caps uppercase tracking-widest text-white transition-colors duration-300 hover:bg-primary disabled:opacity-60"
+            >
+              <span className="material-symbols-outlined text-[20px]">add</span>
+              {generating ? "Generating…" : "New Report"}
+            </button>
+          )}
+        </div>
+        <div className="mt-6 flex max-w-2xl flex-col gap-3 border border-ink/10 bg-surface-container-low p-4">
           <p className="font-label-caps text-label-caps uppercase tracking-widest text-onSurfaceVariant">
-            How this is computed
+            What you&apos;re looking at
           </p>
           <p className="font-body-sm text-body-sm leading-relaxed text-onSurfaceVariant">
-            Every figure is live from the database — no manually entered
-            numbers. &ldquo;Verified Reports&rdquo; counts the report files you&apos;ve
-            generated; &ldquo;Pending Interventions&rdquo; counts whispers still marked
-            New; &ldquo;Compliance Rate&rdquo; is the share of whispers marked Resolved.
-            Reports themselves are built from the current whisper and
-            evaluation totals at the moment you generate them.
+            Everything here is pulled live from the database — nothing is typed
+            by hand. <span className="font-medium text-onSurface">Verified Reports</span>{" "}
+            is the number of report files created;{" "}
+            <span className="font-medium text-onSurface">Pending Interventions</span> is
+            how many whispers are still waiting for action;{" "}
+            <span className="font-medium text-onSurface">Compliance Rate</span> is the
+            share of whispers that have been resolved. To create a new report,
+            administrators press <span className="font-medium text-onSurface">New Report</span>{" "}
+            — it takes a snapshot of the current totals in one click.
           </p>
         </div>
       </div>
@@ -240,6 +297,7 @@ export default function ReportsPage() {
                     <p className="font-body-md text-sm text-onSurfaceVariant">
                       {TYPE_LABELS[report.type] ?? report.type} · {formatDate(report.createdAt)} ·{" "}
                       {typeof report.content?.scope === "string" ? report.content.scope : "University-wide"}
+                      <span className="block opacity-70">{TYPE_HINTS[report.type] ?? ""}</span>
                     </p>
                   </div>
                   <div className="flex gap-4">

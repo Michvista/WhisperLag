@@ -2,6 +2,7 @@ import Link from "next/link";
 import { WhisperForm } from "@/components/feedback/WhisperForm";
 import { PublicPolls } from "@/components/feedback/PublicPolls";
 import { PublicRecent } from "@/components/feedback/PublicRecent";
+import { PublicRate } from "@/components/feedback/PublicRate";
 import { WhisperLock } from "@/components/ui/WhisperLock";
 import { WhisperLogo } from "@/components/ui/WhisperLogo";
 
@@ -49,6 +50,7 @@ export default function WhisperPage() {
           {/* Right sidebar: polls + recent activity */}
           <aside className="flex flex-col gap-20 border-t border-ink/10 pt-14 lg:border-l lg:border-t-0 lg:pl-14 lg:pt-0">
             <PublicPolls />
+            <PublicRate />
             <PublicRecent />
           </aside>
         </div>

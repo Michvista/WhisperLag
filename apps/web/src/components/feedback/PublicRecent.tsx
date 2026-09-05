@@ -33,7 +33,18 @@ export function PublicRecent() {
       .catch(() => setItems([]));
   }, []);
 
-  if (!items || items.length === 0) return null;
+  if (!items) {
+    return (
+      <div>
+        <h2 className="mb-2 font-display text-headline-md font-semibold text-onSurface">Recent Activity</h2>
+        <div className="space-y-2">
+          <div className="h-3 w-3/4 animate-pulse bg-surface-container-high" />
+          <div className="h-3 w-1/2 animate-pulse bg-surface-container-high" />
+        </div>
+      </div>
+    );
+  }
+  if (items.length === 0) return null;
 
   return (
     <div>

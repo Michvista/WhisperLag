@@ -51,7 +51,20 @@ export function PublicPolls() {
     }
   }
 
-  if (!surveys) return null;
+  if (!surveys) {
+    return (
+      <div>
+        <h2 className="mb-2 flex items-center gap-2 font-display text-headline-md font-semibold text-onSurface">
+          Active Polls
+          <span className="inline-block h-2 w-2 rounded-full bg-sun-gold" />
+        </h2>
+        <div className="space-y-2">
+          <div className="h-3 w-2/3 animate-pulse bg-surface-container-high" />
+          <div className="h-3 w-1/2 animate-pulse bg-surface-container-high" />
+        </div>
+      </div>
+    );
+  }
   if (surveys.length === 0) return null;
 
   return (

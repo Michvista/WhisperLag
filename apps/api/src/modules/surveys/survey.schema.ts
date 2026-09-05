@@ -21,7 +21,7 @@ export const createSurveySchema = z.object({
 export type CreateSurveyInput = z.infer<typeof createSurveySchema>;
 
 export const respondSurveySchema = z.object({
-  questionId: z.string().min(1),
+  // questionId comes from the URL param, not the body.
   answer: z.unknown(),
 });
 
