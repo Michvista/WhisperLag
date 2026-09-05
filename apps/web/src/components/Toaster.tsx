@@ -33,7 +33,7 @@ export function Toaster() {
   }, []);
 
   return (
-    <div className="fixed right-4 top-4 z-[300] flex w-[min(94vw,380px)] flex-col gap-3">
+    <div className="fixed z-[300] flex flex-col gap-3 px-4 sm:right-4 sm:top-4 sm:w-[min(94vw,380px)] sm:items-end bottom-4 left-4 right-4 items-stretch">
       {toasts.map((t) => {
         const style = TYPE_STYLE[t.type];
         return (

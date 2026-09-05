@@ -78,6 +78,8 @@ const ICONS: Record<string, React.ComponentType<{ size?: number; className?: str
   linear_scale: SlidersHorizontalIcon,
   short_text: AlignLeftIcon,
   radio_button_checked: RadioButtonIcon,
+  shield: SecurityIcon,
+  tune: SlidersHorizontalIcon,
 };
 
 export function Icon({
@@ -89,6 +91,14 @@ export function Icon({
   size?: number;
   className?: string;
 }) {
-  const Comp = ICONS[name] ?? (() => <span className="inline-block h-2 w-2 rounded-full bg-current" />);
+  const Comp = ICONS[name];
+  if (!Comp) {
+    // Fail loudly in dev so an unmapped icon is caught instead of silently
+    // rendering a placeholder dot.
+    if (process.env.NODE_ENV !== "production") {
+      console.warn(`[Icon] unmapped icon name: ${name}`);
+    }
+    return <LockIcon size={size} className={className} />;
+  }
   return <Comp size={size} className={className} />;
 }
