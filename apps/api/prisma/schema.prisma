@@ -91,6 +91,11 @@ model Whisper {
   aiTag        Json?
   // Public resolution note, set by an admin when a whisper is resolved.
   resolutionNote String?
+  // Client-generated reference code e.g. WL-2026-118374. Stored so students
+  // can track their submission without any identity being attached.
+  refNumber    String?      @unique
+  // URL path to an uploaded supporting file (screenshot / document).
+  attachmentUrl String?
   createdAt    DateTime     @default(now())
 }
 

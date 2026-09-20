@@ -16,6 +16,13 @@ departmentRoutes.post(
   validate(createDepartmentSchema),
   departmentController.create,
 );
+// Faculty management endpoints
+departmentRoutes.get("/faculties", authenticate, authorize(PERMISSIONS.VIEW_DEPARTMENT), departmentController.listFaculties);
+departmentRoutes.post("/faculties", authenticate, authorize(PERMISSIONS.MANAGE_DEPARTMENT), departmentController.createFaculty);
+departmentRoutes.patch("/faculties/:name", authenticate, authorize(PERMISSIONS.MANAGE_DEPARTMENT), departmentController.updateFaculty);
+departmentRoutes.delete("/faculties/:name", authenticate, authorize(PERMISSIONS.MANAGE_DEPARTMENT), departmentController.deleteFaculty);
+departmentRoutes.post("/faculties/reset-head-password", authenticate, authorize(PERMISSIONS.MANAGE_DEPARTMENT), departmentController.resetHeadPassword);
+
 departmentRoutes.get(
   "/:id/snapshot",
   authenticate,

@@ -4,9 +4,11 @@ import { asyncHandler } from "../../middleware/asyncHandler.js";
 import { statsService } from "./stats.service.js";
 
 export const statsController = {
-  /** GET /api/v1/stats/overview : admin dashboard KPIs + trend. */
-  overview: asyncHandler(async (_req: Request, res: Response) => {
-    const overview = await statsService.getOverview();
+  /** GET /api/v1/stats/overview : admin/faculty dashboard KPIs + trend. */
+  overview: asyncHandler(async (req: Request, res: Response) => {
+    const faculty = req.query.faculty as string | undefined;
+    const departmentId = req.query.departmentId as string | undefined;
+    const overview = await statsService.getOverview({ faculty, departmentId });
     res.status(HTTP_STATUS.OK).json({ success: true, data: overview, error: null });
   }),
 

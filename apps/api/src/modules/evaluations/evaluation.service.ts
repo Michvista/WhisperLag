@@ -71,11 +71,29 @@ export class EvaluationService {
    * recurring themes derived from whisper categories. Aggregate only : no
    * individual identities are ever returned.
    */
-  async summary() {
-    const [evals, whispers] = await Promise.all([
-      prisma.evaluation.findMany({ select: { overallRating: true, scores: true } }),
-      prisma.whisper.findMany({ select: { category: true, status: true } }),
-    ]);
+  async summary(filter?: { faculty?: string; departmentId?: string }) {
+    let deptIds: string[] | undefined = undefined;
+    if (filter?.faculty) {
+      const depts = await prisma.department.findMany({
+        where: { faculty: filter.faculty },
+        select: { id: true },
+      });
+      deptIds = depts.map((d) => d.id);
+    } else if (filter?.departmentId) {
+      deptIds = [filter.departmentId];
+    }
+
+    const evalWhere = deptIds ? { departmentId: { in: deptIds } } : {};
+    const whisperWhere = deptIds ? { departmentId: { in: deptIds } } : {};
+
+    const evals = await prisma.evaluation.findMany({
+      where: evalWhere,
+      select: { overallRating: true, scores: true },
+    });
+    const whispers = await prisma.whisper.findMany({
+      where: whisperWhere,
+      select: { category: true, status: true },
+    });
 
     const responseCount = evals.length;
     const averageRating =

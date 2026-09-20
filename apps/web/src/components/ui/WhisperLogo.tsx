@@ -1,38 +1,61 @@
 "use client";
-import { Icon } from "@/components/ui/Icon";
 
 import { useState } from "react";
+import { Icon } from "@/components/ui/Icon";
 import { LOGO_URL } from "@/lib/brand";
 
+interface WhisperLogoProps {
+  size?: number;
+  className?: string;
+  variant?: "raw" | "badge" | "bubble";
+}
+
 /**
- * The Whisper Lock signature mark (from the Stitch design). Falls back to a
- * clean lock glyph if the image can't load, so the page never shows ugly
- * alt-text.
+ * The signature Whisper Lock image mark from the brand assets.
  */
-export function WhisperLogo({ size = 128, className = "" }: { size?: number; className?: string }) {
+export function WhisperLogo({
+  size = 40,
+  className = "",
+  variant = "raw",
+}: WhisperLogoProps) {
   const [failed, setFailed] = useState(false);
 
   if (failed) {
     return (
       <span
-        className={`flex items-center justify-center rounded-full border border-unilag-green/30 bg-unilag-green/10 ${className}`}
+        className={`inline-flex items-center justify-center rounded-xl bg-green-tint border border-unilag-green/20 text-unilag-green ${className}`}
+        style={{ width: size, height: size }}
         aria-hidden
       >
-        <Icon name="lock" size={24} className="text-unilag-green" />
+        <Icon name="lock" size={Math.round(size * 0.55)} className="text-unilag-green" />
       </span>
     );
   }
 
-  return (
+  const img = (
     // eslint-disable-next-line @next/next/no-img-element
     <img
       src={LOGO_URL}
-      alt=""
+      alt="WhisperLag Logo"
       width={size}
       height={size}
       onError={() => setFailed(true)}
-      className={`h-auto w-auto object-contain mix-blend-multiply ${className}`}
+      className={`block object-cover ${className}`}
+      style={{ width: size, height: size }}
       loading="lazy"
     />
   );
+
+  if (variant === "badge") {
+    return (
+      <div
+        className="flex items-center justify-center rounded-2xl bg-white border border-border-subtle shadow-sm p-1.5 overflow-hidden"
+        style={{ width: size + 12, height: size + 12 }}
+      >
+        {img}
+      </div>
+    );
+  }
+
+  return img;
 }

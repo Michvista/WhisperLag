@@ -1,3 +1,4 @@
+import path from "path";
 import cors from "cors";
 import express, { type Express } from "express";
 import helmet from "helmet";
@@ -28,10 +29,13 @@ export function createApp(): Express {
   const app = express();
 
   // Security + parsing middleware
-  app.use(helmet());
+  app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
   app.use(cors({ origin: env.CORS_ORIGIN.split(",") }));
   app.use(express.json({ limit: "1mb" }));
   app.use(express.urlencoded({ extended: true }));
+
+  // Serve uploaded attachment files (images / docs uploaded with whispers)
+  app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));
 
   if (env.NODE_ENV !== "test") {
     app.use(morgan("dev"));

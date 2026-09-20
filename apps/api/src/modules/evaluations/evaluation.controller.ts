@@ -25,9 +25,11 @@ export const evaluationController = {
     res.status(HTTP_STATUS.OK).json({ success: true, data: result, error: null });
   }),
 
-  /** GET /api/v1/evaluations/summary : university-wide faculty summary. */
-  summary: asyncHandler(async (_req: Request, res: Response) => {
-    const result = await evaluationService.summary();
+  /** GET /api/v1/evaluations/summary : faculty/department or university-wide summary. */
+  summary: asyncHandler(async (req: Request, res: Response) => {
+    const faculty = req.query.faculty as string | undefined;
+    const departmentId = req.query.departmentId as string | undefined;
+    const result = await evaluationService.summary({ faculty, departmentId });
     res.status(HTTP_STATUS.OK).json({ success: true, data: result, error: null });
   }),
 };

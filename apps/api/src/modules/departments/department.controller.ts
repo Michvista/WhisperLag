@@ -12,8 +12,9 @@ export const departmentController = {
     res.status(HTTP_STATUS.CREATED).json({ success: true, data: department, error: null });
   }),
 
-  list: asyncHandler(async (_req: Request, res: Response) => {
-    const departments = await departmentService.list();
+  list: asyncHandler(async (req: Request, res: Response) => {
+    const faculty = req.query.faculty as string | undefined;
+    const departments = await departmentService.list({ faculty });
     res.status(HTTP_STATUS.OK).json({ success: true, data: departments, error: null });
   }),
 
@@ -29,5 +30,30 @@ export const departmentController = {
   snapshot: asyncHandler(async (req: Request, res: Response) => {
     const snapshot = await departmentService.snapshot(req.params.id);
     res.status(HTTP_STATUS.OK).json({ success: true, data: snapshot, error: null });
+  }),
+
+  listFaculties: asyncHandler(async (_req: Request, res: Response) => {
+    const faculties = await departmentService.listFaculties();
+    res.status(HTTP_STATUS.OK).json({ success: true, data: faculties, error: null });
+  }),
+
+  createFaculty: asyncHandler(async (req: Request, res: Response) => {
+    const result = await departmentService.createFaculty(req.body);
+    res.status(HTTP_STATUS.CREATED).json({ success: true, data: result, error: null });
+  }),
+
+  updateFaculty: asyncHandler(async (req: Request, res: Response) => {
+    const result = await departmentService.updateFaculty(req.params.name, req.body);
+    res.status(HTTP_STATUS.OK).json({ success: true, data: result, error: null });
+  }),
+
+  deleteFaculty: asyncHandler(async (req: Request, res: Response) => {
+    const result = await departmentService.deleteFaculty(req.params.name);
+    res.status(HTTP_STATUS.OK).json({ success: true, data: result, error: null });
+  }),
+
+  resetHeadPassword: asyncHandler(async (req: Request, res: Response) => {
+    const result = await departmentService.resetHeadPassword(req.body.userId);
+    res.status(HTTP_STATUS.OK).json({ success: true, data: result, error: null });
   }),
 };

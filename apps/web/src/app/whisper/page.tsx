@@ -1,60 +1,113 @@
 import Link from "next/link";
-import { WhisperForm } from "@/components/feedback/WhisperForm";
+import { WhisperWizard } from "@/components/feedback/WhisperWizard";
+import { WhisperBrand } from "@/components/ui/WhisperBrand";
+import { WhisperLogo } from "@/components/ui/WhisperLogo";
+import { Icon } from "@/components/ui/Icon";
 import { PublicPolls } from "@/components/feedback/PublicPolls";
 import { PublicRecent } from "@/components/feedback/PublicRecent";
-import { PublicRate } from "@/components/feedback/PublicRate";
-import { WhisperLock } from "@/components/ui/WhisperLock";
-import { WhisperLogo } from "@/components/ui/WhisperLogo";
 
-/**
- * The Whisper : public, no-login submission. Main form on the left, with
- * Active Polls + Recent Activity in a structured right sidebar. Stacks to a
- * single column on mobile/tablet.
- */
 export default function WhisperPage() {
   return (
-    <main className="flex min-h-screen flex-col bg-surface font-body text-onSurface">
-      <header className="border-b border-ink/10">
-        <div className="mx-auto flex w-full max-w-[1200px] items-center justify-between px-margin-mobile py-4 md:px-margin-desktop">
-          <Link href="/" className="font-display text-headline-md font-bold tracking-tighter text-primary">
-            WhisperLag
-          </Link>
-          <WhisperLock compact />
+    <div className="min-h-screen bg-background pb-24 text-navy">
+      {/* Top Header */}
+      <header className="sticky top-0 z-30 border-b border-border-subtle bg-white/95 backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
+          <WhisperBrand href="/" />
+
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link
+              href="/listwhispers"
+              className="rounded-lg border border-border-subtle bg-white px-3.5 py-1.5 text-xs font-semibold text-navy hover:bg-slate-50 transition-colors"
+            >
+              Student Whispers
+            </Link>
+            <div className="flex h-8 w-8 items-center justify-center rounded-md border border-border-subtle bg-white text-sm text-text-secondary">
+              <Icon name="notifications" size={16} />
+            </div>
+          </div>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-[1200px] flex-grow px-margin-mobile py-14 md:px-margin-desktop md:py-24">
-        <div className="grid grid-cols-1 gap-24 lg:grid-cols-[minmax(0,1fr)_380px]">
-          {/* Main: the form */}
-          <section className="flex flex-col gap-14">
-            {/* Image above the heading, then the copy */}
-            <div className="flex flex-col items-start gap-10">
-              <WhisperLogo size={132} />
-              <div className="flex flex-col gap-5">
-                <h1 className="font-display text-headline-lg-mobile font-semibold text-onSurface md:text-headline-lg">
-                  The Whisper.
-                </h1>
-                <p className="max-w-lg font-body-lg text-body-lg leading-relaxed text-onSurfaceVariant">
-                  No account. No login. Your message is anonymized before it
-                  ever reaches us : even we cannot tell who wrote it.
-                </p>
+      {/* Main Content Area */}
+      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+          {/* Left / Center: The Wizard Card (7 cols) */}
+          <div className="rounded-xl border border-border-subtle bg-white p-6 shadow-card sm:p-8 lg:col-span-7">
+            <WhisperWizard />
+          </div>
+
+          {/* Right Sidebar: Context, Trust, Polls & Activity on Desktop (5 cols) */}
+          <aside className="space-y-6 lg:col-span-5">
+            {/* Quick Trust Card */}
+            <div className="rounded-xl border border-green-tint bg-green-tint p-5 shadow-xs">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-white border border-border-subtle">
+                  <WhisperLogo size={32} />
+                </div>
+                <div>
+                  <h3 className="font-montserrat text-xs font-bold text-navy">
+                    Whisper Lock Protected
+                  </h3>
+                  <p className="text-[11px] text-text-secondary">
+                    End-to-end anonymized
+                  </p>
+                </div>
               </div>
+              <p className="mt-3 text-xs leading-relaxed text-text-secondary">
+                Your feedback is unlinked from your account or IP before storage. No faculty or staff can trace it back to you.
+              </p>
             </div>
 
-            <div className="border-b border-ink/10 pb-6">
-              <span className="font-mono-label text-mono-label text-onSurfaceVariant">ANONYMOUS SUBMISSION</span>
+            {/* Active Polls */}
+            <div className="rounded-xl border border-border-subtle bg-white p-5 shadow-card">
+              <div className="mb-3 flex items-center justify-between">
+                <div>
+                  <h3 className="font-montserrat text-xs font-bold uppercase tracking-wider text-text-soft">
+                    Campus Pulse &amp; Polls
+                  </h3>
+                  <p className="mt-0.5 text-xs text-text-secondary">
+                    Anonymous student survey questions
+                  </p>
+                </div>
+                <span className="flex h-2 w-2 rounded-full bg-primary" />
+              </div>
+              <PublicPolls />
             </div>
-            <WhisperForm />
-          </section>
 
-          {/* Right sidebar: polls + recent activity */}
-          <aside className="flex flex-col gap-20 border-t border-ink/10 pt-14 lg:border-l lg:border-t-0 lg:pl-14 lg:pt-0">
-            <PublicPolls />
-            <PublicRate />
-            <PublicRecent />
+            {/* Recent Community Whispers */}
+            <div className="rounded-xl border border-border-subtle bg-white p-5 shadow-card">
+              <PublicRecent />
+            </div>
           </aside>
         </div>
       </main>
-    </main>
+
+      {/* Mobile Floating Bottom Bar */}
+      <nav className="fixed inset-x-0 bottom-0 z-40 flex h-14 items-center justify-around border-t border-border-subtle bg-white/95 px-6 shadow-md backdrop-blur-md lg:hidden">
+        <Link
+          href="/"
+          className="flex flex-col items-center gap-1 text-[11px] font-semibold text-text-secondary hover:text-primary"
+        >
+          <Icon name="home" size={18} />
+          Home
+        </Link>
+        <Link
+          href="/whisper"
+          className="flex flex-col items-center gap-1 text-[11px] font-semibold text-primary"
+        >
+          <span className="-mt-4 flex h-9 w-9 items-center justify-center rounded-full bg-primary text-lg font-bold text-white shadow-button-green">
+            +
+          </span>
+          Give Feedback
+        </Link>
+        <Link
+          href="/listwhispers"
+          className="flex flex-col items-center gap-1 text-[11px] font-semibold text-text-secondary hover:text-primary"
+        >
+          <Icon name="chat" size={18} />
+          Whispers
+        </Link>
+      </nav>
+    </div>
   );
 }

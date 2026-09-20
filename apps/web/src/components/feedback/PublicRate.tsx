@@ -24,10 +24,6 @@ interface Department {
   name: string;
 }
 
-/**
- * Public, no-login course rating widget for the whisper page. Students pick
- * their department first, then the courses under it.
- */
 export function PublicRate() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [deptId, setDeptId] = useState("");
@@ -88,10 +84,10 @@ export function PublicRate() {
 
   if (done) {
     return (
-      <div>
-        <h2 className="mb-3 font-display text-headline-md font-semibold text-onSurface">Rate a Course</h2>
-        <p className="font-body-sm text-body-sm leading-relaxed text-primary">
-          ✓ Thanks : your rating was submitted anonymously.
+      <div className="space-y-2">
+        <h3 className="font-montserrat text-sm font-extrabold text-[#10253A]">Rate a Course</h3>
+        <p className="text-xs font-bold text-[#009A44]">
+          ✓ Thanks! Your course evaluation was submitted anonymously.
         </p>
         <button
           onClick={() => {
@@ -99,7 +95,7 @@ export function PublicRate() {
             setCourseId("");
             setScores({});
           }}
-          className="mt-3 font-label-caps text-label-caps text-primary hover:underline"
+          className="text-xs font-extrabold text-[#2C7DA0] hover:underline"
         >
           Rate another course
         </button>
@@ -109,50 +105,57 @@ export function PublicRate() {
 
   return (
     <div>
-      <h2 className="mb-2 font-display text-headline-md font-semibold text-onSurface">Rate a Course</h2>
-      <p className="mb-4 font-body-sm text-body-sm text-onSurfaceVariant">
-        Anonymous, no account needed : helps departments improve.
+      <h3 className="font-montserrat text-sm font-extrabold text-[#10253A]">
+        Rate a Course
+      </h3>
+      <p className="mt-1 text-xs text-[#60758C]">
+        Confidential rating for teaching quality and course delivery.
       </p>
 
-      <select
-        value={deptId}
-        onChange={(e) => {
-          setDeptId(e.target.value);
-          setCourseId("");
-          setScores({});
-        }}
-        className="input-minimal w-full font-body-md text-body-md text-onSurface"
-      >
-        <option value="">All departments</option>
-        {departments.map((d) => (
-          <option key={d.id} value={d.id}>{d.name}</option>
-        ))}
-      </select>
-
-      <div className="mt-4">
-        <Picker
-          placeholder="Select a course…"
-          value={courseId}
-          onChange={(v) => {
-            setCourseId(v);
+      <div className="mt-3 space-y-2.5">
+        <select
+          value={deptId}
+          onChange={(e) => {
+            setDeptId(e.target.value);
+            setCourseId("");
             setScores({});
           }}
-          options={shownCourses.map((c) => ({ value: c.id, label: `${c.code} : ${c.title} : ${c.lecturer?.name ?? ""}` }))}
-        />
+          className="wl-input text-xs"
+        >
+          <option value="">All faculties &amp; departments</option>
+          {departments.map((d) => (
+            <option key={d.id} value={d.id}>{d.name}</option>
+          ))}
+        </select>
+
+        <div>
+          <Picker
+            placeholder="Select course to rate…"
+            value={courseId}
+            onChange={(v) => {
+              setCourseId(v);
+              setScores({});
+            }}
+            options={shownCourses.map((c) => ({ value: c.id, label: `${c.code} — ${c.title} (${c.lecturer?.name ?? ""})` }))}
+          />
+        </div>
       </div>
 
       {course && (
-        <div className="mt-5 flex flex-col gap-4">
+        <div className="mt-4 space-y-3 rounded-2xl border border-[#DCE3E7] bg-[#F9FBFA] p-3.5">
           {rubric.criteria.map((c) => (
-            <div key={c.key} className="flex items-center justify-between gap-3">
-              <span className="font-body-sm text-body-sm text-onSurfaceVariant">{c.label}</span>
-              <div className="flex gap-1.5">
+            <div key={c.key} className="flex items-center justify-between gap-2">
+              <span className="text-xs font-bold text-[#10253A]">{c.label}</span>
+              <div className="flex gap-1">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <button
                     key={n}
+                    type="button"
                     onClick={() => setScores((s) => ({ ...s, [c.key]: n }))}
-                    className={`h-8 w-8 border font-mono-label text-mono-label transition-colors ${
-                      scores[c.key] === n ? "border-ink bg-ink text-white" : "border-ink/20 text-onSurfaceVariant hover:border-ink"
+                    className={`flex h-7 w-7 items-center justify-center rounded-lg text-xs font-extrabold transition-all ${
+                      scores[c.key] === n
+                        ? "bg-[#009A44] text-white shadow-xs"
+                        : "border border-[#DCE3E7] bg-white text-[#10253A] hover:border-[#009A44]"
                     }`}
                   >
                     {n}
@@ -161,10 +164,11 @@ export function PublicRate() {
               </div>
             </div>
           ))}
+
           <button
             onClick={submit}
             disabled={busy}
-            className="mt-2 border border-ink px-4 py-2 font-label-caps text-label-caps uppercase tracking-wider transition-colors hover:bg-surface-variant disabled:opacity-40"
+            className="btn-primary-green w-full py-2 text-xs font-extrabold"
           >
             {busy ? "Submitting…" : "Submit rating"}
           </button>

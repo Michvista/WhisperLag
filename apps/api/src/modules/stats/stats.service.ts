@@ -14,21 +14,38 @@ function toDayKey(d: Date): string {
  * trend series, all computed from the database so dashboards show live data.
  */
 export class StatsService {
-  async getOverview() {
+  async getOverview(filter?: { faculty?: string; departmentId?: string }) {
     const since = new Date();
     since.setDate(since.getDate() - (DAYS - 1));
     since.setHours(0, 0, 0, 0);
 
-    const [totalWhispers, totalEvaluations, totalDepartments, pending, resolved, whisperRows, evalRows] =
-      await Promise.all([
-        prisma.whisper.count(),
-        prisma.evaluation.count(),
-        prisma.department.count(),
-        prisma.whisper.count({ where: { status: "NEW" } }),
-        prisma.whisper.count({ where: { status: "ACTIONED" } }),
-        prisma.whisper.findMany({ select: { createdAt: true }, where: { createdAt: { gte: since } } }),
-        prisma.evaluation.findMany({ select: { createdAt: true, overallRating: true } }),
-      ]);
+    let deptIds: string[] | undefined = undefined;
+    if (filter?.faculty) {
+      const depts = await prisma.department.findMany({
+        where: { faculty: filter.faculty },
+        select: { id: true },
+      });
+      deptIds = depts.map((d) => d.id);
+    } else if (filter?.departmentId) {
+      deptIds = [filter.departmentId];
+    }
+
+    const whisperWhere = deptIds ? { departmentId: { in: deptIds } } : {};
+    const evalWhere = deptIds ? { departmentId: { in: deptIds } } : {};
+
+    const totalWhispers = await prisma.whisper.count({ where: whisperWhere });
+    const totalEvaluations = await prisma.evaluation.count({ where: evalWhere });
+    const totalDepartments = deptIds ? deptIds.length : await prisma.department.count();
+    const pending = await prisma.whisper.count({ where: { ...whisperWhere, status: "NEW" } });
+    const resolved = await prisma.whisper.count({ where: { ...whisperWhere, status: "ACTIONED" } });
+    const whisperRows = await prisma.whisper.findMany({
+      select: { createdAt: true },
+      where: { ...whisperWhere, createdAt: { gte: since } },
+    });
+    const evalRows = await prisma.evaluation.findMany({
+      select: { createdAt: true, overallRating: true },
+      where: evalWhere,
+    });
 
     const resolutionRate =
       totalWhispers > 0 ? Math.round((resolved / totalWhispers) * 1000) / 10 : 0;
@@ -65,16 +82,13 @@ export class StatsService {
   }
 
   /**
-   * Public aggregate counts for the landing page. These are non-sensitive
-   * totals (no identities, no content) that anyone may see.
+   * Public aggregate counts for the landing page.
    */
   async getPublic() {
-    const [totalWhispers, totalDepartments, resolved, totalEvaluations] = await Promise.all([
-      prisma.whisper.count(),
-      prisma.department.count(),
-      prisma.whisper.count({ where: { status: "ACTIONED" } }),
-      prisma.evaluation.count(),
-    ]);
+    const totalWhispers = await prisma.whisper.count();
+    const totalDepartments = await prisma.department.count();
+    const resolved = await prisma.whisper.count({ where: { status: "ACTIONED" } });
+    const totalEvaluations = await prisma.evaluation.count();
 
     const resolutionRate =
       totalWhispers > 0 ? Math.round((resolved / totalWhispers) * 1000) / 10 : 0;

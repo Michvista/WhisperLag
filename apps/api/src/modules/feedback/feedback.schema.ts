@@ -28,6 +28,8 @@ export const publicWhisperSchema = z.object({
   content: z.string().min(1).max(2000),
   unilagEmail: z.string().email().optional().or(z.literal("")),
   departmentId: z.string().optional(),
+  refNumber: z.string().optional(),
+  attachmentUrl: z.string().optional(),
 });
 
 export type PublicWhisperInput = z.infer<typeof publicWhisperSchema>;

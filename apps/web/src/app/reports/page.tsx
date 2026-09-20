@@ -1,5 +1,4 @@
 "use client";
-import { Icon } from "@/components/ui/Icon";
 
 import { useEffect, useState } from "react";
 import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
@@ -11,6 +10,7 @@ import { api, getToken } from "@/lib/api";
 import { downloadCsv } from "@/lib/download";
 import { toast } from "@/lib/toast";
 import { useAuth } from "@/lib/useAuth";
+import { Icon } from "@/components/ui/Icon";
 
 interface Overview {
   totalWhispers: number;
@@ -40,17 +40,11 @@ const TYPE_LABELS: Record<string, string> = {
   TREND: "Trend Report",
 };
 
-const TYPE_HINTS: Record<string, string> = {
-  ACCREDITATION: "University-wide totals for external review (NUC-style).",
-  DEPARTMENT_SNAPSHOT: "A single department's whispers and evaluations.",
-  TREND: "Activity over time : spots spikes in complaints or ratings.",
-};
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
-/** Reports & accreditation : editorial 40/60 presentation of live data. */
 export default function ReportsPage() {
   const { role } = useAuth();
   const isAdmin = role === "ADMIN";
@@ -63,6 +57,23 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
 
+  async function loadData() {
+    setLoading(true);
+    setError(null);
+    try {
+      const rep = await api<Report[]>("/reports", { token: getToken(), cache: "no-store" });
+      const ov = await api<Overview>("/stats/overview", { token: getToken(), cache: "no-store" });
+      const deps = await api<Department[]>("/departments", { token: getToken(), cache: "no-store" });
+      setReports(rep);
+      setOverview(ov);
+      setDepartments(deps);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load reports");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function generate() {
     setGenerating(true);
     try {
@@ -73,20 +84,7 @@ export default function ReportsPage() {
         token: getToken(),
       });
       toast("Report generated.");
-      setLoading(true);
-      setError(null);
-      try {
-        const [rep, ov, deps] = await Promise.all([
-          api<Report[]>("/reports", { token: getToken(), cache: "no-store" }),
-          api<Overview>("/stats/overview", { token: getToken(), cache: "no-store" }),
-          api<Department[]>("/departments", { token: getToken(), cache: "no-store" }),
-        ]);
-        setReports(rep);
-        setOverview(ov);
-        setDepartments(deps);
-      } finally {
-        setLoading(false);
-      }
+      await loadData();
     } catch (e) {
       toast(e instanceof Error ? e.message : "Generation failed", "error");
     } finally {
@@ -95,26 +93,8 @@ export default function ReportsPage() {
   }
 
   useEffect(() => {
-    (async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const [rep, ov, deps] = await Promise.all([
-          api<Report[]>("/reports", { token: getToken(), cache: "no-store" }),
-          api<Overview>("/stats/overview", { token: getToken(), cache: "no-store" }),
-          api<Department[]>("/departments", { token: getToken(), cache: "no-store" }),
-        ]);
-        setReports(rep);
-        setOverview(ov);
-        setDepartments(deps);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to load reports");
-      } finally {
-        setLoading(false);
-      }
-    })();
+    void loadData();
   }, []);
-
 
   const filtered = (reports ?? []).filter(
     (r) =>
@@ -126,191 +106,198 @@ export default function ReportsPage() {
   return (
     <RoleGate minRole={ROLES.FACULTY}>
       <AppShell>
-      <div className="mb-10">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h1 className="font-display text-headline-lg font-bold text-onSurface">
-              Institutional Reports
-            </h1>
-            <p className="mt-1 font-body-md text-body-md text-onSurfaceVariant">
-              Verified whisper &amp; evaluation summaries for accreditation review. All anonymous.
-            </p>
-          </div>
-          {isAdmin && (
-            <button
-              onClick={generate}
-              disabled={generating}
-              className="flex items-center gap-2 bg-ink px-5 py-3 font-label-caps text-label-caps uppercase tracking-widest text-white transition-colors duration-300 hover:bg-primary disabled:opacity-60"
-            >
-              <Icon name="add" size={20} />
-              {generating ? "Generating…" : "New Report"}
-            </button>
-          )}
-        </div>
-        <p className="mt-4 max-w-2xl font-body-sm text-body-sm leading-relaxed text-onSurfaceVariant">
-          <span className="font-medium text-onSurface">Verified Reports</span> = report
-          files created · <span className="font-medium text-onSurface">Pending Interventions</span>{" "}
-          = whispers still waiting for action ·{" "}
-          <span className="font-medium text-onSurface">Compliance Rate</span> = share of
-          whispers resolved. Everything is pulled live from the database.{" "}
-          <span className="font-medium text-onSurface">New Report</span> captures a snapshot
-          of the current totals: if the numbers haven&apos;t changed, a new report looks the
-          same. Add fresh whispers or evaluations, then regenerate.
-        </p>
-      </div>
-
-      {/* Filters */}
-      <div className="rule-b mb-16 flex flex-col items-end gap-8 border-t border-ink/10 pt-8 md:flex-row">
-        <div className="w-full md:w-1/4">
-          <label className="mb-2 block font-label-caps text-label-caps text-onSurfaceVariant">Department</label>
-          <select
-            value={deptFilter}
-            onChange={(e) => setDeptFilter(e.target.value)}
-            className="input-minimal w-full font-body-md text-onSurface"
-          >
-            <option>All</option>
-            {departments.map((d) => (
-              <option key={d.id}>{d.name}</option>
-            ))}
-          </select>
-        </div>
-        <div className="w-full md:w-1/4">
-          <label className="mb-2 block font-label-caps text-label-caps text-onSurfaceVariant">Report Type</label>
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="input-minimal w-full font-body-md text-onSurface"
-          >
-            <option>All</option>
-            {Object.values(TYPE_LABELS).map((label) => (
-              <option key={label}>{label}</option>
-            ))}
-          </select>
-        </div>
-        <div className="ml-auto flex w-full justify-end md:w-1/4">
-          <button
-            onClick={() => {
-              setTypeFilter("All");
-              setDeptFilter("All");
-            }}
-            className="flex w-full items-center justify-center gap-2 border border-ink px-6 py-3 font-label-caps text-label-caps uppercase tracking-wider text-onSurface transition-colors hover:bg-surface-variant md:w-auto"
-          >
-            <Icon name="filter_alt_off" size={24} className="text-sm" /> Reset Filters
-          </button>
-        </div>
-      </div>
-
-      {loading ? (
-        <LoadingBlock label="Loading reports…" />
-      ) : error ? (
-        <ErrorBlock message={error} onRetry={() => window.location.reload()} />
-      ) : (
-        <div className="grid grid-cols-1 gap-gutter lg:grid-cols-12">
-          {/* Left: key indicators (40%) */}
-          <div className="flex flex-col gap-12 lg:col-span-5">
+        <div className="py-6 px-4 md:px-8 max-w-6xl mx-auto space-y-8">
+          {/* Header */}
+          <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border-subtle pb-6">
             <div>
-              <h2 className="mb-6 font-display text-headline-md font-semibold text-onSurface">
-                Key Accreditation Indicators
-              </h2>
-              <div className="flex flex-col border-t border-ink/10">
-                <div className="rule-b flex items-center justify-between py-6">
-                  <span className="font-body-md text-body-md text-onSurfaceVariant">Verified Reports (YTD)</span>
-                  <span className="font-display text-headline-lg font-semibold text-onSurface">{reports?.length ?? 0}</span>
-                </div>
-                <div className="rule-b flex items-center justify-between py-6">
-                  <span className="font-body-md text-body-md text-onSurfaceVariant">Pending Interventions</span>
-                  <span className="font-display text-headline-lg font-semibold text-onSurface">
-                    {overview?.pendingInterventions ?? 0}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between py-6">
-                  <span className="font-body-md text-body-md text-onSurfaceVariant">Compliance Rate</span>
-                  <span className="font-display text-headline-lg font-semibold text-primary">
-                    {overview?.resolutionRate ?? 0}%
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div>
-              <h2 className="mb-6 font-display text-headline-md font-semibold text-onSurface">
-                Reports by Type
-              </h2>
-              <div className="h-48 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={Object.entries(
-                      (reports ?? []).reduce<Record<string, number>>((acc, r) => {
-                        const label = TYPE_LABELS[r.type] ?? r.type;
-                        acc[label] = (acc[label] ?? 0) + 1;
-                        return acc;
-                      }, {}),
-                    ).map(([name, count]) => ({ name, count }))}
-                    margin={{ top: 4, right: 4, bottom: 0, left: -28 }}
-                  >
-                    <CartesianGrid stroke="rgba(17,24,39,0.06)" vertical={false} />
-                    <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#565B4A" }} tickLine={false} axisLine={false} interval={0} />
-                    <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: "#565B4A" }} tickLine={false} axisLine={false} />
-                    <Tooltip contentStyle={{ borderRadius: 0, borderColor: "#e5e7eb", fontSize: 12 }} cursor={{ fill: "rgba(75,141,109,0.06)" }} />
-                    <Bar dataKey="count" fill="#4B8D6D" radius={[2, 2, 0, 0]} maxBarSize={48} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-            <div className="whisper-lock-glow bg-surface-container-low p-8">
-              <div className="mb-4 flex items-center gap-2 text-primary">
-                <Icon name="verified_user" size={24} />
-                <h3 className="font-label-caps text-label-caps">Data Integrity Confirmed</h3>
-              </div>
-              <p className="font-body-md text-body-md text-onSurfaceVariant">
-                This dataset is generated live from anonymized submissions and
-                is certified suitable for external accreditation review.
+              <span className="text-xs font-bold uppercase tracking-wider text-primary">
+                Quality Assurance &amp; Compliance
+              </span>
+              <h1 className="mt-1 font-montserrat text-2xl font-bold tracking-tight text-navy sm:text-3xl">
+                Institutional Reports
+              </h1>
+              <p className="mt-1 text-xs text-text-secondary">
+                Verified whisper &amp; evaluation summaries for accreditation review. All anonymous.
               </p>
             </div>
+
+            {isAdmin && (
+              <button
+                onClick={generate}
+                disabled={generating}
+                className="btn-primary-green px-4 py-2 text-xs font-semibold disabled:opacity-60"
+              >
+                <Icon name="add" size={16} />
+                {generating ? "Generating…" : "Generate New Report"}
+              </button>
+            )}
           </div>
 
-          {/* Right: datasets (60%) */}
-          <div className="lg:col-span-7">
-            <div className="rule-b mb-6 flex items-end justify-between pb-4">
-              <h2 className="font-display text-headline-md font-semibold text-onSurface">Available Datasets</h2>
-            </div>
-            <div className="flex flex-col">
-              {filtered.length === 0 && (
-                <p className="py-8 font-body-md text-body-md text-onSurfaceVariant">
-                  No reports match these filters yet.
-                </p>
-              )}
-              {filtered.map((report, i) => (
-                <div key={report.id} className="rule-b group flex flex-col items-start gap-4 py-8 sm:flex-row sm:items-center sm:gap-8">
-                  <span className="w-12 font-display text-headline-lg font-light text-onSurfaceVariant/30">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <div className="flex-grow">
-                    <h3 className="mb-1 font-display text-headline-md font-semibold text-onSurface">{report.title}</h3>
-                    <p className="font-body-md text-sm text-onSurfaceVariant">
-                      {TYPE_LABELS[report.type] ?? report.type} · {formatDate(report.createdAt)} ·{" "}
-                      {typeof report.content?.scope === "string" ? report.content.scope : "University-wide"}
-                      <span className="block opacity-70">{TYPE_HINTS[report.type] ?? ""}</span>
-                    </p>
-                  </div>
-                  <div className="flex gap-4">
-                    <button
-                      onClick={() => {
-                        downloadCsv(report.id, report.title)
-                          .then(() => toast("Report exported as CSV."))
-                          .catch(() => toast("Export failed", "error"));
-                      }}
-                      title="Download CSV"
-                      className="text-onSurfaceVariant transition-colors hover:text-primary"
-                    >
-                      <Icon name="table_view" size={24} />
-                    </button>
-                  </div>
-                </div>
-              ))}
+          {/* Filter Bar with generous spacing */}
+          <div className="rounded-xl border border-border-subtle bg-white p-4 shadow-card">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-12 sm:items-end">
+              <div className="sm:col-span-5 space-y-1">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-text-soft">
+                  Department
+                </label>
+                <select
+                  value={deptFilter}
+                  onChange={(e) => setDeptFilter(e.target.value)}
+                  className="wl-input text-xs cursor-pointer"
+                >
+                  <option>All</option>
+                  {departments.map((d) => (
+                    <option key={d.id}>{d.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="sm:col-span-5 space-y-1">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-text-soft">
+                  Report Type
+                </label>
+                <select
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value)}
+                  className="wl-input text-xs cursor-pointer"
+                >
+                  <option>All</option>
+                  {Object.values(TYPE_LABELS).map((label) => (
+                    <option key={label}>{label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="sm:col-span-2">
+                <button
+                  onClick={() => {
+                    setTypeFilter("All");
+                    setDeptFilter("All");
+                  }}
+                  className="w-full rounded-lg border border-border-subtle bg-white py-2 px-3 text-xs font-semibold text-text-secondary hover:bg-slate-50 hover:text-navy"
+                >
+                  Reset Filters
+                </button>
+              </div>
             </div>
           </div>
+
+          {loading ? (
+            <LoadingBlock label="Loading reports…" />
+          ) : error ? (
+            <ErrorBlock message={error} onRetry={loadData} />
+          ) : (
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+              {/* Left: key indicators (5 cols) */}
+              <div className="space-y-6 lg:col-span-5">
+                <div className="rounded-xl border border-border-subtle bg-white p-5 shadow-card space-y-4">
+                  <h2 className="font-montserrat text-xs font-bold uppercase tracking-wider text-text-soft">
+                    Key Accreditation Indicators
+                  </h2>
+
+                  <div className="divide-y divide-border-subtle">
+                    <div className="flex items-center justify-between py-2.5">
+                      <span className="text-xs text-text-secondary">Verified Reports</span>
+                      <span className="font-montserrat text-sm font-bold text-navy">
+                        {reports?.length ?? 0}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between py-2.5">
+                      <span className="text-xs text-text-secondary">Pending Interventions</span>
+                      <span className="font-montserrat text-sm font-bold text-amber-800">
+                        {overview?.pendingInterventions ?? 0}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between py-2.5">
+                      <span className="text-xs text-text-secondary">Resolution / Compliance Rate</span>
+                      <span className="font-montserrat text-sm font-bold text-primary">
+                        {overview?.resolutionRate ?? 0}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-border-subtle bg-white p-5 shadow-card">
+                  <h2 className="mb-3 font-montserrat text-xs font-bold uppercase tracking-wider text-text-soft">
+                    Reports by Type
+                  </h2>
+                  <div className="h-44 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={Object.entries(
+                          (reports ?? []).reduce<Record<string, number>>((acc, r) => {
+                            const label = TYPE_LABELS[r.type] ?? r.type;
+                            acc[label] = (acc[label] ?? 0) + 1;
+                            return acc;
+                          }, {}),
+                        ).map(([name, count]) => ({ name, count }))}
+                        margin={{ top: 8, right: 8, bottom: 0, left: -24 }}
+                      >
+                        <CartesianGrid stroke="#f1f5f9" vertical={false} />
+                        <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#64748b" }} tickLine={false} axisLine={false} />
+                        <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: "#64748b" }} tickLine={false} axisLine={false} />
+                        <Tooltip contentStyle={{ borderRadius: 8, borderColor: "#e2e8f0", fontSize: 12 }} />
+                        <Bar dataKey="count" fill="#166534" radius={[4, 4, 0, 0]} maxBarSize={36} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: Datasets (7 cols) */}
+              <div className="rounded-xl border border-border-subtle bg-white p-5 shadow-card lg:col-span-7 space-y-4">
+                <div className="border-b border-border-subtle pb-3">
+                  <h2 className="font-montserrat text-xs font-bold uppercase tracking-wider text-text-soft">
+                    Available Datasets ({filtered.length})
+                  </h2>
+                </div>
+
+                <div className="divide-y divide-border-subtle">
+                  {filtered.length === 0 && (
+                    <p className="py-6 text-center text-xs text-text-secondary">
+                      No reports match these filters yet.
+                    </p>
+                  )}
+
+                  {filtered.map((report, i) => (
+                    <div key={report.id} className="flex items-start justify-between gap-4 py-3.5">
+                      <div className="flex items-start gap-3">
+                        <span className="font-mono text-xs font-bold text-slate-400 w-6 mt-0.5">
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                        <div>
+                          <span className="rounded bg-green-tint px-2 py-0.5 text-[10px] font-bold text-primary uppercase">
+                            {TYPE_LABELS[report.type] ?? report.type}
+                          </span>
+                          <h3 className="mt-1 text-xs font-bold text-navy">
+                            {report.title}
+                          </h3>
+                          <p className="text-[11px] text-text-secondary">
+                            {typeof report.content?.scope === "string" ? report.content.scope : "University-wide"} · {formatDate(report.createdAt)}
+                          </p>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          downloadCsv(report.id, report.title)
+                            .then(() => toast("Report exported as CSV."))
+                            .catch(() => toast("Export failed", "error"));
+                        }}
+                        title="Download CSV"
+                        className="rounded-md border border-border-subtle bg-white p-2 text-text-secondary hover:bg-slate-50 hover:text-primary transition-colors shrink-0"
+                      >
+                        <Icon name="download" size={16} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      )}
       </AppShell>
     </RoleGate>
   );

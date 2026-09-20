@@ -65,7 +65,14 @@ export class AuthService {
 
   /** Returns the currently authenticated principal's full profile. */
   async me(principal: AuthPrincipal) {
-    const user = await prisma.user.findUnique({ where: { id: principal.id } });
+    const user = await prisma.user.findUnique({
+      where: { id: principal.id },
+      include: {
+        department: {
+          select: { id: true, name: true, faculty: true },
+        },
+      },
+    });
     if (!user) {
       throw ApiError.notFound("User");
     }
@@ -75,6 +82,7 @@ export class AuthService {
       name: user.name,
       role: user.role,
       departmentId: user.departmentId,
+      department: user.department,
     };
   }
 }

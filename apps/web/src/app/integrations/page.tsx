@@ -1,5 +1,4 @@
 "use client";
-import { Icon } from "@/components/ui/Icon";
 
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
@@ -8,6 +7,7 @@ import { RoleGate } from "@/components/ui/RoleGate";
 import { ROLES } from "@whisperlag/shared";
 import { api, getToken } from "@/lib/api";
 import { toast } from "@/lib/toast";
+import { Icon } from "@/components/ui/Icon";
 
 interface SisStatus {
   configured: boolean;
@@ -60,10 +60,9 @@ const EXAMPLE_PAYLOAD = JSON.stringify(
 );
 
 function emptyRow(): Row {
-  return { key: Date.now(), code: "", title: "", department: "", lecturer: "", semester: "", credits: "", syllabus: "" };
+  return { key: Date.now() + Math.random(), code: "", title: "", department: "", lecturer: "", semester: "", credits: "", syllabus: "" };
 }
 
-/** SIS / LMS integration console (admin) : friendly form importer. */
 export default function IntegrationsPage() {
   const [status, setStatus] = useState<SisStatus | null>(null);
   const [courses, setCourses] = useState<SyncedCourse[] | null>(null);
@@ -117,7 +116,7 @@ export default function IntegrationsPage() {
         lecturer: r.lecturer || undefined,
         semester: r.semester || undefined,
         credits: r.credits ? Number(r.credits) : undefined,
-        syllabus: r.syllabus.split(",").map((s) => s.trim()).filter(Boolean),
+        syllabus: r.syllabus ? r.syllabus.split(",").map((s) => s.trim()).filter(Boolean) : [],
       })),
     });
   }
@@ -141,7 +140,7 @@ export default function IntegrationsPage() {
         body: JSON.stringify(body),
         token: getToken(),
       });
-      setResult(`Imported ${res.imported} course${res.imported === 1 ? "" : "s"} : ${res.created} created, ${res.updated} updated.`);
+      setResult(`Imported ${res.imported} course${res.imported === 1 ? "" : "s"}: ${res.created} created, ${res.updated} updated.`);
       toast(`Import complete: ${res.created} created, ${res.updated} updated.`);
       await loadStatus();
     } catch (e) {
@@ -155,221 +154,288 @@ export default function IntegrationsPage() {
   return (
     <RoleGate minRole={ROLES.ADMIN}>
       <AppShell>
-        <header className="rule-b mb-12 pb-8">
-          <h1 className="mb-2 font-display text-headline-lg font-semibold text-onSurface">SIS / LMS Integration</h1>
-          <p className="max-w-2xl font-body-md text-body-md text-onSurfaceVariant">
-            <span className="font-medium text-onSurface">SIS (Student Information System)</span>{" "}
-            is the university&apos;s official record of students, courses and
-            departments.{" "}
-            <span className="font-medium text-onSurface">LMS (Learning Management System)</span>{" "}
-            is where courses are taught online. WhisperLag reads these records
-            so evaluations, reports and department routing all use the official
-            course list : nothing is typed in by hand. Add courses in the form
-            below, paste a bigger export, or connect a live feed.
-          </p>
-        </header>
+        <div className="py-6 px-4 md:px-8 max-w-6xl mx-auto space-y-8">
+          {/* Header */}
+          <div className="border-b border-border-subtle pb-6">
+            <span className="text-xs font-bold uppercase tracking-wider text-primary">
+              University Systems Sync
+            </span>
+            <h1 className="mt-1 font-montserrat text-2xl font-bold tracking-tight text-navy sm:text-3xl">
+              SIS / LMS Integration
+            </h1>
+            <p className="mt-2 max-w-3xl text-xs sm:text-sm leading-relaxed text-text-secondary">
+              <strong className="font-semibold text-navy">SIS (Student Information System)</strong> is the university&apos;s official record of students, courses and departments. <strong className="font-semibold text-navy">LMS (Learning Management System)</strong> is where course materials and assessments live. WhisperLag connects with these records so evaluations and routing use official data without manual entry.
+            </p>
+          </div>
 
-        {loading ? (
-          <LoadingBlock label="Checking connector…" />
-        ) : (
-          status && (
-            <div className="grid grid-cols-1 gap-16 lg:grid-cols-[40%_60%]">
-              {/* Left: status + synced */}
-              <div>
-                <h2 className="rule-b mb-6 font-label-caps text-label-caps uppercase tracking-widest text-onSurface">
-                  Connection Status
-                </h2>
-                <div className="flex flex-col border-t border-ink/10">
-                  <div className="rule-b flex items-center justify-between py-5">
-                    <span className="font-body-md text-body-md text-onSurfaceVariant">How courses are added</span>
-                    <span
-                      className={`px-2 py-1 font-label-caps text-[10px] uppercase tracking-wider ${
-                        status.configured ? "bg-primary/10 text-primary" : "bg-tertiary-fixed-dim/20 text-tertiary-container"
-                      }`}
-                    >
-                      {status.configured ? "Automatic feed" : "Typed or pasted"}
-                    </span>
-                  </div>
-                  <div className="rule-b flex items-center justify-between py-5">
-                    <span className="font-body-md text-body-md text-onSurfaceVariant">Source</span>
-                    <span className="font-mono-label text-mono-label text-onSurface">{status.endpoint ?? "manual import"}</span>
-                  </div>
-                  <div className="rule-b flex items-center justify-between py-5">
-                    <span className="font-body-md text-body-md text-onSurfaceVariant">Courses synced</span>
-                    <span className="font-display text-headline-md font-semibold text-onSurface">{status.courses}</span>
-                  </div>
-                  <div className="flex items-center justify-between py-5">
-                    <span className="font-body-md text-body-md text-onSurfaceVariant">Departments</span>
-                    <span className="font-display text-headline-md font-semibold text-onSurface">{status.departments}</span>
-                  </div>
-                </div>
+          {loading ? (
+            <LoadingBlock label="Checking connector…" />
+          ) : (
+            status && (
+              <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+                {/* Left: Status & Synced Courses (5 cols) */}
+                <div className="space-y-6 lg:col-span-5">
+                  {/* Connection Status Card */}
+                  <div className="rounded-xl border border-border-subtle bg-white p-5 shadow-card space-y-4">
+                    <h2 className="font-montserrat text-xs font-bold uppercase tracking-wider text-text-soft">
+                      Connection Status
+                    </h2>
 
-                <h2 className="rule-b mt-10 mb-4 font-label-caps text-label-caps uppercase tracking-widest text-onSurface">
-                  Synced Courses
-                </h2>
-                <div className="no-scrollbar max-h-72 overflow-y-auto border-t border-ink/10">
-                  {(courses ?? []).map((c, i) => (
-                    <div key={c.id} className="rule-b flex items-center gap-4 py-3">
-                      <span className="font-mono-label text-lg font-light text-onSurfaceVariant/40">
-                        {String(i + 1).padStart(2, "0")}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate font-body-md text-body-md text-onSurface">{c.title}</p>
-                        <p className="font-label-caps text-label-caps text-onSurfaceVariant">
-                          {c.code} · {c.department?.name ?? ":"} · {c.lecturer?.name ?? "Unassigned"}
-                        </p>
+                    <div className="divide-y divide-border-subtle">
+                      <div className="flex items-center justify-between py-2.5">
+                        <span className="text-xs text-text-secondary">Sync Method</span>
+                        <span className="rounded-md bg-green-tint px-2 py-0.5 text-xs font-bold text-primary">
+                          {status.configured ? "Automatic feed" : "Manual / Form Import"}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between py-2.5">
+                        <span className="text-xs text-text-secondary">Source Feed</span>
+                        <span className="font-mono text-xs font-semibold text-navy">
+                          {status.endpoint ?? "manual import"}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between py-2.5">
+                        <span className="text-xs text-text-secondary">Courses Synced</span>
+                        <span className="font-montserrat text-sm font-bold text-navy">
+                          {status.courses}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between py-2.5">
+                        <span className="text-xs text-text-secondary">Departments</span>
+                        <span className="font-montserrat text-sm font-bold text-navy">
+                          {status.departments}
+                        </span>
                       </div>
                     </div>
-                  ))}
-                  {courses !== null && courses.length === 0 && (
-                    <p className="py-4 font-body-sm text-body-sm text-onSurfaceVariant">
-                      No courses synced yet : add one on the right.
-                    </p>
-                  )}
-                </div>
-              </div>
+                  </div>
 
-              {/* Right: importer */}
-              <div>
-                <div className="mb-6 flex items-center justify-between">
-                  <h2 className="font-label-caps text-label-caps uppercase tracking-widest text-onSurface">
-                    Add Courses
-                  </h2>
-                  <button
-                    type="button"
-                    onClick={() => setShowJson((s) => !s)}
-                    className="font-label-caps text-label-caps text-primary hover:underline"
-                  >
-                    {showJson ? "Use the form" : "Paste JSON instead"}
-                  </button>
+                  {/* Synced Courses Card */}
+                  <div className="rounded-xl border border-border-subtle bg-white p-5 shadow-card">
+                    <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+                      <h2 className="font-montserrat text-xs font-bold uppercase tracking-wider text-text-soft">
+                        Synced Courses ({courses?.length ?? 0})
+                      </h2>
+                    </div>
+
+                    <div className="no-scrollbar mt-3 max-h-80 overflow-y-auto divide-y divide-border-subtle">
+                      {(courses ?? []).map((c, i) => (
+                        <div key={c.id} className="flex items-start gap-3 py-2.5">
+                          <span className="font-mono text-xs font-bold text-slate-400 w-6">
+                            {String(i + 1).padStart(2, "0")}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-xs font-bold text-navy">{c.title}</p>
+                            <p className="text-[11px] text-text-secondary">
+                              <span className="font-semibold text-primary">{c.code}</span> · {c.department?.name ?? "Department"} · {c.lecturer?.name ?? "Unassigned"}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                      {courses !== null && courses.length === 0 && (
+                        <p className="py-4 text-center text-xs text-text-secondary">
+                          No courses synced yet. Add courses using the import form.
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
-                {showJson ? (
-                  <div>
-                    <label className="mb-2 block font-body-sm text-body-sm text-onSurfaceVariant">
-                      Paste a bulk SIS/LMS export (JSON).
-                    </label>
-                    <textarea
-                      value={payload}
-                      onChange={(e) => setPayload(e.target.value)}
-                      spellCheck={false}
-                      className="input-minimal min-h-[220px] w-full resize-none font-mono-label text-mono-label leading-relaxed text-onSurface"
-                    />
-                    <div className="mt-6">
+                {/* Right: Importer Form / JSON (7 cols) */}
+                <div className="rounded-xl border border-border-subtle bg-white p-5 sm:p-6 shadow-card space-y-6 lg:col-span-7">
+                  <div className="flex items-center justify-between border-b border-border-subtle pb-4">
+                    <div>
+                      <h2 className="font-montserrat text-base font-bold text-navy">
+                        Add &amp; Sync Courses
+                      </h2>
+                      <p className="text-xs text-text-secondary">
+                        Insert new course units into the active institutional catalog.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowJson((s) => !s)}
+                      className="rounded-md border border-border-subtle bg-white px-3 py-1.5 text-xs font-semibold text-secondary hover:bg-slate-50"
+                    >
+                      {showJson ? "Use Form" : "Paste JSON"}
+                    </button>
+                  </div>
+
+                  {showJson ? (
+                    <div className="space-y-4">
+                      <label className="block text-xs font-semibold text-text-secondary">
+                        Paste a bulk SIS / LMS JSON export:
+                      </label>
+                      <textarea
+                        value={payload}
+                        onChange={(e) => setPayload(e.target.value)}
+                        spellCheck={false}
+                        rows={10}
+                        className="wl-input font-mono text-xs leading-relaxed"
+                      />
                       <button
                         onClick={runJsonImport}
                         disabled={importing}
-                        className="bg-ink px-8 py-4 font-label-caps text-label-caps uppercase tracking-widest text-white transition-colors duration-300 hover:bg-primary disabled:opacity-60"
+                        className="btn-primary-green w-full sm:w-auto py-2.5 px-6 text-xs font-semibold disabled:opacity-50"
                       >
-                        {importing ? "Importing…" : "Import Courses"}
+                        {importing ? "Importing…" : "Import Courses from JSON"}
                       </button>
                     </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-6">
-                    <div className="rule-b flex flex-wrap items-end gap-3 pb-2 font-label-caps text-label-caps uppercase tracking-wider text-onSurfaceVariant">
-                      <span className="w-28">Code *</span>
-                      <span className="w-56">Title *</span>
-                      <span className="w-44">Department</span>
-                      <span className="w-40">Lecturer</span>
-                      <span className="w-36">Semester</span>
-                      <span className="w-16">Credits</span>
-                    </div>
-
-                    {rows.map((row) => (
-                      <div key={row.key} className="flex flex-wrap items-center gap-3">
-                        <input
-                          value={row.code}
-                          onChange={(e) => updateRow(row.key, { code: e.target.value })}
-                          placeholder="CSC301"
-                          className="input-minimal w-28 font-body-sm text-body-sm"
-                        />
-                        <input
-                          value={row.title}
-                          onChange={(e) => updateRow(row.key, { title: e.target.value })}
-                          placeholder="Operating Systems"
-                          className="input-minimal w-56 font-body-sm text-body-sm"
-                        />
-                        <select
-                          value={row.department}
-                          onChange={(e) => updateRow(row.key, { department: e.target.value })}
-                          className="input-minimal w-44 font-body-sm text-body-sm"
+                  ) : (
+                    <div className="space-y-4">
+                      {rows.map((row, idx) => (
+                        <div
+                          key={row.key}
+                          className="rounded-lg border border-border-subtle bg-slate-50/60 p-4 space-y-3"
                         >
-                          <option value="">Select…</option>
-                          {departments.map((d) => (
-                            <option key={d.id} value={d.name}>{d.name}</option>
-                          ))}
-                        </select>
-                        <input
-                          value={row.lecturer}
-                          onChange={(e) => updateRow(row.key, { lecturer: e.target.value })}
-                          placeholder="Dr. Ada Obi"
-                          className="input-minimal w-40 font-body-sm text-body-sm"
-                        />
-                        <input
-                          value={row.semester}
-                          onChange={(e) => updateRow(row.key, { semester: e.target.value })}
-                          placeholder="2025/2026 · Second"
-                          className="input-minimal w-36 font-body-sm text-body-sm"
-                        />
-                        <input
-                          value={row.credits}
-                          onChange={(e) => updateRow(row.key, { credits: e.target.value })}
-                          placeholder="4"
-                          type="number"
-                          min={1}
-                          className="input-minimal w-16 font-body-sm text-body-sm"
-                        />
+                          <div className="flex items-center justify-between">
+                            <span className="font-mono text-xs font-bold text-slate-500">
+                              Course #{idx + 1}
+                            </span>
+                            {rows.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => setRows((r) => r.filter((x) => x.key !== row.key))}
+                                className="text-xs text-error hover:underline"
+                              >
+                                Remove
+                              </button>
+                            )}
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-[11px] font-bold text-text-secondary mb-1">
+                                Course Code *
+                              </label>
+                              <input
+                                value={row.code}
+                                onChange={(e) => updateRow(row.key, { code: e.target.value })}
+                                placeholder="e.g. CSC301"
+                                className="wl-input text-xs"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[11px] font-bold text-text-secondary mb-1">
+                                Course Title *
+                              </label>
+                              <input
+                                value={row.title}
+                                onChange={(e) => updateRow(row.key, { title: e.target.value })}
+                                placeholder="e.g. Operating Systems"
+                                className="wl-input text-xs"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[11px] font-bold text-text-secondary mb-1">
+                                Department
+                              </label>
+                              <select
+                                value={row.department}
+                                onChange={(e) => updateRow(row.key, { department: e.target.value })}
+                                className="wl-input text-xs cursor-pointer"
+                              >
+                                <option value="">Select Department…</option>
+                                {departments.map((d) => (
+                                  <option key={d.id} value={d.name}>{d.name}</option>
+                                ))}
+                              </select>
+                            </div>
+
+                            <div>
+                              <label className="block text-[11px] font-bold text-text-secondary mb-1">
+                                Lecturer Name
+                              </label>
+                              <input
+                                value={row.lecturer}
+                                onChange={(e) => updateRow(row.key, { lecturer: e.target.value })}
+                                placeholder="e.g. Prof. Grace Adeyemi"
+                                className="wl-input text-xs"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[11px] font-bold text-text-secondary mb-1">
+                                Semester
+                              </label>
+                              <input
+                                value={row.semester}
+                                onChange={(e) => updateRow(row.key, { semester: e.target.value })}
+                                placeholder="e.g. 2025/2026 · First"
+                                className="wl-input text-xs"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[11px] font-bold text-text-secondary mb-1">
+                                Units / Credits
+                              </label>
+                              <input
+                                value={row.credits}
+                                onChange={(e) => updateRow(row.key, { credits: e.target.value })}
+                                placeholder="3"
+                                type="number"
+                                min={1}
+                                className="wl-input text-xs"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-bold text-text-secondary mb-1">
+                              Syllabus Topics (Optional, comma-separated)
+                            </label>
+                            <input
+                              value={row.syllabus}
+                              onChange={(e) => updateRow(row.key, { syllabus: e.target.value })}
+                              placeholder="e.g. Memory Management, File Systems, Virtualization"
+                              className="wl-input text-xs"
+                            />
+                          </div>
+                        </div>
+                      ))}
+
+                      <div className="flex flex-wrap items-center gap-3 pt-2">
                         <button
                           type="button"
-                          onClick={() => setRows((r) => r.filter((x) => x.key !== row.key))}
-                          className="text-onSurfaceVariant transition-colors hover:text-error"
-                          aria-label="Remove row"
+                          onClick={() => setRows((r) => [...r, emptyRow()])}
+                          className="flex items-center gap-1.5 rounded-lg border border-border-subtle bg-white px-3.5 py-2 text-xs font-semibold text-navy hover:bg-slate-50"
                         >
-                          <Icon name="close" size={20} />
+                          <Icon name="add" size={15} /> Add Another Course
                         </button>
-                        <div className="basis-full">
-                          <input
-                            value={row.syllabus}
-                            onChange={(e) => updateRow(row.key, { syllabus: e.target.value })}
-                            placeholder="Syllabus topics, comma separated (optional)"
-                            className="input-minimal w-full font-body-sm text-body-sm text-onSurfaceVariant"
-                          />
-                        </div>
+
+                        <button
+                          onClick={runFormImport}
+                          disabled={importing}
+                          className="btn-primary-green px-5 py-2 text-xs font-semibold disabled:opacity-50"
+                        >
+                          {importing ? "Importing…" : "Save & Sync Courses"}
+                        </button>
                       </div>
-                    ))}
 
-                    <div className="flex items-center gap-4">
-                      <button
-                        type="button"
-                        onClick={() => setRows((r) => [...r, emptyRow()])}
-                        className="flex items-center gap-2 border border-ink px-4 py-2 font-label-caps text-label-caps uppercase tracking-wider text-onSurface transition-colors hover:bg-surface-variant"
-                      >
-                        <Icon name="add" size={18} />
-                        Add course
-                      </button>
-                      <button
-                        onClick={runFormImport}
-                        disabled={importing}
-                        className="bg-ink px-8 py-3 font-label-caps text-label-caps uppercase tracking-widest text-white transition-colors duration-300 hover:bg-primary disabled:opacity-60"
-                      >
-                        {importing ? "Importing…" : "Import Courses"}
-                      </button>
+                      {result && (
+                        <div className="rounded-lg border border-green-tint bg-green-tint p-3 text-xs font-semibold text-primary">
+                          ✓ {result}
+                        </div>
+                      )}
                     </div>
+                  )}
 
-                    {result && <p className="font-mono-label text-mono-label text-primary">{result}</p>}
-                  </div>
-                )}
-
-                {error && (
-                  <p className="mt-4 border border-error-container bg-error-container/30 p-3 font-body-sm text-body-sm text-onErrorContainer">
-                    {error}
-                  </p>
-                )}
+                  {error && (
+                    <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs font-semibold text-error">
+                      {error}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          )
-        )}
+            )
+          )}
+        </div>
       </AppShell>
     </RoleGate>
   );

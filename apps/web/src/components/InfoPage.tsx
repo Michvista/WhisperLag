@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { WhisperBrand } from "@/components/ui/WhisperBrand";
 
 interface InfoPageProps {
   title: string;
@@ -6,22 +7,24 @@ interface InfoPageProps {
   body: string;
 }
 
-export function InfoPage({ title, eyebrow = "Institutional", body }: InfoPageProps) {
+export function InfoPage({ title, eyebrow = "Institutional Quality Assurance", body }: InfoPageProps) {
   return (
-    <main className="flex min-h-screen flex-col bg-surface px-margin-mobile py-24 font-body text-onSurface md:px-margin-desktop">
-      <div className="mx-auto w-full max-w-2xl">
-        <Link href="/" className="mb-12 font-display text-headline-md font-bold tracking-tighter text-primary">
-          WhisperLag
-        </Link>
-        <p className="mb-4 font-label-caps text-label-caps uppercase tracking-widest text-onSurfaceVariant">{eyebrow}</p>
-        <h1 className="mb-6 font-display text-headline-lg font-bold text-onSurface">{title}</h1>
-        <p className="font-body-lg text-body-lg leading-relaxed text-onSurfaceVariant">{body}</p>
-        <Link
-          href="/"
-          className="mt-12 inline-block border border-ink px-6 py-3 font-label-caps text-label-caps uppercase tracking-widest text-onSurface transition-colors duration-300 hover:bg-surface-variant"
-        >
-          Back to Home
-        </Link>
+    <main className="min-h-screen bg-[#F5F5F5] px-4 py-12 font-body text-[#10253A] sm:px-8 sm:py-20">
+      <div className="mx-auto w-full max-w-2xl rounded-3xl border border-[#DCE3E7] bg-white p-8 sm:p-12 shadow-sm">
+        <div className="mb-8">
+          <WhisperBrand href="/" />
+        </div>
+        <span className="text-xs font-extrabold uppercase tracking-wider text-[#009A44]">{eyebrow}</span>
+        <h1 className="mt-2 mb-6 font-montserrat text-3xl font-extrabold text-[#10253A]">{title}</h1>
+        <div className="space-y-4 text-sm leading-relaxed text-[#60758C]">{body}</div>
+        <div className="mt-8">
+          <Link
+            href="/"
+            className="btn-primary-green inline-flex px-6 py-2.5 text-xs font-extrabold"
+          >
+            ← Back to Home
+          </Link>
+        </div>
       </div>
     </main>
   );

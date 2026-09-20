@@ -47,6 +47,8 @@ export class FeedbackService {
         content: input.content,
         isAnonymous: true,
         departmentId: input.departmentId ?? null,
+        refNumber: input.refNumber ?? null,
+        attachmentUrl: input.attachmentUrl ?? null,
       },
     });
     return whisper as unknown as Whisper;
@@ -55,15 +57,13 @@ export class FeedbackService {
   /** Admin/faculty view of anonymous whispers (no identities, ever). */
   async listAdmin(page: number, limit: number) {
     const skip = (page - 1) * limit;
-    const [items, total] = await Promise.all([
-      prisma.whisper.findMany({
-        orderBy: { createdAt: "desc" },
-        skip,
-        take: limit,
-        include: { department: { select: { id: true, name: true } } },
-      }),
-      prisma.whisper.count(),
-    ]);
+    const items = await prisma.whisper.findMany({
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+      include: { department: { select: { id: true, name: true } } },
+    });
+    const total = await prisma.whisper.count();
 
     return {
       items,
@@ -99,6 +99,23 @@ export class FeedbackService {
   }
 
   /**
+   * Look up a whisper by its client-generated reference number (WL-YYYY-XXXXXX).
+   * Returns only status + resolution note — never any identity data.
+   */
+  async lookupByRef(ref: string) {
+    return prisma.whisper.findUnique({
+      where: { refNumber: ref },
+      select: {
+        refNumber: true,
+        category: true,
+        status: true,
+        resolutionNote: true,
+        createdAt: true,
+      },
+    });
+  }
+
+  /**
    * The "Have I been heard?" feed. Because whispers are anonymous, this
    * surfaces the most recent items and their resolution status so students
    * can see the university is acting on feedback without revealing who
@@ -114,6 +131,8 @@ export class FeedbackService {
         content: true,
         status: true,
         resolutionNote: true,
+        refNumber: true,
+        attachmentUrl: true,
         createdAt: true,
       },
     });

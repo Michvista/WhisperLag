@@ -1,5 +1,4 @@
 "use client";
-import { Icon } from "@/components/ui/Icon";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -21,6 +20,8 @@ import { ROLES } from "@whisperlag/shared";
 import { ErrorBlock, LoadingBlock } from "@/components/ui/States";
 import { api, getToken } from "@/lib/api";
 import { toast } from "@/lib/toast";
+import { Icon } from "@/components/ui/Icon";
+import { AddCourseModal } from "@/components/admin/AddCourseModal";
 
 interface Overview {
   totalWhispers: number;
@@ -40,29 +41,64 @@ interface Report {
   content: { scope?: string } | null;
 }
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+interface Course {
+  id: string;
+  code: string;
+  title: string;
+  semester: string | null;
+  credits: number | null;
+  department: { id: string; name: string; faculty?: string | null } | null;
+  lecturer: { id: string; name: string } | null;
 }
 
-/** Admin command center : institutional overview, live. */
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+const FACULTY_LIST = [
+  "Clinical Sciences",
+  "Health Professions",
+  "Computing & Informatics",
+  "Engineering",
+  "Management Sciences",
+  "Social Sciences",
+  "Law",
+  "Pharmacy",
+  "Science",
+];
+
 export default function AdminCommandCenterPage() {
   const [overview, setOverview] = useState<Overview | null>(null);
   const [reports, setReports] = useState<Report[] | null>(null);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
 
+  // Add course modal state
+  const [isAddCourseOpen, setIsAddCourseOpen] = useState(false);
+  const [targetFaculty, setTargetFaculty] = useState<string | undefined>(undefined);
+  const [facultyFilter, setFacultyFilter] = useState<string>("ALL");
+  const [courseSearch, setCourseSearch] = useState<string>("");
+
   async function loadAll() {
     setLoading(true);
     setError(null);
     try {
-      const [ov, rep] = await Promise.all([
-        api<Overview>("/stats/overview", { token: getToken(), cache: "no-store" }),
-        api<Report[]>("/reports", { token: getToken(), cache: "no-store" }),
-      ]);
+      // Sequential awaits to preserve connection limits
+      const ov = await api<Overview>("/stats/overview", { token: getToken(), cache: "no-store" });
+      const rep = await api<Report[]>("/reports", { token: getToken(), cache: "no-store" });
+      const cs = await api<Course[]>("/courses", { token: getToken(), cache: "no-store" });
+
       setOverview(ov);
       setReports(rep);
+      setCourses(cs);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load dashboard");
     } finally {
@@ -78,7 +114,11 @@ export default function AdminCommandCenterPage() {
     setGenerating(true);
     setNotice(null);
     try {
-      const stamp = new Date().toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+      const stamp = new Date().toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
       await api("/reports/generate", {
         method: "POST",
         body: JSON.stringify({ title: `Accreditation Report: ${stamp}`, type: "ACCREDITATION" }),
@@ -95,220 +135,512 @@ export default function AdminCommandCenterPage() {
     }
   }
 
+  function handleOpenAddCourse(fac?: string) {
+    setTargetFaculty(fac);
+    setIsAddCourseOpen(true);
+  }
+
+  // Filter courses for registry table
+  const filteredCourses = courses.filter((c) => {
+    if (facultyFilter !== "ALL" && c.department?.faculty !== facultyFilter) {
+      return false;
+    }
+    if (!courseSearch.trim()) return true;
+    const q = courseSearch.toLowerCase();
+    return (
+      c.title.toLowerCase().includes(q) ||
+      c.code.toLowerCase().includes(q) ||
+      (c.lecturer?.name ?? "").toLowerCase().includes(q) ||
+      (c.department?.name ?? "").toLowerCase().includes(q) ||
+      (c.department?.faculty ?? "").toLowerCase().includes(q)
+    );
+  });
 
   return (
     <RoleGate minRole={ROLES.ADMIN}>
       <AppShell>
-      <header className="mb-16 flex flex-col gap-6">
-        <h1 className="font-display text-headline-lg font-semibold text-onSurface">Institutional Overview</h1>
-        <div className="flex items-center gap-4">
-          <span className="font-mono-label text-mono-label uppercase tracking-wider text-onSurfaceVariant">
-            UNILAG Command Center
-          </span>
-          <div className="rule-b h-px flex-1" />
-          <span className="font-mono-label text-mono-label text-onSurfaceVariant">Live data</span>
-        </div>
-      </header>
+        <div className="py-6 px-4 md:px-8 max-w-6xl mx-auto space-y-8">
+          {/* Header */}
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border-subtle pb-5">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-primary">
+                UNILAG Command Center
+              </span>
+              <h1 className="mt-1 font-montserrat text-2xl font-bold tracking-tight text-navy sm:text-3xl">
+                Institutional Overview
+              </h1>
+              <p className="mt-1 text-xs text-text-secondary">
+                Real-time monitoring of campus sentiment, student whispers, and faculty curriculum.
+              </p>
+            </div>
+            <button
+              onClick={() => handleOpenAddCourse()}
+              className="btn-primary-green px-4 py-2 text-xs font-semibold"
+            >
+              <Icon name="add" size={15} /> + Add Course to Faculty
+            </button>
+          </div>
 
-      {notice && (
-        <div className="mb-8 border border-primary/20 bg-primary/5 p-4 font-body-md text-body-md text-onPrimaryContainer">
-          {notice}
-        </div>
-      )}
+          {notice && (
+            <div className="rounded-lg border border-green-tint bg-green-tint p-4 text-xs font-semibold text-primary">
+              ✓ {notice}
+            </div>
+          )}
 
-      {loading ? (
-        <LoadingBlock label="Loading live metrics…" />
-      ) : error ? (
-        <ErrorBlock message={error} onRetry={loadAll} />
-      ) : (
-        overview && (
-          <>
-            {/* High-level metrics */}
-            <section className="grid grid-cols-1 border-y border-ink/10 md:grid-cols-3">
-              <div className="flex flex-col gap-2 border-b border-ink/10 p-8 md:border-b-0 md:border-r">
-                <span className="font-label-caps text-label-caps text-onSurfaceVariant">Total Whispers</span>
-                <span className="font-display text-5xl font-bold text-onSurface">{overview.totalWhispers.toLocaleString()}</span>
-                <span className="font-mono-label text-mono-label text-primary">
-                  {overview.pendingInterventions} awaiting action
-                </span>
-              </div>
-              <div className="flex flex-col gap-2 border-b border-ink/10 p-8 md:border-b-0 md:border-r">
-                <span className="font-label-caps text-label-caps text-onSurfaceVariant">Critical Alerts</span>
-                <span className="font-display text-5xl font-bold text-error">{overview.pendingInterventions}</span>
-                <span className="font-mono-label text-mono-label text-error">Requires immediate review</span>
-              </div>
-              <div className="flex flex-col gap-2 p-8">
-                <span className="font-label-caps text-label-caps text-onSurfaceVariant">Resolution Rate</span>
-                <span className="font-display text-5xl font-bold text-onSurface">{overview.resolutionRate}%</span>
-                <span className="font-mono-label text-mono-label text-onSurfaceVariant">
-                  {overview.totalEvaluations} evaluations · {overview.totalDepartments} departments
-                </span>
-              </div>
-            </section>
-
-            {/* Trend + resolution charts */}
-            <section className="grid grid-cols-1 gap-16 pt-16 lg:grid-cols-[60%_40%]">
-              <div>
-                <h2 className="rule-b mb-6 font-label-caps text-label-caps uppercase tracking-widest text-onSurface">
-                  Whisper &amp; Evaluation Activity : 14 days
-                </h2>
-                <div className="h-64 w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart
-                      data={overview.trend.map((t) => ({
-                        date: new Date(t.date).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
-                        Whispers: t.whispers,
-                        Evaluations: t.evaluations,
-                      }))}
-                      margin={{ top: 4, right: 8, bottom: 0, left: -24 }}
-                    >
-                      <defs>
-                        <linearGradient id="adminWhisper" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#006b2d" stopOpacity={0.25} />
-                          <stop offset="100%" stopColor="#006b2d" stopOpacity={0} />
-                        </linearGradient>
-                        <linearGradient id="adminEval" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#00668a" stopOpacity={0.25} />
-                          <stop offset="100%" stopColor="#00668a" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid stroke="rgba(17,24,39,0.06)" vertical={false} />
-                      <XAxis dataKey="date" tick={{ fontSize: 10, fill: "#3e4a3e" }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
-                      <YAxis tick={{ fontSize: 10, fill: "#3e4a3e" }} tickLine={false} axisLine={false} allowDecimals={false} />
-                      <Tooltip contentStyle={{ borderRadius: 0, borderColor: "#e5e7eb", fontSize: 12 }} />
-                      <Area type="monotone" dataKey="Whispers" stroke="#006b2d" fill="url(#adminWhisper)" strokeWidth={2} />
-                      <Area type="monotone" dataKey="Evaluations" stroke="#00668a" fill="url(#adminEval)" strokeWidth={2} />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              <div>
-                <h2 className="rule-b mb-6 font-label-caps text-label-caps uppercase tracking-widest text-onSurface">
-                  Resolution Status
-                </h2>
-                <div className="h-64 w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={[
-                          { name: "Resolved", value: overview.resolutionRate },
-                          { name: "Remaining", value: Math.max(0, 100 - overview.resolutionRate) },
-                        ]}
-                        dataKey="value"
-                        nameKey="name"
-                        innerRadius={55}
-                        outerRadius={80}
-                        paddingAngle={2}
-                        strokeWidth={0}
-                      >
-                        <Cell fill="#006b2d" />
-                        <Cell fill="#e5e7eb" />
-                      </Pie>
-                      <Tooltip contentStyle={{ borderRadius: 0, borderColor: "#e5e7eb", fontSize: 12 }} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="mt-2 flex items-center justify-center gap-6 font-mono-label text-mono-label text-onSurfaceVariant">
-                    <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-primary" /> Resolved {overview.resolutionRate}%</span>
-                    <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-[#e5e7eb]" /> {100 - overview.resolutionRate}%</span>
+          {loading ? (
+            <LoadingBlock label="Loading live metrics…" />
+          ) : error ? (
+            <ErrorBlock message={error} onRetry={loadAll} />
+          ) : (
+            overview && (
+              <>
+                {/* Metric Summary Cards */}
+                <section className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+                  <div className="rounded-xl border border-border-subtle bg-white p-5 shadow-card">
+                    <span className="text-xs font-bold uppercase tracking-wider text-text-soft">
+                      Total Whispers
+                    </span>
+                    <div className="mt-2 font-montserrat text-3xl font-bold text-navy">
+                      {overview.totalWhispers.toLocaleString()}
+                    </div>
+                    <span className="mt-1 block text-xs font-semibold text-primary">
+                      {overview.pendingInterventions} awaiting review
+                    </span>
                   </div>
-                </div>
-              </div>
-            </section>
 
-            {/* Split: reports + actions */}
-            <section className="grid grid-cols-1 gap-16 pt-16 lg:grid-cols-[60%_40%]">
-              <div className="flex flex-col gap-8">
-                <div className="rule-b flex items-end justify-between pb-4">
-                  <h2 className="font-display text-headline-md font-semibold text-onSurface">Recent Reports</h2>
-                  <Link href="/reports" className="font-label-caps text-label-caps text-primary hover:underline">
-                    View All
-                  </Link>
-                </div>
-                <div className="flex flex-col">
-                  {(reports ?? []).slice(0, 4).map((report, i) => (
-                    <Link
-                      key={report.id}
-                      href="/reports"
-                      className="rule-b group flex cursor-pointer items-start gap-6 py-6"
-                    >
-                      <span className="font-display text-3xl font-light text-onSurfaceVariant/50">
-                        {String(i + 1).padStart(2, "0")}
-                      </span>
-                      <div className="flex flex-1 flex-col gap-2">
-                        <div className="flex items-center justify-between">
-                          <span
-                            className={`rounded-sm px-2 py-1 font-label-caps text-label-caps ${
-                              report.type === "ACCREDITATION"
-                                ? "bg-error-container text-onErrorContainer"
-                                : "bg-surface-variant text-onSurfaceVariant"
-                            }`}
+                  <div className="rounded-xl border border-border-subtle bg-white p-5 shadow-card">
+                    <span className="text-xs font-bold uppercase tracking-wider text-text-soft">
+                      Active Courses
+                    </span>
+                    <div className="mt-2 font-montserrat text-3xl font-bold text-navy">
+                      {courses.length}
+                    </div>
+                    <span className="mt-1 block text-xs font-semibold text-text-secondary">
+                      Across {FACULTY_LIST.length} faculties
+                    </span>
+                  </div>
+
+                  <div className="rounded-xl border border-border-subtle bg-white p-5 shadow-card">
+                    <span className="text-xs font-bold uppercase tracking-wider text-text-soft">
+                      Pending Interventions
+                    </span>
+                    <div className="mt-2 font-montserrat text-3xl font-bold text-amber-800">
+                      {overview.pendingInterventions}
+                    </div>
+                    <span className="mt-1 block text-xs font-semibold text-amber-800">
+                      Requires departmental review
+                    </span>
+                  </div>
+
+                  <div className="rounded-xl border border-border-subtle bg-white p-5 shadow-card">
+                    <span className="text-xs font-bold uppercase tracking-wider text-text-soft">
+                      Resolution Rate
+                    </span>
+                    <div className="mt-2 font-montserrat text-3xl font-bold text-navy">
+                      {overview.resolutionRate}%
+                    </div>
+                    <span className="mt-1 block text-xs font-semibold text-text-secondary">
+                      {overview.totalEvaluations} evaluations
+                    </span>
+                  </div>
+                </section>
+
+                {/* Trend & Resolution Charts */}
+                <section className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+                  <div className="rounded-xl border border-border-subtle bg-white p-5 shadow-card lg:col-span-8">
+                    <h2 className="mb-4 font-montserrat text-xs font-bold uppercase tracking-wider text-text-soft">
+                      Whisper &amp; Evaluation Activity (14 Days)
+                    </h2>
+                    <div className="h-64 w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart
+                          data={overview.trend.map((t) => ({
+                            date: new Date(t.date).toLocaleDateString(undefined, {
+                              month: "short",
+                              day: "numeric",
+                            }),
+                            Whispers: t.whispers,
+                            Evaluations: t.evaluations,
+                          }))}
+                          margin={{ top: 8, right: 8, bottom: 0, left: -20 }}
+                        >
+                          <defs>
+                            <linearGradient id="adminWhisper" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#166534" stopOpacity={0.25} />
+                              <stop offset="100%" stopColor="#166534" stopOpacity={0} />
+                            </linearGradient>
+                            <linearGradient id="adminEval" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#1E3A5F" stopOpacity={0.25} />
+                              <stop offset="100%" stopColor="#1E3A5F" stopOpacity={0} />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid stroke="#f1f5f9" vertical={false} />
+                          <XAxis
+                            dataKey="date"
+                            tick={{ fontSize: 11, fill: "#64748b" }}
+                            tickLine={false}
+                            axisLine={false}
+                          />
+                          <YAxis
+                            tick={{ fontSize: 11, fill: "#64748b" }}
+                            tickLine={false}
+                            axisLine={false}
+                            allowDecimals={false}
+                          />
+                          <Tooltip contentStyle={{ borderRadius: 8, borderColor: "#e2e8f0", fontSize: 12 }} />
+                          <Area
+                            type="monotone"
+                            dataKey="Whispers"
+                            stroke="#166534"
+                            fill="url(#adminWhisper)"
+                            strokeWidth={2}
+                          />
+                          <Area
+                            type="monotone"
+                            dataKey="Evaluations"
+                            stroke="#1E3A5F"
+                            fill="url(#adminEval)"
+                            strokeWidth={2}
+                          />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-border-subtle bg-white p-5 shadow-card lg:col-span-4">
+                    <h2 className="mb-4 font-montserrat text-xs font-bold uppercase tracking-wider text-text-soft">
+                      Resolution Rate
+                    </h2>
+                    <div className="h-48 w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={[
+                              { name: "Resolved", value: overview.resolutionRate },
+                              { name: "Remaining", value: Math.max(0, 100 - overview.resolutionRate) },
+                            ]}
+                            dataKey="value"
+                            nameKey="name"
+                            innerRadius={45}
+                            outerRadius={68}
+                            paddingAngle={2}
+                            strokeWidth={0}
                           >
-                            {report.type === "ACCREDITATION" ? "High Priority" : "Standard"}
+                            <Cell fill="#166534" />
+                            <Cell fill="#e2e8f0" />
+                          </Pie>
+                          <Tooltip contentStyle={{ borderRadius: 8, borderColor: "#e2e8f0", fontSize: 12 }} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="mt-2 flex items-center justify-center gap-5 text-xs text-text-secondary">
+                      <span className="flex items-center gap-1.5">
+                        <span className="h-2 w-2 rounded-full bg-primary" /> Resolved{" "}
+                        {overview.resolutionRate}%
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <span className="h-2 w-2 rounded-full bg-slate-200" /> Open{" "}
+                        {100 - overview.resolutionRate}%
+                      </span>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Faculty Course Registry & Management Section */}
+                <section className="rounded-xl border border-border-subtle bg-white p-6 shadow-card space-y-5">
+                  <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border-subtle pb-4">
+                    <div>
+                      <span className="text-xs font-bold uppercase tracking-wider text-primary">
+                        Academic Structure
+                      </span>
+                      <h2 className="font-montserrat text-lg font-bold text-navy">
+                        Faculty Course Registry
+                      </h2>
+                      <p className="text-xs text-text-secondary">
+                        Manage and add courses assigned to each UNILAG faculty and department.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleOpenAddCourse()}
+                      className="btn-primary-green px-3.5 py-1.5 text-xs font-semibold"
+                    >
+                      <Icon name="add" size={14} /> Add New Course
+                    </button>
+                  </div>
+
+                  {/* Faculty Quick Count Badges */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+                    <button
+                      onClick={() => setFacultyFilter("ALL")}
+                      className={`rounded-lg border p-2.5 text-left transition-all ${
+                        facultyFilter === "ALL"
+                          ? "border-primary bg-green-tint text-primary font-bold shadow-xs"
+                          : "border-border-subtle bg-slate-50/70 hover:bg-slate-100 text-navy"
+                      }`}
+                    >
+                      <span className="block text-[10px] font-bold uppercase tracking-wider text-text-soft">
+                        All Faculties
+                      </span>
+                      <span className="font-montserrat text-lg font-bold text-navy">
+                        {courses.length}
+                      </span>
+                    </button>
+                    {FACULTY_LIST.map((fac) => {
+                      const count = courses.filter((c) => c.department?.faculty === fac).length;
+                      const isSelected = facultyFilter === fac;
+                      return (
+                        <div
+                          key={fac}
+                          className={`group relative rounded-lg border p-2.5 text-left transition-all cursor-pointer ${
+                            isSelected
+                              ? "border-primary bg-green-tint text-primary font-bold shadow-xs"
+                              : "border-border-subtle bg-slate-50/70 hover:bg-slate-100 text-navy"
+                          }`}
+                          onClick={() => setFacultyFilter(fac)}
+                        >
+                          <div className="flex items-start justify-between">
+                            <span className="block text-[10px] font-bold uppercase tracking-wider text-text-soft truncate max-w-[110px]" title={fac}>
+                              {fac}
+                            </span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenAddCourse(fac);
+                              }}
+                              title={`Add course to ${fac}`}
+                              className="text-text-soft hover:text-primary transition-colors text-xs font-bold"
+                            >
+                              +
+                            </button>
+                          </div>
+                          <span className="font-montserrat text-lg font-bold text-navy">
+                            {count}
                           </span>
-                          <span className="font-mono-label text-mono-label text-onSurfaceVariant">
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Filter & Search Bar */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-text-soft">Viewing:</span>
+                      <select
+                        value={facultyFilter}
+                        onChange={(e) => setFacultyFilter(e.target.value)}
+                        className="rounded-lg border border-border-subtle bg-white px-2.5 py-1.5 text-xs font-semibold text-navy outline-none focus:border-primary shadow-xs"
+                      >
+                        <option value="ALL">All Faculties ({courses.length})</option>
+                        {FACULTY_LIST.map((f) => (
+                          <option key={f} value={f}>
+                            {f} ({courses.filter((c) => c.department?.faculty === f).length})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="relative w-full sm:w-64">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-soft">
+                        <Icon name="search" size={14} />
+                      </span>
+                      <input
+                        type="text"
+                        value={courseSearch}
+                        onChange={(e) => setCourseSearch(e.target.value)}
+                        placeholder="Search courses, codes, lecturers…"
+                        className="w-full rounded-lg border border-border-subtle bg-white py-1.5 pl-8 pr-3 text-xs text-navy placeholder-text-soft outline-none focus:border-primary shadow-xs"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Course Table */}
+                  <div className="overflow-x-auto rounded-lg border border-border-subtle">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="border-b border-border-subtle bg-slate-50">
+                          <th className="px-4 py-3 text-left font-bold uppercase tracking-wider text-text-soft">
+                            Code
+                          </th>
+                          <th className="px-4 py-3 text-left font-bold uppercase tracking-wider text-text-soft">
+                            Title
+                          </th>
+                          <th className="px-4 py-3 text-left font-bold uppercase tracking-wider text-text-soft">
+                            Faculty
+                          </th>
+                          <th className="px-4 py-3 text-left font-bold uppercase tracking-wider text-text-soft">
+                            Department
+                          </th>
+                          <th className="px-4 py-3 text-left font-bold uppercase tracking-wider text-text-soft">
+                            Lecturer
+                          </th>
+                          <th className="px-4 py-3 text-right font-bold uppercase tracking-wider text-text-soft">
+                            Credits
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredCourses.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="py-8 text-center text-text-secondary">
+                              No courses found in this category.{" "}
+                              <button
+                                onClick={() => handleOpenAddCourse(facultyFilter !== "ALL" ? facultyFilter : undefined)}
+                                className="text-primary font-bold hover:underline ml-1"
+                              >
+                                + Add a course now
+                              </button>
+                            </td>
+                          </tr>
+                        ) : (
+                          filteredCourses.map((c) => (
+                            <tr
+                              key={c.id}
+                              className="border-b border-border-subtle last:border-0 hover:bg-slate-50/70 transition-colors"
+                            >
+                              <td className="px-4 py-3 font-mono font-bold text-navy">
+                                <span className="rounded bg-green-tint px-2 py-0.5 text-[11px] text-primary">
+                                  {c.code}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 font-semibold text-navy">
+                                {c.title}
+                              </td>
+                              <td className="px-4 py-3 text-text-secondary font-medium">
+                                {c.department?.faculty ?? "—"}
+                              </td>
+                              <td className="px-4 py-3 text-text-secondary">
+                                {c.department?.name ?? "—"}
+                              </td>
+                              <td className="px-4 py-3 text-text-secondary">
+                                {c.lecturer?.name ?? "Unassigned"}
+                              </td>
+                              <td className="px-4 py-3 text-right font-mono text-navy">
+                                {c.credits ?? 3} units
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+
+                {/* Reports & Actions */}
+                <section className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+                  {/* Recent Reports (7 cols) */}
+                  <div className="rounded-xl border border-border-subtle bg-white p-5 shadow-card lg:col-span-7">
+                    <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+                      <h2 className="font-montserrat text-xs font-bold uppercase tracking-wider text-text-soft">
+                        Recent Reports
+                      </h2>
+                      <Link href="/reports" className="text-xs font-semibold text-secondary hover:underline">
+                        View all →
+                      </Link>
+                    </div>
+
+                    <div className="mt-3 divide-y divide-border-subtle">
+                      {(reports ?? []).slice(0, 4).map((report) => (
+                        <div key={report.id} className="py-3 flex items-start justify-between gap-3">
+                          <div>
+                            <span className="rounded bg-green-tint px-2 py-0.5 text-[10px] font-bold text-primary uppercase">
+                              {report.type}
+                            </span>
+                            <h3 className="mt-1 text-xs font-bold text-navy">
+                              {report.title}
+                            </h3>
+                            <p className="text-[11px] text-text-secondary">
+                              {typeof report.content?.scope === "string"
+                                ? report.content.scope
+                                : "University-wide"}
+                            </p>
+                          </div>
+                          <span className="text-[11px] text-text-soft shrink-0">
                             {formatDate(report.createdAt)}
                           </span>
                         </div>
-                        <h3 className="font-body-lg font-medium text-onSurface transition-colors group-hover:text-primary">
-                          {report.title}
-                        </h3>
-                        <p className="font-body-md text-body-md text-onSurfaceVariant">
-                          {typeof report.content?.scope === "string" ? report.content.scope : "University-wide"}
-                        </p>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-12">
-                <div className="whisper-lock-glow relative flex flex-col gap-6 border border-ink/10 bg-surface-container-lowest p-8">
-                  <div className="absolute -top-3 right-6 flex items-center gap-1 bg-surface px-2 text-primary">
-                    <Icon name="shield" size={14} />
-                    <span className="font-label-caps text-[10px]">Encrypted</span>
+                      ))}
+                    </div>
                   </div>
-                  <h2 className="font-display text-headline-md font-semibold text-onSurface">Accreditation Reporting</h2>
-                  <p className="font-body-md text-body-md text-onSurfaceVariant">
-                    Compile institutional data for external review. This process
-                    securely aggregates anonymized sentiment and compliance
-                    metrics across all faculties.
-                  </p>
-                  <button
-                    onClick={generateReport}
-                    disabled={generating}
-                    className="flex w-full items-center justify-center gap-2 bg-ink px-6 py-4 text-center font-label-caps text-label-caps uppercase tracking-widest text-white transition-colors duration-300 hover:bg-primary disabled:opacity-60"
-                  >
-                    <Icon name="summarize" size={24} />
-                    {generating ? "Generating…" : "Generate Accreditation Report"}
-                  </button>
-                </div>
 
-                <div className="flex flex-col gap-4">
-                  <h3 className="rule-b font-label-caps text-label-caps text-onSurfaceVariant">Quick Actions</h3>
-                  <ul className="flex flex-col gap-2">
-                    <li>
-                      <Link href="/surveys" className="flex items-center justify-between font-body-md text-body-md transition-colors hover:text-primary">
-                        Manage Survey Templates <Icon name="arrow_forward" size={16} />
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="/insights" className="flex items-center justify-between font-body-md text-body-md transition-colors hover:text-primary">
-                        AI Complaint Intelligence <Icon name="arrow_forward" size={16} />
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="/reports" className="flex items-center justify-between font-body-md text-body-md transition-colors hover:text-primary">
-                        Audit Logs &amp; Reports <Icon name="arrow_forward" size={16} />
-                      </Link>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </section>
-          </>
-        )
-      )}
+                  {/* Quick Actions (5 cols) */}
+                  <div className="space-y-4 lg:col-span-5">
+                    <div className="rounded-xl border border-border-subtle bg-white p-5 shadow-card space-y-3">
+                      <h2 className="font-montserrat text-xs font-bold uppercase tracking-wider text-text-soft">
+                        Accreditation Export
+                      </h2>
+                      <p className="text-xs leading-relaxed text-text-secondary">
+                        Securely compile institutional accreditation reports aggregating sentiment across faculties.
+                      </p>
+                      <button
+                        onClick={generateReport}
+                        disabled={generating}
+                        className="btn-primary-green w-full py-2.5 text-xs font-semibold disabled:opacity-50"
+                      >
+                        <Icon name="summarize" size={16} />
+                        {generating ? "Generating…" : "Generate Accreditation Report"}
+                      </button>
+                    </div>
+
+                    <div className="rounded-xl border border-border-subtle bg-white p-5 shadow-card space-y-2.5">
+                      <h3 className="font-montserrat text-xs font-bold uppercase tracking-wider text-text-soft">
+                        Quick Links
+                      </h3>
+                      <ul className="divide-y divide-border-subtle text-xs">
+                        <li className="py-2">
+                          <button
+                            onClick={() => handleOpenAddCourse()}
+                            className="flex w-full items-center justify-between text-navy hover:text-primary text-left"
+                          >
+                            <span className="font-semibold text-primary">+ Register Course to Faculty</span>
+                            <Icon name="add" size={14} className="text-primary" />
+                          </button>
+                        </li>
+                        <li className="py-2">
+                          <Link href="/admin/faculties" className="flex items-center justify-between text-navy hover:text-primary">
+                            <span className="font-semibold text-navy">Manage Faculties &amp; Heads</span>
+                            <Icon name="arrow_forward" size={14} />
+                          </Link>
+                        </li>
+                        <li className="py-2">
+                          <Link href="/courses" className="flex items-center justify-between text-navy hover:text-primary">
+                            <span>Browse Course Hub</span>
+                            <Icon name="arrow_forward" size={14} />
+                          </Link>
+                        </li>
+                        <li className="py-2">
+                          <Link href="/integrations" className="flex items-center justify-between text-navy hover:text-primary">
+                            <span>SIS / LMS Bulk Import</span>
+                            <Icon name="arrow_forward" size={14} />
+                          </Link>
+                        </li>
+                        <li className="py-2">
+                          <Link href="/surveys" className="flex items-center justify-between text-navy hover:text-primary">
+                            <span>Manage Survey Templates</span>
+                            <Icon name="arrow_forward" size={14} />
+                          </Link>
+                        </li>
+                        <li className="py-2">
+                          <Link href="/reports" className="flex items-center justify-between text-navy hover:text-primary">
+                            <span>Audit Logs &amp; Reports</span>
+                            <Icon name="arrow_forward" size={14} />
+                          </Link>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </section>
+              </>
+            )
+          )}
+        </div>
+
+        {/* Modal for adding course */}
+        <AddCourseModal
+          isOpen={isAddCourseOpen}
+          onClose={() => setIsAddCourseOpen(false)}
+          defaultFaculty={targetFaculty}
+          onSuccess={() => void loadAll()}
+        />
       </AppShell>
     </RoleGate>
   );

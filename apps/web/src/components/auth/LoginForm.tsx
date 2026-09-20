@@ -5,10 +5,6 @@ import { useRouter } from "next/navigation";
 import { api, storeSession } from "@/lib/api";
 import { toast } from "@/lib/toast";
 
-/**
- * Institutional sign-in form (editorial style). Wires to the API and stores
- * the session token on success.
- */
 export function LoginForm() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -39,10 +35,10 @@ export function LoginForm() {
   }
 
   return (
-    <form className="space-y-8" onSubmit={handleSubmit}>
-      <div className="relative">
-        <label htmlFor="student_id" className="absolute -top-5 left-0 font-label-caps text-label-caps text-onSurfaceVariant">
-          UNILAG ID
+    <form className="space-y-5" onSubmit={handleSubmit}>
+      <div className="space-y-1.5">
+        <label htmlFor="student_id" className="text-xs font-extrabold uppercase tracking-wider text-[#10253A]">
+          UNILAG Staff / Student ID
         </label>
         <input
           id="student_id"
@@ -50,12 +46,13 @@ export function LoginForm() {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="e.g. 1902030..."
-          className="input-minimal w-full font-body-md text-body-md text-onSurface"
+          placeholder="e.g. 1902030... or staff email"
+          className="wl-input"
         />
       </div>
-      <div className="relative">
-        <label htmlFor="password" className="absolute -top-5 left-0 font-label-caps text-label-caps text-onSurfaceVariant">
+
+      <div className="space-y-1.5">
+        <label htmlFor="password" className="text-xs font-extrabold uppercase tracking-wider text-[#10253A]">
           Secure Password
         </label>
         <input
@@ -65,25 +62,23 @@ export function LoginForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="••••••••"
-          className="input-minimal w-full font-body-md text-body-md text-onSurface"
+          className="wl-input"
         />
       </div>
 
       {error && (
-        <p className="border border-error-container bg-error-container/30 p-3 font-body-sm text-body-sm text-onErrorContainer">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-bold text-red-700">
           {error}
-        </p>
+        </div>
       )}
 
-      <div className="flex flex-col gap-4 pt-8">
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-ink py-4 font-label-caps text-label-caps uppercase tracking-widest text-white transition-colors duration-300 hover:bg-primary disabled:opacity-60"
-        >
-          {loading ? "Authenticating…" : "Authenticate & Enter"}
-        </button>
-      </div>
+      <button
+        type="submit"
+        disabled={loading}
+        className="btn-primary-green w-full py-3.5 text-sm font-extrabold"
+      >
+        {loading ? "Authenticating…" : "Authenticate & Enter →"}
+      </button>
     </form>
   );
 }

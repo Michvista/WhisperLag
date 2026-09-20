@@ -1,5 +1,5 @@
 /* WhisperLag service worker — offline-first shell for installable PWA. */
-const CACHE = "whisperlag-v2";
+const CACHE = "whisperlag-v3";
 
 self.addEventListener("install", () => {
   self.skipWaiting();
@@ -21,22 +21,19 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  // App shell / navigation: network-first so live data stays fresh.
-  if (request.mode === "navigate") {
+  // App shell / navigation / next chunks: network-first so live code stays fresh.
+  if (request.mode === "navigate" || url.pathname.startsWith("/_next/")) {
     event.respondWith(
       fetch(request)
         .then((res) => {
-          const clone = res.clone();
-          caches.open(CACHE).then((c) => c.put(request, clone));
           return res;
         })
-        .catch(() => caches.match(request).then((r) => r || caches.match("/"))),
+        .catch(() => caches.match(request).then((r) => r || (request.mode === "navigate" ? caches.match("/") : undefined))),
     );
     return;
   }
 
-  // Same-origin API GETs: network-first with a stale-cache fallback so
-  // dashboards still render the last-known data when offline.
+  // Same-origin API GETs: network-first with a stale-cache fallback
   if (url.pathname.startsWith("/api/")) {
     event.respondWith(
       fetch(request)
@@ -50,7 +47,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Static assets: cache-first with background refresh.
+  // Other static assets (images, fonts, manifest)
   event.respondWith(
     caches.match(request).then(
       (cached) =>
