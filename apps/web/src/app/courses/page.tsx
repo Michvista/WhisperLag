@@ -165,34 +165,37 @@ export default function CourseHubPage() {
 
           {/* Filters Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            {/* Faculty Dropdown / Tabs */}
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-semibold text-text-soft">Filter by Faculty:</span>
-              <select
-                value={selectedFaculty}
-                onChange={(e) => setSelectedFaculty(e.target.value)}
-                className="rounded-lg border border-border-subtle bg-white px-3 py-1.5 text-xs font-semibold text-navy outline-none focus:border-primary shadow-xs"
-              >
-                <option value="ALL">All Faculties ({courses?.length ?? 0})</option>
-                {facultyList.map((fac) => {
-                  const count = (courses ?? []).filter((c) => c.department?.faculty === fac).length;
-                  return (
-                    <option key={fac} value={fac}>
-                      {fac} ({count})
-                    </option>
-                  );
-                })}
-              </select>
-
-              {me?.department?.faculty && selectedFaculty !== me.department.faculty && (
-                <button
-                  onClick={() => setSelectedFaculty(me.department?.faculty ?? "ALL")}
-                  className="rounded-lg border border-primary/40 bg-green-tint px-2.5 py-1 text-[11px] font-bold text-primary hover:bg-primary hover:text-white transition-colors"
+            {/* Faculty Dropdown (Admin only) or Scope Pill (Faculty users) */}
+            {me?.role === ROLES.ADMIN ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-semibold text-text-soft">Filter by Faculty:</span>
+                <select
+                  value={selectedFaculty}
+                  onChange={(e) => setSelectedFaculty(e.target.value)}
+                  className="rounded-lg border border-border-subtle bg-white px-3 py-1.5 text-xs font-semibold text-navy outline-none focus:border-primary shadow-xs"
                 >
-                  My Faculty ({me.department.faculty})
-                </button>
-              )}
-            </div>
+                  <option value="ALL">All Faculties ({courses?.length ?? 0})</option>
+                  {facultyList.map((fac) => {
+                    const count = (courses ?? []).filter((c) => c.department?.faculty === fac).length;
+                    return (
+                      <option key={fac} value={fac}>
+                        {fac} ({count})
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-text-soft">Viewing Faculty:</span>
+                <span className="rounded-lg bg-green-tint px-3 py-1 text-xs font-bold text-primary border border-primary/20">
+                  {me?.department?.faculty ?? me?.department?.name ?? "My Department"}
+                </span>
+                <span className="text-xs text-text-secondary font-medium">
+                  ({filteredCourses.length} course{filteredCourses.length === 1 ? "" : "s"})
+                </span>
+              </div>
+            )}
 
             {/* Search */}
             <div className="relative w-full sm:w-64">

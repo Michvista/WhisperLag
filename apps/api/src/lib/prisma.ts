@@ -13,9 +13,9 @@ function buildDatabaseUrl(): string {
 
   const urlObj = new URL(url);
   urlObj.searchParams.set("pgbouncer", "true");
-  urlObj.searchParams.set("connection_limit", "25");
-  urlObj.searchParams.set("pool_timeout", "30");
-  urlObj.searchParams.set("connect_timeout", "30");
+  urlObj.searchParams.set("connection_limit", "10");
+  urlObj.searchParams.set("pool_timeout", "60");
+  urlObj.searchParams.set("connect_timeout", "60");
   return urlObj.toString();
 }
 

@@ -45,23 +45,42 @@ function parseMultipart(
     let filePath: string | null = null;
     let mimeType: string | null = null;
     let fileError: Error | null = null;
+    const writePromises: Promise<void>[] = [];
 
     bb.on("field", (name: string, val: string) => {
       fields[name] = val;
     });
 
     bb.on("file", (_fieldname: string, stream: any, info: { filename: string; mimeType: string }) => {
-      const { mimeType: mime } = info;
+      const { mimeType: mime, filename: originalName } = info;
+      if (!originalName) {
+        stream.resume();
+        return;
+      }
       if (!ALLOWED_MIME.has(mime)) {
         stream.resume(); // drain
         fileError = new Error("File type not allowed. Upload images or PDF/DOC documents.");
         return;
       }
-      const ext = mime.split("/")[1].replace("vnd.openxmlformats-officedocument.wordprocessingml.document", "docx");
+      let ext = "png";
+      if (mime === "image/jpeg") ext = "jpg";
+      else if (mime === "image/png") ext = "png";
+      else if (mime === "image/gif") ext = "gif";
+      else if (mime === "image/webp") ext = "webp";
+      else if (mime === "application/pdf") ext = "pdf";
+      else if (mime.includes("word") || mime.includes("officedocument")) ext = "docx";
+
       const uuid = randomUUID();
       const dest = path.join(UPLOADS_DIR, `${uuid}.${ext}`);
       const out = fs.createWriteStream(dest);
       mimeType = mime;
+      filePath = dest;
+
+      const wp = new Promise<void>((resOut, rejOut) => {
+        out.on("finish", () => resOut());
+        out.on("error", rejOut);
+      });
+      writePromises.push(wp);
 
       stream.on("limit", () => {
         out.destroy();
@@ -70,14 +89,16 @@ function parseMultipart(
       });
 
       stream.pipe(out);
-      out.on("finish", () => {
-        filePath = dest;
-      });
     });
 
-    bb.on("finish", () => {
+    bb.on("close", async () => {
       if (fileError) return reject(fileError);
-      resolve({ fields, filePath, mimeType });
+      try {
+        await Promise.all(writePromises);
+        resolve({ fields, filePath, mimeType });
+      } catch (err) {
+        reject(err);
+      }
     });
 
     bb.on("error", reject);

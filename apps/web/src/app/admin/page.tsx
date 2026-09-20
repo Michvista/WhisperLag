@@ -454,17 +454,17 @@ export default function AdminCommandCenterPage() {
                   </div>
 
                   {/* Course Table */}
-                  <div className="overflow-x-auto rounded-lg border border-border-subtle">
+                  <div className="overflow-x-auto max-h-[420px] overflow-y-auto rounded-lg border border-border-subtle shadow-xs">
                     <table className="w-full text-xs">
-                      <thead>
+                      <thead className="sticky top-0 z-10 bg-slate-50 shadow-xs">
                         <tr className="border-b border-border-subtle bg-slate-50">
-                          <th className="px-4 py-3 text-left font-bold uppercase tracking-wider text-text-soft">
+                          <th className="px-4 py-3 text-left font-bold uppercase tracking-wider text-text-soft bg-slate-50">
                             Code
                           </th>
-                          <th className="px-4 py-3 text-left font-bold uppercase tracking-wider text-text-soft">
+                          <th className="px-4 py-3 text-left font-bold uppercase tracking-wider text-text-soft bg-slate-50">
                             Title
                           </th>
-                          <th className="px-4 py-3 text-left font-bold uppercase tracking-wider text-text-soft">
+                          <th className="px-4 py-3 text-left font-bold uppercase tracking-wider text-text-soft bg-slate-50">
                             Faculty
                           </th>
                           <th className="px-4 py-3 text-left font-bold uppercase tracking-wider text-text-soft">
