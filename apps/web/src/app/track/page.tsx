@@ -40,16 +40,22 @@ function TrackContent() {
       const res = await fetch(
         `${API_BASE}/api/v1/feedback/lookup/${encodeURIComponent(refCode)}`
       );
-      const json = (await res.json()) as {
-        success: boolean;
+      const json = (await res.json().catch(() => ({}))) as {
+        success?: boolean;
         data?: TrackResult;
-        error?: string;
+        error?: string | { code?: string; message?: string } | null;
       };
       if (!res.ok || !json.success) {
-        setError(json.error ?? "No whisper found with that reference number.");
+        let errorMsg = "No whisper found with that reference number. Please check the code and try again.";
+        if (typeof json.error === "string") {
+          errorMsg = json.error;
+        } else if (json.error && typeof json.error === "object" && json.error.message) {
+          errorMsg = json.error.message;
+        }
+        setError(errorMsg);
         return;
       }
-      setResult(json.data!);
+      setResult(json.data ?? null);
     } catch {
       setError("Could not reach the server. Please try again later.");
     } finally {

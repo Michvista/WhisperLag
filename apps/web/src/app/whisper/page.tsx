@@ -16,14 +16,18 @@ export default function WhisperPage() {
 
           <div className="flex items-center gap-2 sm:gap-3">
             <Link
+              href="/track"
+              className="flex items-center gap-1.5 rounded-lg border border-border-subtle bg-white px-3 py-1.5 text-xs font-semibold text-navy hover:bg-slate-50 transition-colors"
+            >
+              <Icon name="search" size={14} className="text-primary" />
+              <span>Track Whisper</span>
+            </Link>
+            <Link
               href="/listwhispers"
               className="rounded-lg border border-border-subtle bg-white px-3.5 py-1.5 text-xs font-semibold text-navy hover:bg-slate-50 transition-colors"
             >
               Student Whispers
             </Link>
-            <div className="flex h-8 w-8 items-center justify-center rounded-md border border-border-subtle bg-white text-sm text-text-secondary">
-              <Icon name="notifications" size={16} />
-            </div>
           </div>
         </div>
       </header>
@@ -83,13 +87,20 @@ export default function WhisperPage() {
       </main>
 
       {/* Mobile Floating Bottom Bar */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 flex h-14 items-center justify-around border-t border-border-subtle bg-white/95 px-6 shadow-md backdrop-blur-md lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 flex h-14 items-center justify-around border-t border-border-subtle bg-white/95 px-4 shadow-md backdrop-blur-md lg:hidden">
         <Link
           href="/"
           className="flex flex-col items-center gap-1 text-[11px] font-semibold text-text-secondary hover:text-primary"
         >
           <Icon name="home" size={18} />
           Home
+        </Link>
+        <Link
+          href="/track"
+          className="flex flex-col items-center gap-1 text-[11px] font-semibold text-text-secondary hover:text-primary"
+        >
+          <Icon name="search" size={18} />
+          Track
         </Link>
         <Link
           href="/whisper"

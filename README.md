@@ -115,40 +115,69 @@ WhisperLag/
 │   └── shared/                 # Monorepo shared types, RBAC permissions, constants
 ```
 
-### Technology Matrix
+### 🛠️ Technologies Used
 
-| Layer | Technologies |
-|---|---|
-| **Frontend Framework** | [Next.js 14](https://nextjs.org/) (React, App Router, TypeScript) |
-| **Styling & UI** | [Tailwind CSS](https://tailwindcss.com/), Montserrat & Inter Typography |
-| **Data Visualization** | [Recharts](https://recharts.org/) (Responsive Area, Bar, Pie charts) |
-| **Backend Framework** | [Node.js](https://nodejs.org/) + [Express](https://expressjs.com/) (Modular ES Modules) |
-| **Database & ORM** | [PostgreSQL](https://www.postgresql.org/) (Neon Serverless) + [Prisma ORM](https://www.prisma.io/) |
-| **File Upload Handling** | [Busboy](https://github.com/mscdex/busboy) multipart streaming parser |
-| **Authentication & RBAC** | JWT (JSON Web Tokens) + Declarative permission matrix in `@whisperlag/shared` |
-| **AI Insights & Routing** | [Groq API](https://groq.com/) with deterministic keyword fallback |
-| **Offline Resilience** | Browser LocalStorage / IndexedDB sync outbox |
+WhisperLag is built using modern, production-ready technologies chosen for type safety, performance, and developer velocity across a monorepo architecture:
+
+#### 💻 Frontend & Client Experience (`apps/web`)
+- **[Next.js 14](https://nextjs.org/) (React 18 & App Router)**: Powering server-rendered layouts, dynamic client components, streaming UI, and route-level code splitting.
+- **[TypeScript 5](https://www.typescriptlang.org/)**: Full type safety from database schemas to UI component props.
+- **[Tailwind CSS 3](https://tailwindcss.com/)**: Custom utility design system crafted around official UNILAG palette tokens (`#009A44` Primary Green, `#10253A` Navy, `#2C7DA0` Blue Accent, `#7355A2` Purple, etc.).
+- **[Recharts](https://recharts.org/)**: Responsive charting engine powering 14-day sentiment trend area charts, category evaluation bar charts, and resolution rate donut charts.
+- **[Framer Motion](https://www.framer.com/motion/)**: Smooth layout animations, page transitions, and wizard step progress feedback.
+- **[Hugeicons & Material Icons](https://hugeicons.com/)**: High-fidelity, accessible icon set designed for academic and quality assurance workflows.
+- **Client Offline Outbox Engine**: Browser-level `localStorage` and IndexedDB queuing with automated `navigator.onLine` event triggers for zero-loss submission resilience.
+
+#### ⚙️ Backend API & Business Logic (`apps/api`)
+- **[Node.js](https://nodejs.org/) (v18+) & [Express](https://expressjs.com/) (ES Modules)**: Modular REST API organized into clean domain modules (`auth`, `feedback`, `courses`, `evaluations`, `departments`, `surveys`, `reports`, `stats`, `integrations`, `collaboration`).
+- **[Busboy](https://github.com/mscdex/busboy)**: High-throughput streaming multipart/form-data parser for processing direct on-disk file uploads (images, PDFs, documents) with strict MIME and size limits (10MB).
+- **[Zod](https://zod.dev/)**: Runtime validation engine for validating incoming API payloads, route parameters, and query strings.
+- **[Bcryptjs](https://github.com/dcodeIO/bcrypt.js)** & **[JSON Web Tokens (JWT)](https://jwt.io/)**: Secure cryptographic credential hashing and stateless role-based access tokens.
+- **[Helmet](https://helmetjs.github.io/) & [CORS](https://github.com/expressjs/cors)**: Enterprise HTTP security headers with customized Cross-Origin Resource Policies for serving uploaded evidence files.
+- **[Morgan](https://github.com/expressjs/morgan)**: Structured HTTP request and response logging.
+
+#### 🗄️ Database & Data Infrastructure (`prisma`)
+- **[PostgreSQL](https://www.postgresql.org/)**: Robust relational database enforcing structural anonymity (no user relations on the `Whisper` table), foreign key integrity, and unique tracking indexes.
+- **[Neon Serverless PostgreSQL](https://neon.tech/)**: Cloud-hosted PostgreSQL with SSL encryption and scalable connection pooling.
+- **[Prisma ORM (v5.19)](https://www.prisma.io/)**: Type-safe database client, schema migrations (`prisma db push`), and automated seeding scripts.
+
+#### 🧠 Artificial Intelligence & Natural Language Processing
+- **[Groq Cloud API](https://groq.com/)**: Ultra-fast LLM inference (`llama-3.1-70b-versatile` / `openai/gpt-oss-120b`) for automated intent analysis, routing whispers to courses and lecturers.
+- **Deterministic Keyword Fallback Engine**: In-memory regex token matcher providing instant course and department tagging when offline or without external API keys.
+
+#### 📦 Monorepo, Tooling & Testing
+- **npm Workspaces**: Unified monorepo structure sharing code and types via `@whisperlag/shared`.
+- **[Concurrently](https://github.com/open-cli-tools/concurrently)**: Single-command parallel execution of Web and API dev servers (`npm run dev`).
+- **[Docker & Docker Compose](https://www.docker.com/)**: Local containerized PostgreSQL and Redis support.
+- **[Vitest](https://vitest.dev/)**: Blazing-fast unit and RBAC permission testing suite.
 
 ---
 
 ## 🔐 Role-Based Access Control (RBAC)
 
-WhisperLag implements a strict, declarative permission matrix:
+**RBAC** stands for **Role-Based Access Control**. It is an enterprise security paradigm that restricts system access based on an authenticated user's designated organizational role (*Guest / Anonymous*, *Student*, *Faculty*, or *Admin*). 
 
-| Permission | Guest / Anon | Student | Faculty | Admin |
+In **WhisperLag**, RBAC guarantees that:
+1. **Student Confidentiality**: Faculty members and deans can view aggregate departmental sentiment and statistical rubric distributions, but have **zero access** to submitting student identities.
+2. **Administrative Moderation**: Only verified Quality Assurance (QA) Officers and System Administrators have permission to tag whispers with public resolution notes or manage faculty registries.
+3. **Declarative Authority**: The permission matrix is defined as a single source of truth in `@whisperlag/shared/src/roles.ts`, evaluated at every Express API route via the `authorize()` middleware and reflected on the frontend via `<RoleGate />` components.
+
+### 🛡️ Declarative RBAC Permission Matrix
+
+| Permission & Capability | Guest / Anonymous | Student | Faculty Lead / HOD | QA Admin |
 |---|:---:|:---:|:---:|:---:|
-| **Submit Anonymous Whisper** | ✅ | ✅ | ✅ | ✅ |
-| **Track Whisper via Reference (`/track`)** | ✅ | ✅ | ✅ | ✅ |
-| **View Public Feed (`/listwhispers`)** | ✅ | ✅ | ✅ | ✅ |
-| **Vote on Campus Polls** | ✅ | ✅ | ✅ | ✅ |
-| **Submit Course Evaluations** | ❌ | ✅ | ❌ | ❌ |
-| **Access Faculty Portal (`/faculty`)** | ❌ | ❌ | ✅ | ✅ |
-| **View Department Sentiment & Courses** | ❌ | ❌ | ✅ | ✅ |
-| **Internal Collaboration Messaging** | ❌ | ❌ | ✅ | ✅ |
-| **Resolve Whispers & Post Actions** | ❌ | ❌ | ❌ | ✅ |
-| **Manage Faculties & Deans (`/admin/faculties`)** | ❌ | ❌ | ❌ | ✅ |
-| **Add / Edit Courses** | ❌ | ❌ | ❌ | ✅ |
-| **Generate Accreditation Reports** | ❌ | ❌ | ❌ | ✅ |
+| **Submit Anonymous Whisper (`/whisper`)** | ✅ | ✅ | ✅ | ✅ |
+| **Track Submission via Ref Code (`/track`)** | ✅ | ✅ | ✅ | ✅ |
+| **View Public Whisper Feed (`/listwhispers`)** | ✅ | ✅ | ✅ | ✅ |
+| **Vote in Campus Pulse Polls** | ✅ | ✅ | ✅ | ✅ |
+| **Submit Course & Lecturer Evaluations** | ❌ | ✅ | ❌ | ❌ |
+| **Access Faculty Analytics Hub (`/faculty`)** | ❌ | ❌ | ✅ | ✅ |
+| **View Department Sentiment & Course Scores** | ❌ | ❌ | ✅ | ✅ |
+| **Internal Staff Collaboration Messaging (`/collaboration`)** | ❌ | ❌ | ✅ | ✅ |
+| **Moderate Whispers & Publish Action Notes** | ❌ | ❌ | ❌ | ✅ |
+| **Manage UNILAG Faculties & Deans (`/admin/faculties`)** | ❌ | ❌ | ❌ | ✅ |
+| **Create & Register Courses to Faculties** | ❌ | ❌ | ❌ | ✅ |
+| **Generate & Export Accreditation Reports (`/reports`)** | ❌ | ❌ | ❌ | ✅ |
 
 ---
 

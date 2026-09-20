@@ -4,8 +4,10 @@
  * local API dev server) and swapped for the deployed URL in production.
  */
 
-export const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api/v1";
+const rawBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+export const API_BASE = rawBase.endsWith("/api/v1")
+  ? rawBase
+  : `${rawBase.replace(/\/+$/, "")}/api/v1`;
 
 /** Auth token stored on sign-in (demo persistence; HTTP-only cookie is the production path). */
 const TOKEN_KEY = "whisperlag_token";

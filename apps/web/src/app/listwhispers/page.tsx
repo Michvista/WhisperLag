@@ -18,54 +18,6 @@ interface WhisperItem {
   attachmentUrl?: string | null;
 }
 
-const DEFAULT_ITEMS: WhisperItem[] = [
-  {
-    id: "demo-1",
-    category: "Lecturer",
-    content: "The explanations in class are sometimes too fast and it can be difficult to keep up. It would be helpful if lecture notes were shared after class.",
-    isAnonymous: true,
-    status: "ACKNOWLEDGED",
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
-    resolutionNote: null,
-  },
-  {
-    id: "demo-2",
-    category: "Course / Learning",
-    content: "The portal is slow during course registration and keeps timing out when attempting to generate docket.",
-    isAnonymous: true,
-    status: "ACTIONED",
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 4).toISOString(),
-    resolutionNote: "CITS portal server bandwidth increased by 300% for the registration window.",
-  },
-  {
-    id: "demo-3",
-    category: "Hostel / Facilities",
-    content: "More quiet study spaces and functional power outlets are needed in the science library annex.",
-    isAnonymous: true,
-    status: "ACTIONED",
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10).toISOString(),
-    resolutionNote: "16 additional study tables with power hubs installed in the science annex.",
-  },
-  {
-    id: "demo-4",
-    category: "Lecturer",
-    content: "Sometimes lectures start much later than scheduled due to projector connectivity issues in Faculty of Arts LT.",
-    isAnonymous: true,
-    status: "ACKNOWLEDGED",
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14).toISOString(),
-    resolutionNote: null,
-  },
-  {
-    id: "demo-5",
-    category: "Administration",
-    content: "The exam timetable has a 30-minute conflict between faculty required elective and general studies.",
-    isAnonymous: true,
-    status: "ACTIONED",
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 25).toISOString(),
-    resolutionNote: "Timetable committee adjusted GST schedule to avoid departmental overlap.",
-  },
-];
-
 type FilterTab = "All" | "Under Review" | "Resolved";
 
 export default function ListWhispersPage() {
@@ -79,13 +31,9 @@ export default function ListWhispersPage() {
       setLoading(true);
       try {
         const res = await api<WhisperItem[]>("/feedback/public-recent?limit=100", { cache: "no-store" });
-        if (res && res.length > 0) {
-          setItems(res);
-        } else {
-          setItems(DEFAULT_ITEMS);
-        }
+        setItems(Array.isArray(res) ? res : []);
       } catch {
-        setItems(DEFAULT_ITEMS);
+        setItems([]);
       } finally {
         setLoading(false);
       }
@@ -112,7 +60,14 @@ export default function ListWhispersPage() {
       <header className="sticky top-0 z-30 border-b border-border-subtle bg-white/95 backdrop-blur-md">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3 sm:px-6">
           <WhisperBrand href="/" />
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link
+              href="/track"
+              className="flex items-center gap-1.5 rounded-lg border border-border-subtle bg-white px-3 py-1.5 text-xs font-semibold text-navy hover:bg-slate-50 transition-colors"
+            >
+              <Icon name="search" size={14} className="text-primary" />
+              <span>Track Whisper</span>
+            </Link>
             <Link
               href="/whisper"
               className="btn-primary-green px-3.5 py-1.5 text-xs font-semibold"
@@ -205,7 +160,7 @@ export default function ListWhispersPage() {
             </Link>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-3 max-h-[640px] overflow-y-auto pr-1">
             {filteredItems.map((item, idx) => {
               const isResolved = item.status === "ACTIONED";
               const formattedDate = new Date(item.createdAt).toLocaleDateString("en-US", {
@@ -217,7 +172,7 @@ export default function ListWhispersPage() {
               return (
                 <article
                   key={item.id}
-                  className="rounded-xl border border-border-subtle bg-white p-4 shadow-card space-y-2"
+                  className="rounded-xl border border-border-subtle bg-white p-4 shadow-card space-y-2 transition-all hover:border-slate-300"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -244,14 +199,9 @@ export default function ListWhispersPage() {
                     &ldquo;{item.content.replace(/^\[.*?\]\s*/, "")}&rdquo;
                   </p>
 
-                  {/* Attachment & Ref if available */}
-                  <div className="flex flex-wrap items-center gap-2 pt-0.5">
-                    {item.refNumber && (
-                      <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 font-mono text-[10px] font-bold text-slate-700">
-                        Ref: {item.refNumber}
-                      </span>
-                    )}
-                    {item.attachmentUrl && (
+                  {/* Attachment if available (refNumber is private to submitter) */}
+                  {item.attachmentUrl && (
+                    <div className="pt-0.5">
                       <a
                         href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}${item.attachmentUrl}`}
                         target="_blank"
@@ -261,8 +211,8 @@ export default function ListWhispersPage() {
                         <Icon name="attachment" size={12} className="text-secondary" />
                         <span>View Attachment</span>
                       </a>
-                    )}
-                  </div>
+                    </div>
+                  )}
 
                   {item.resolutionNote && (
                     <div className="rounded-lg border border-green-tint bg-green-tint p-2.5 text-xs text-primary">
@@ -281,7 +231,7 @@ export default function ListWhispersPage() {
       </main>
 
       {/* Mobile Floating Bottom Bar */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 flex h-14 items-center justify-around border-t border-border-subtle bg-white/95 px-6 shadow-md backdrop-blur-md lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 flex h-14 items-center justify-around border-t border-border-subtle bg-white/95 px-4 shadow-md backdrop-blur-md lg:hidden">
         <Link
           href="/"
           className="flex flex-col items-center gap-1 text-[11px] font-semibold text-text-secondary hover:text-primary"
@@ -290,8 +240,15 @@ export default function ListWhispersPage() {
           Home
         </Link>
         <Link
-          href="/whisper"
+          href="/track"
           className="flex flex-col items-center gap-1 text-[11px] font-semibold text-text-secondary hover:text-primary"
+        >
+          <Icon name="search" size={18} />
+          Track
+        </Link>
+        <Link
+          href="/whisper"
+          className="flex flex-col items-center gap-1 text-[11px] font-semibold text-primary"
         >
           <span className="-mt-4 flex h-9 w-9 items-center justify-center rounded-full bg-primary text-lg font-bold text-white shadow-button-green">
             +
