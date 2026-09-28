@@ -165,11 +165,19 @@ export const feedbackController = {
     res.status(HTTP_STATUS.CREATED).json({ success: true, data: whisper, error: null });
   }),
 
-  /** GET /api/v1/feedback : admin-only metadata list. */
+  /** GET /api/v1/feedback : admin and faculty metadata list. */
   listAdmin: asyncHandler(async (req: Request, res: Response) => {
     const page = Math.max(Number(req.query.page) || 1, 1);
     const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 100);
-    const result = await feedbackService.listAdmin(page, limit);
+    const faculty = req.query.faculty as string | undefined;
+    const departmentId = req.query.departmentId as string | undefined;
+
+    const result = await feedbackService.listAdmin(page, limit, {
+      userId: req.principal?.id,
+      userRole: req.principal?.role,
+      faculty,
+      departmentId,
+    });
     res.status(HTTP_STATUS.OK).json({ success: true, data: result, error: null });
   }),
 

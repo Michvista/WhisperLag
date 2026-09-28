@@ -55,15 +55,93 @@ export class FeedbackService {
   }
 
   /** Admin/faculty view of anonymous whispers (no identities, ever). */
-  async listAdmin(page: number, limit: number) {
+  async listAdmin(
+    page: number,
+    limit: number,
+    filter?: { userId?: string; userRole?: string; faculty?: string; departmentId?: string },
+  ) {
     const skip = (page - 1) * limit;
+    let whereClause: Prisma.WhisperWhereInput | undefined = undefined;
+
+    // If user is Faculty or a specific faculty/department filter is provided, scope whispers
+    if (filter?.userRole === "FACULTY" || filter?.faculty || filter?.departmentId) {
+      let targetFaculty = filter?.faculty;
+      let targetDeptId = filter?.departmentId;
+      let userLecturerName: string | undefined = undefined;
+
+      if (filter?.userId) {
+        const user = await prisma.user.findUnique({
+          where: { id: filter.userId },
+          include: { department: true },
+        });
+        if (user) {
+          userLecturerName = user.name;
+          if (!targetFaculty && user.department?.faculty) {
+            targetFaculty = user.department.faculty;
+          }
+          if (!targetDeptId && user.departmentId) {
+            targetDeptId = user.departmentId;
+          }
+        }
+      }
+
+      const orConditions: Prisma.WhisperWhereInput[] = [];
+
+      if (targetFaculty) {
+        const depts = await prisma.department.findMany({
+          where: { faculty: { equals: targetFaculty, mode: "insensitive" } },
+          select: { id: true, name: true },
+        });
+        const deptIds = depts.map((d) => d.id);
+        const deptNames = depts.map((d) => d.name);
+
+        if (deptIds.length > 0) {
+          orConditions.push({ departmentId: { in: deptIds } });
+        }
+        orConditions.push({ department: { faculty: { equals: targetFaculty, mode: "insensitive" } } });
+
+        for (const dn of deptNames) {
+          orConditions.push({ content: { contains: dn, mode: "insensitive" } });
+        }
+
+        const courses = await prisma.course.findMany({
+          where: {
+            OR: [
+              { departmentId: { in: deptIds } },
+              { department: { faculty: { equals: targetFaculty, mode: "insensitive" } } },
+            ],
+          },
+          include: { lecturer: { select: { name: true } } },
+        });
+
+        for (const c of courses) {
+          orConditions.push({ content: { contains: c.code, mode: "insensitive" } });
+          orConditions.push({ content: { contains: c.title, mode: "insensitive" } });
+          if (c.lecturer?.name) {
+            orConditions.push({ content: { contains: c.lecturer.name, mode: "insensitive" } });
+          }
+        }
+      } else if (targetDeptId) {
+        orConditions.push({ departmentId: targetDeptId });
+      }
+
+      if (userLecturerName) {
+        orConditions.push({ content: { contains: userLecturerName, mode: "insensitive" } });
+      }
+
+      if (orConditions.length > 0) {
+        whereClause = { OR: orConditions };
+      }
+    }
+
     const items = await prisma.whisper.findMany({
+      where: whereClause,
       orderBy: { createdAt: "desc" },
       skip,
       take: limit,
-      include: { department: { select: { id: true, name: true } } },
+      include: { department: { select: { id: true, name: true, faculty: true } } },
     });
-    const total = await prisma.whisper.count();
+    const total = await prisma.whisper.count({ where: whereClause });
 
     return {
       items,

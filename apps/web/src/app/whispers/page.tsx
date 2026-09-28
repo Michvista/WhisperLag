@@ -58,8 +58,9 @@ export default function WhispersPage() {
   const [activeTab, setActiveTab] = useState<FilterTab>("All");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Admin specific states
+  // Admin & Faculty states
   const [role, setRole] = useState<string | null>(null);
+  const [userFaculty, setUserFaculty] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [resolvingId, setResolvingId] = useState<string | null>(null);
   const [resolveNote, setResolveNote] = useState<Record<string, string>>({});
@@ -79,6 +80,19 @@ export default function WhispersPage() {
   async function loadWhispers() {
     setLoading(true);
     try {
+      // If faculty user, load profile to display scope
+      if (getRole() === ROLES.FACULTY) {
+        try {
+          const who = await api<{ department?: { faculty?: string; name?: string } }>("/auth/me", {
+            token: getToken(),
+            cache: "no-store",
+          });
+          setUserFaculty(who?.department?.faculty ?? who?.department?.name ?? null);
+        } catch {
+          // ignore
+        }
+      }
+
       const res = await api<WhisperFeed>("/feedback?page=1&limit=100", {
         token: getToken(),
         cache: "no-store",
@@ -152,14 +166,23 @@ export default function WhispersPage() {
       {/* Header */}
       <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border-subtle pb-5">
         <div>
-          <span className="text-xs font-bold uppercase tracking-wider text-primary">
-            {isAdminOrFaculty ? "Quality Assurance & Review" : "Campus Feedback Feed"}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-primary">
+              {isAdminOrFaculty ? "Quality Assurance & Review" : "Campus Feedback Feed"}
+            </span>
+            {userFaculty && (
+              <span className="rounded-full bg-green-tint px-2.5 py-0.5 text-[10.5px] font-bold text-primary border border-primary/20">
+                {userFaculty}
+              </span>
+            )}
+          </div>
           <h1 className="mt-1 font-montserrat text-2xl font-bold tracking-tight text-navy sm:text-3xl">
-            {isAdminOrFaculty ? "Anonymous Whispers Feed" : "Student Whispers"}
+            {role === ROLES.FACULTY ? "Faculty Whispers" : isAdminOrFaculty ? "Anonymous Whispers Feed" : "Student Whispers"}
           </h1>
           <p className="mt-1 text-xs text-text-secondary">
-            {isAdminOrFaculty
+            {role === ROLES.FACULTY
+              ? `Anonymous student submissions regarding ${userFaculty ?? "your faculty"} · ${items.length} total`
+              : isAdminOrFaculty
               ? `Every student submission with no identity attached · ${items.length} total`
               : "Live anonymous submissions and institutional resolutions across UNILAG"}
           </p>
