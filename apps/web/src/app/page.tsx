@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { WhisperBrand } from "@/components/ui/WhisperBrand";
 import { WhisperLogo } from "@/components/ui/WhisperLogo";
 import { Icon } from "@/components/ui/Icon";
+import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { api } from "@/lib/api";
 
 const TRUST_ITEMS = [
@@ -99,8 +100,8 @@ export default function LandingPage() {
     <main className="flex min-h-screen flex-col bg-background font-body text-navy antialiased">
       {/* Top Navigation */}
       <header className="sticky top-0 z-30 border-b border-border-subtle bg-white/95 backdrop-blur-md">
-        <div className="mx-auto flex w-full max-w-wide items-center justify-between px-5 py-3.5 md:px-margin-desktop">
-          <WhisperBrand href="/" />
+        <div className="mx-auto flex w-full max-w-wide items-center justify-between px-3 py-2.5 sm:px-6 md:px-margin-desktop">
+          <WhisperBrand href="/" size="sm" />
 
           <div className="hidden items-center gap-8 md:flex">
             <a href="#purpose" className="text-xs font-semibold uppercase tracking-wider text-text-secondary transition-colors hover:text-primary">
@@ -114,18 +115,19 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             <Link
               href="/login"
-              className="rounded-lg border border-border-subtle bg-white px-4 py-2 text-xs font-semibold text-navy transition-colors hover:bg-slate-50"
+              className="rounded-lg border border-border-subtle bg-white px-2 py-1.5 sm:px-3.5 sm:py-2 text-[11px] sm:text-xs font-semibold text-navy transition-colors hover:bg-slate-50 shrink-0 whitespace-nowrap"
             >
               Staff Sign In
             </Link>
             <Link
               href="/whisper"
-              className="btn-primary-green px-4 py-2 text-xs font-semibold"
+              className="btn-primary-green px-2.5 py-1.5 sm:px-4 sm:py-2 text-[11px] sm:text-xs font-semibold shrink-0 whitespace-nowrap flex items-center gap-1"
             >
-              Give Feedback &nbsp;→
+              <span>Give Feedback</span>
+              <span className="hidden xs:inline">→</span>
             </Link>
           </div>
         </div>
@@ -270,7 +272,7 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="mt-auto border-t border-border-subtle bg-white py-8">
+      <footer className="mt-auto border-t border-border-subtle bg-white py-8 pb-24 lg:pb-8">
         <div className="mx-auto flex w-full max-w-wide flex-col items-center justify-between gap-4 px-5 sm:flex-row md:px-margin-desktop">
           <WhisperBrand href="/" size="sm" />
           <span className="text-xs text-text-soft">
@@ -284,32 +286,7 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      {/* Mobile Floating Bottom Bar */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 flex h-14 items-center justify-around border-t border-border-subtle bg-white/95 px-6 shadow-md backdrop-blur-md lg:hidden">
-        <Link
-          href="/"
-          className="flex flex-col items-center gap-1 text-[11px] font-semibold text-primary"
-        >
-          <Icon name="home" size={18} className="text-primary" />
-          Home
-        </Link>
-        <Link
-          href="/whisper"
-          className="flex flex-col items-center gap-1 text-[11px] font-semibold text-text-secondary hover:text-primary"
-        >
-          <span className="-mt-4 flex h-9 w-9 items-center justify-center rounded-full bg-primary text-lg font-bold text-white shadow-button-green">
-            +
-          </span>
-          Give Feedback
-        </Link>
-        <Link
-          href="/listwhispers"
-          className="flex flex-col items-center gap-1 text-[11px] font-semibold text-text-secondary hover:text-primary"
-        >
-          <Icon name="chat" size={18} className="text-text-secondary" />
-          Whispers
-        </Link>
-      </nav>
+      <MobileBottomNav />
     </main>
   );
 }
