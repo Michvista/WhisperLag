@@ -31,9 +31,9 @@ interface Survey {
 }
 
 const STATUS_META: Record<RecentWhisper["status"], { label: string; cls: string }> = {
-  ACTIONED: { label: "✓ Action Taken", cls: "bg-green-tint text-primary font-bold" },
-  ACKNOWLEDGED: { label: "⏱ Under Review", cls: "bg-amber-tint text-amber-800 font-bold" },
-  NEW: { label: "▣ Submitted", cls: "bg-slate-100 text-slate-700 font-bold" },
+  ACTIONED: { label: "Resolved", cls: "bg-green-tint text-primary font-bold" },
+  ACKNOWLEDGED: { label: "Under Review", cls: "bg-amber-tint text-amber-800 font-bold" },
+  NEW: { label: "Submitted", cls: "bg-slate-100 text-slate-700 font-bold" },
 };
 
 function formatDate(iso: string) {
@@ -253,111 +253,251 @@ function StaffDashboard() {
 
 // ─── Student Dashboard ──────────────────────────────────────────────────────
 
+const QUICK_ACTIONS = [
+  { href: "/evaluations", label: "Evaluations", icon: "star", iconBg: "bg-amber-tint", iconColor: "text-amber-700" },
+  { href: "/polls", label: "Polls", icon: "bar_chart", iconBg: "bg-blue-tint", iconColor: "text-secondary" },
+  { href: "/suggestion", label: "Suggestion Box", icon: "lightbulb", iconBg: "bg-amber-tint", iconColor: "text-amber-700" },
+  { href: "/track", label: "My Whispers", icon: "schedule", iconBg: "bg-green-tint", iconColor: "text-primary" },
+] as const;
+
 function StudentDashboard() {
   const recent = useFetch<RecentWhisper[]>("/feedback/recent");
   const surveys = useFetch<Survey[]>("/surveys");
   const items = recent.data;
 
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+
   return (
-    <div className="py-6 px-4 md:px-8 max-w-6xl mx-auto space-y-8">
-      {/* Welcome Banner */}
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-border-subtle bg-white p-6 shadow-card">
+    <div className="max-w-6xl mx-auto">
+      {/* ── MOBILE LAYOUT ── */}
+      <div className="space-y-4 lg:hidden">
+        {/* Greeting */}
         <div>
-          <span className="text-xs font-bold uppercase tracking-wider text-primary">
-            Student Voice Hub
-          </span>
-          <h1 className="mt-1 font-montserrat text-2xl font-bold text-navy sm:text-3xl">
-            Welcome to Whisper<span className="text-primary">Lag</span>
+          <h1 className="font-montserrat text-2xl font-bold text-navy">
+            {greeting}! 👋
           </h1>
-          <p className="mt-1 text-xs text-text-secondary">
-            Share confidential feedback, rate academic courses, and participate in active polls.
+          <p className="mt-0.5 text-xs text-text-secondary">
+            Your voice makes UNILAG a better place for students.
           </p>
         </div>
-        <Link href="/listwhispers" className="rounded-lg border border-border-subtle bg-white px-4 py-2 text-xs font-semibold text-navy hover:bg-slate-50">
-          Student Whispers →
-        </Link>
-      </div>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-        {/* Main: Feedback Wizard Card (7 cols) */}
-        <div className="rounded-xl border border-border-subtle bg-white p-6 shadow-card lg:col-span-7">
-          <WhisperForm />
+        {/* Give Feedback CTA */}
+        <Link
+          href="/whisper"
+          className="flex items-center justify-between rounded-xl bg-primary p-5 text-white shadow-button-green"
+        >
+          <div>
+            <div className="font-montserrat text-base font-bold">Give Feedback</div>
+            <div className="mt-0.5 text-xs opacity-80">Share your experience anonymously</div>
+          </div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20">
+            <Icon name="arrow_forward" size={20} className="text-white" />
+          </div>
+        </Link>
+
+        {/* Whisper Lock badge */}
+        <div className="flex items-center gap-3 rounded-xl border border-border-subtle bg-white p-4">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-green-tint">
+            <Icon name="lock" size={20} className="text-primary" />
+          </div>
+          <div>
+            <div className="text-xs font-bold text-navy">Your whisper is hidden</div>
+            <div className="text-[11px] text-text-secondary">Nobody knows it is you. No name. No matric number.</div>
+          </div>
         </div>
 
-        {/* Right: Active Polls & Recent Whispers (5 cols) */}
-        <div className="space-y-6 lg:col-span-5">
-          {/* Active Polls */}
-          <div className="rounded-xl border border-border-subtle bg-white p-5 shadow-card">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="font-montserrat text-xs font-bold uppercase tracking-wider text-text-soft">
-                Active Campus Polls
-              </h2>
-              <span className="flex h-2 w-2 rounded-full bg-primary" />
-            </div>
+        {/* Quick Actions */}
+        <div>
+          <div className="mb-2.5 flex items-center justify-between">
+            <span className="text-[10.5px] font-bold uppercase tracking-wider text-text-soft">Quick Actions</span>
+          </div>
+          <div className="grid grid-cols-4 gap-2">
+            {QUICK_ACTIONS.map((a) => (
+              <Link
+                key={a.href}
+                href={a.href}
+                className="flex flex-col items-center gap-1.5 rounded-xl border border-border-subtle bg-white p-3 text-center transition-all hover:border-slate-300"
+              >
+                <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${a.iconBg}`}>
+                  <Icon name={a.icon} size={18} className={a.iconColor} />
+                </div>
+                <span className="text-[10px] font-semibold leading-tight text-navy">{a.label}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
 
-            {surveys.loading ? (
-              <LoadingBlock label="Loading polls…" />
-            ) : surveys.error ? (
-              <ErrorBlock message={surveys.error} onRetry={surveys.refetch} />
-            ) : surveys.data && surveys.data.length > 0 ? (
-              <PollList
-                surveys={surveys.data.filter((s) => s.status === "OPEN")}
-                onDone={surveys.refetch}
-              />
-            ) : (
-              <p className="text-xs text-text-secondary">No open polls right now.</p>
-            )}
+        {/* My Whispers preview */}
+        <div>
+          <div className="mb-2.5 flex items-center justify-between">
+            <span className="text-[10.5px] font-bold uppercase tracking-wider text-text-soft">My Whispers</span>
+            <Link href="/track" className="text-xs font-semibold text-primary hover:underline">
+              See all
+            </Link>
           </div>
 
-          {/* Recent Activity */}
-          <div className="rounded-xl border border-border-subtle bg-white p-5 shadow-card">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="font-montserrat text-xs font-bold uppercase tracking-wider text-text-soft">
-                Recent Feedback Updates
-              </h2>
-              <Link href="/listwhispers" className="text-xs font-semibold text-secondary hover:underline">
-                View all →
-              </Link>
-            </div>
-
-            {recent.loading ? (
-              <LoadingBlock label="Loading updates…" />
-            ) : recent.error ? (
-              <ErrorBlock message={recent.error} onRetry={recent.refetch} />
-            ) : items && items.length > 0 ? (
-              <div className="space-y-2.5">
-                {items.slice(0, 5).map((w) => {
-                  const meta = STATUS_META[w.status];
-                  return (
-                    <div key={w.id} className="rounded-lg border border-border-subtle bg-slate-50/50 p-3 space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-primary">
-                          {w.category}
-                        </span>
-                        <span className={`rounded-md px-1.5 py-0.5 text-[10px] ${meta.cls}`}>
+          {recent.loading ? (
+            <LoadingBlock label="Loading whispers…" />
+          ) : recent.error ? (
+            <ErrorBlock message={recent.error} onRetry={recent.refetch} />
+          ) : items && items.length > 0 ? (
+            <div className="space-y-2">
+              {items.slice(0, 2).map((w) => {
+                const meta = STATUS_META[w.status];
+                return (
+                  <Link
+                    key={w.id}
+                    href="/track"
+                    className="flex items-center gap-3 rounded-xl border border-border-subtle bg-white p-3.5 transition-all hover:border-slate-300"
+                  >
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-green-tint">
+                      <Icon name="chat_bubble" size={16} className="text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-bold text-navy truncate">{w.category}</div>
+                      <div className="text-[11px] text-text-secondary truncate">
+                        {w.content.replace(/^\[.*?\]\s*/, "").slice(0, 50)}…
+                      </div>
+                      <div className="mt-1">
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] ${meta.cls}`}>
                           {meta.label}
                         </span>
                       </div>
-                      <div className="text-xs text-navy">
-                        <ExpandableText text={w.content} />
-                      </div>
-                      {w.status === "ACTIONED" && w.resolutionNote && (
-                        <div className="rounded-md border border-green-tint bg-green-tint p-2 text-xs font-semibold text-primary">
-                          ✓ Action: {w.resolutionNote}
-                        </div>
-                      )}
-                      <div className="text-[10px] text-text-soft">
-                        {formatDate(w.createdAt)}
-                      </div>
                     </div>
-                  );
-                })}
+                    <Icon name="chevron_right" size={16} className="text-text-soft" />
+                  </Link>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="rounded-xl border border-border-subtle bg-white p-4 text-center">
+              <p className="text-xs text-text-secondary">No whispers yet.</p>
+              <Link href="/whisper" className="mt-2 inline-block text-xs font-semibold text-primary hover:underline">
+                Submit your first feedback
+              </Link>
+            </div>
+          )}
+        </div>
+
+        {/* Active polls (mobile) */}
+        {surveys.data && surveys.data.filter((s) => s.status === "OPEN").length > 0 && (
+          <div>
+            <div className="mb-2.5 flex items-center justify-between">
+              <span className="text-[10.5px] font-bold uppercase tracking-wider text-text-soft">Active Polls</span>
+              <Link href="/polls" className="text-xs font-semibold text-primary hover:underline">See all</Link>
+            </div>
+            <div className="rounded-xl border border-border-subtle bg-white p-4 shadow-card">
+              <PollList
+                surveys={surveys.data.filter((s) => s.status === "OPEN").slice(0, 1)}
+                onDone={surveys.refetch}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── DESKTOP LAYOUT (unchanged from original) ── */}
+      <div className="hidden lg:block py-6 px-4 md:px-8 space-y-8">
+        {/* Welcome Banner */}
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-border-subtle bg-white p-6 shadow-card">
+          <div>
+            <span className="text-xs font-bold uppercase tracking-wider text-primary">
+              Student Voice Hub
+            </span>
+            <h1 className="mt-1 font-montserrat text-2xl font-bold text-navy sm:text-3xl">
+              Welcome to Whisper<span className="text-primary">Lag</span>
+            </h1>
+            <p className="mt-1 text-xs text-text-secondary">
+              Share confidential feedback, rate academic courses, and participate in active polls.
+            </p>
+          </div>
+          <Link href="/listwhispers" className="rounded-lg border border-border-subtle bg-white px-4 py-2 text-xs font-semibold text-navy hover:bg-slate-50">
+            Student Whispers →
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+          {/* Main: Feedback Wizard Card (7 cols) */}
+          <div className="rounded-xl border border-border-subtle bg-white p-6 shadow-card lg:col-span-7">
+            <WhisperForm />
+          </div>
+
+          {/* Right: Active Polls & Recent Whispers (5 cols) */}
+          <div className="space-y-6 lg:col-span-5">
+            {/* Active Polls */}
+            <div className="rounded-xl border border-border-subtle bg-white p-5 shadow-card">
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="font-montserrat text-xs font-bold uppercase tracking-wider text-text-soft">
+                  Active Campus Polls
+                </h2>
+                <span className="flex h-2 w-2 rounded-full bg-primary" />
               </div>
-            ) : (
-              <p className="text-xs text-text-secondary">
-                No recent whispers. Submit your first report to see updates here.
-              </p>
-            )}
+
+              {surveys.loading ? (
+                <LoadingBlock label="Loading polls…" />
+              ) : surveys.error ? (
+                <ErrorBlock message={surveys.error} onRetry={surveys.refetch} />
+              ) : surveys.data && surveys.data.length > 0 ? (
+                <PollList
+                  surveys={surveys.data.filter((s) => s.status === "OPEN")}
+                  onDone={surveys.refetch}
+                />
+              ) : (
+                <p className="text-xs text-text-secondary">No open polls right now.</p>
+              )}
+            </div>
+
+            {/* Recent Activity */}
+            <div className="rounded-xl border border-border-subtle bg-white p-5 shadow-card">
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="font-montserrat text-xs font-bold uppercase tracking-wider text-text-soft">
+                  Recent Feedback Updates
+                </h2>
+                <Link href="/listwhispers" className="text-xs font-semibold text-secondary hover:underline">
+                  View all →
+                </Link>
+              </div>
+
+              {recent.loading ? (
+                <LoadingBlock label="Loading updates…" />
+              ) : recent.error ? (
+                <ErrorBlock message={recent.error} onRetry={recent.refetch} />
+              ) : items && items.length > 0 ? (
+                <div className="space-y-2.5">
+                  {items.slice(0, 5).map((w) => {
+                    const meta = STATUS_META[w.status];
+                    return (
+                      <div key={w.id} className="rounded-lg border border-border-subtle bg-slate-50/50 p-3 space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-primary">
+                            {w.category}
+                          </span>
+                          <span className={`rounded-md px-1.5 py-0.5 text-[10px] ${meta.cls}`}>
+                            {meta.label}
+                          </span>
+                        </div>
+                        <div className="text-xs text-navy">
+                          <ExpandableText text={w.content} />
+                        </div>
+                        {w.status === "ACTIONED" && w.resolutionNote && (
+                          <div className="rounded-md border border-green-tint bg-green-tint p-2 text-xs font-semibold text-primary">
+                            ✓ Action: {w.resolutionNote}
+                          </div>
+                        )}
+                        <div className="text-[10px] text-text-soft">
+                          {formatDate(w.createdAt)}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-xs text-text-secondary">
+                  No recent whispers. Submit your first report to see updates here.
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </div>

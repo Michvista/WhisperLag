@@ -14,14 +14,12 @@ const ROLE_LABELS: Record<string, string> = {
   GUEST: "External Review",
 };
 
-const NAV_HINTS: Record<string, string> = {
-  "SIS / LMS": "Student & course records integration.",
-  "AI Insights": "Automatically groups anonymous whispers by shared viewpoint.",
-  "Course Hub": "Course syllabus and student ratings.",
-};
-
 function useNavItems() {
   const { role } = useAuth();
+
+  const isStudent = !role || role === "STUDENT" || role === "GUEST";
+
+  // Main nav items
   const items: { href: string; label: string; iconName: string }[] =
     role === "ADMIN"
       ? [
@@ -31,31 +29,44 @@ function useNavItems() {
           { href: "/courses", label: "Course Hub", iconName: "book" },
           { href: "/collaboration", label: "Collaboration", iconName: "chat" },
           { href: "/integrations", label: "SIS / LMS", iconName: "tune" },
-          { href: "/surveys", label: "Surveys", iconName: "summarize" },
+          { href: "/surveys", label: "Surveys & Polls", iconName: "summarize" },
           { href: "/reports", label: "Reports", iconName: "file" },
           { href: "/insights", label: "AI Insights", iconName: "sparkles" },
         ]
       : role === "FACULTY"
         ? [
             { href: "/whispers", label: "Whispers", iconName: "forum" },
-            { href: "/faculty", label: "Faculty", iconName: "school" },
+            { href: "/faculty", label: "Faculty Hub", iconName: "school" },
             { href: "/courses", label: "Course Hub", iconName: "book" },
-            { href: "/surveys", label: "Surveys", iconName: "summarize" },
+            { href: "/surveys", label: "Surveys & Polls", iconName: "summarize" },
             { href: "/collaboration", label: "Collaboration", iconName: "chat" },
             { href: "/reports", label: "Reports", iconName: "file" },
           ]
         : [
-            { href: "/dashboard", label: "Dashboard", iconName: "home" },
+            // Student primary nav
             { href: "/whisper", label: "Give Feedback", iconName: "add" },
+            { href: "/track", label: "Track Whisper", iconName: "search" },
             { href: "/listwhispers", label: "Student Whispers", iconName: "forum" },
-            { href: "/evaluate", label: "Rate a Course", iconName: "star" },
           ];
-  return { items, role };
+
+  // More section links for student desktop sidebar
+  const moreItems: { href: string; label: string; iconName: string }[] =
+    isStudent
+      ? [
+          { href: "/evaluations", label: "Evaluations", iconName: "star" },
+          { href: "/polls", label: "Campus Polls", iconName: "bar_chart" },
+          { href: "/suggestion", label: "Suggestion Box", iconName: "lightbulb" },
+          { href: "/notifications", label: "Notifications", iconName: "notifications" },
+          { href: "/settings", label: "Settings", iconName: "settings" },
+        ]
+      : [];
+
+  return { items, moreItems, role, isStudent };
 }
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { items, role } = useNavItems();
+  const { items, moreItems, role, isStudent } = useNavItems();
   const { logout } = useAuth();
   const [signingOut, setSigningOut] = useState(false);
 
@@ -70,36 +81,74 @@ export function Sidebar() {
         <WhisperBrand href={items[0]?.href ?? "/dashboard"} />
       </div>
 
-      <nav className="flex-1 px-3 py-5 space-y-1 overflow-y-auto">
-        <p className="mb-2.5 px-3 text-[10.5px] font-bold uppercase tracking-wider text-text-soft">
-          {ROLE_LABELS[role ?? ""] ?? "Portal"}
-        </p>
-        <ul className="flex flex-col gap-1">
-          {items.map((item) => {
-            const active = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
-            const hint = NAV_HINTS[item.label];
-            return (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  title={hint}
-                  className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold transition-all ${
-                    active
-                      ? "bg-green-tint text-primary font-bold shadow-2xs"
-                      : "text-text-secondary hover:bg-slate-50 hover:text-navy"
-                  }`}
-                >
-                  <Icon
-                    name={item.iconName}
-                    size={17}
-                    className={active ? "text-primary" : "text-text-secondary"}
-                  />
-                  {item.label}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+      <nav className="flex-1 px-3 py-4 space-y-4 overflow-y-auto">
+        <div>
+          <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-wider text-text-soft">
+            {ROLE_LABELS[role ?? ""] ?? "Student Portal"}
+          </p>
+          <ul className="flex flex-col gap-1">
+            {items.map((item) => {
+              const active = pathname === item.href || (item.href !== "/" && item.href !== "/dashboard" && pathname.startsWith(item.href));
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold transition-all ${
+                      active
+                        ? "bg-green-tint text-primary font-bold shadow-2xs"
+                        : "text-text-secondary hover:bg-slate-50 hover:text-navy"
+                    }`}
+                  >
+                    <Icon
+                      name={item.iconName}
+                      size={17}
+                      className={active ? "text-primary" : "text-text-secondary"}
+                    />
+                    {item.label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+
+        {/* More section directly visible on desktop for students */}
+        {isStudent && moreItems.length > 0 && (
+          <div className="border-t border-border-subtle pt-3">
+            <div className="mb-2 flex items-center justify-between px-3">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-text-soft">
+                More Features
+              </p>
+              <Link href="/more" className="text-[10px] font-bold text-primary hover:underline">
+                Hub →
+              </Link>
+            </div>
+            <ul className="flex flex-col gap-1">
+              {moreItems.map((item) => {
+                const active = pathname === item.href || pathname.startsWith(item.href + "/");
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      className={`flex items-center gap-3 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+                        active
+                          ? "bg-green-tint text-primary font-bold shadow-2xs"
+                          : "text-text-secondary hover:bg-slate-50 hover:text-navy"
+                      }`}
+                    >
+                      <Icon
+                        name={item.iconName}
+                        size={16}
+                        className={active ? "text-primary" : "text-text-soft"}
+                      />
+                      {item.label}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
       </nav>
 
       <div className="border-t border-border-subtle p-4">
@@ -120,38 +169,10 @@ export function Sidebar() {
   );
 }
 
+/**
+ * Legacy export — kept so existing imports compile.
+ * Actual mobile nav is now MobileBottomNav.
+ */
 export function MobileNav() {
-  const pathname = usePathname();
-  const { items } = useNavItems();
-  const { logout } = useAuth();
-
-  return (
-    <nav className="fixed inset-x-0 top-0 z-40 border-b border-border-subtle bg-white/95 backdrop-blur-md lg:hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border-subtle">
-        <WhisperBrand href="/dashboard" size="sm" />
-        <button
-          onClick={logout}
-          className="rounded-md border border-border-subtle bg-white px-2.5 py-1 text-[11px] font-semibold text-text-secondary"
-        >
-          Sign Out
-        </button>
-      </div>
-      <div className="no-scrollbar flex items-center gap-1.5 overflow-x-auto px-4 py-2">
-        {items.map((item) => {
-          const active = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`shrink-0 rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${
-                active ? "bg-green-tint text-primary font-bold" : "text-text-secondary hover:text-navy"
-              }`}
-            >
-              {item.label}
-            </Link>
-          );
-        })}
-      </div>
-    </nav>
-  );
+  return null;
 }

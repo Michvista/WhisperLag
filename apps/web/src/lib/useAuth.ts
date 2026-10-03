@@ -4,25 +4,34 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getRole, getToken, clearSession } from "./api";
 
+interface UseAuthOptions {
+  requireAuth?: boolean;
+}
+
 /**
- * Client-side auth guard. Redirects unauthenticated visitors to /login and
- * returns the current role. Keep using this until real HTTP-only cookie auth
- * replaces localStorage in production.
+ * Client-side role and auth hook.
+ * By default (requireAuth: false), allows anonymous visitors to freely use
+ * public student features (giving feedback, tracking, browsing public whispers).
+ * If requireAuth: true, redirects unauthenticated visitors to /login.
  */
-export function useAuth() {
+export function useAuth(options: UseAuthOptions = {}) {
+  const { requireAuth = false } = options;
   const router = useRouter();
   const [role, setRole] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const token = getToken();
-    if (!token) {
+    const currentRole = getRole();
+
+    if (!token && requireAuth) {
       router.replace("/login");
       return;
     }
-    setRole(getRole());
+
+    setRole(currentRole || (token ? "STUDENT" : null));
     setReady(true);
-  }, [router]);
+  }, [router, requireAuth]);
 
   function logout() {
     clearSession();

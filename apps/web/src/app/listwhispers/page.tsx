@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { WhisperBrand } from "@/components/ui/WhisperBrand";
 import { Icon } from "@/components/ui/Icon";
+import { AppShell } from "@/components/layout/AppShell";
 import { api } from "@/lib/api";
 
 interface WhisperItem {
@@ -55,41 +55,37 @@ export default function ListWhispersPage() {
   });
 
   return (
-    <div className="min-h-screen bg-background pb-24 text-navy">
-      {/* Top Header */}
-      <header className="sticky top-0 z-30 border-b border-border-subtle bg-white/95 backdrop-blur-md">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3 sm:px-6">
-          <WhisperBrand href="/" />
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Link
-              href="/track"
-              className="flex items-center gap-1.5 rounded-lg border border-border-subtle bg-white px-3 py-1.5 text-xs font-semibold text-navy hover:bg-slate-50 transition-colors"
-            >
-              <Icon name="search" size={14} className="text-primary" />
-              <span>Track Whisper</span>
-            </Link>
-            <Link
-              href="/whisper"
-              className="btn-primary-green px-3.5 py-1.5 text-xs font-semibold"
-            >
-              <Icon name="add" size={14} className="text-white" /> Give Feedback
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 space-y-6">
+    <AppShell>
+      <div className="mx-auto max-w-4xl space-y-6">
         {/* Header Title */}
-        <div className="border-b border-border-subtle pb-5">
-          <span className="text-xs font-bold uppercase tracking-wider text-primary">
-            Student Whispers Feed
-          </span>
-          <h1 className="mt-1 font-montserrat text-2xl font-bold tracking-tight text-navy sm:text-3xl">
-            Recent Student Whispers
-          </h1>
-          <p className="mt-1 text-xs text-text-secondary">
-            Explore anonymous student submissions and official university resolutions across departments.
-          </p>
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border-subtle pb-5">
+          <div>
+            <span className="text-xs font-bold uppercase tracking-wider text-primary">
+              Student Whispers Feed
+            </span>
+            <h1 className="mt-1 font-montserrat text-2xl font-bold tracking-tight text-navy sm:text-3xl">
+              Public Feedback & Resolutions
+            </h1>
+            <p className="mt-1 text-xs text-text-secondary">
+              Track general campus feedback and official university resolutions across departments.
+            </p>
+          </div>
+          <Link
+            href="/whisper"
+            className="btn-primary-green px-4 py-2 text-xs font-semibold"
+          >
+            <Icon name="add" size={14} className="text-white" /> Give Feedback
+          </Link>
+        </div>
+
+        {/* Sensitive Content Protection Policy Notice */}
+        <div className="flex items-start gap-3 rounded-xl border border-blue-tint bg-blue-tint/60 p-4">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-secondary shadow-2xs">
+            <Icon name="shield" size={16} className="text-secondary" />
+          </div>
+          <div className="text-xs text-navy">
+            <span className="font-bold">Confidentiality & Due Process:</span> To protect student safety and uphold fair academic due process, sensitive claims and specific personnel allegations are kept strictly confidential for University Quality Assurance review and are redacted from this public feed.
+          </div>
         </div>
 
         {/* Filter Tabs and Search */}
@@ -163,16 +159,20 @@ export default function ListWhispersPage() {
           <div className="space-y-3 max-h-[640px] overflow-y-auto pr-1">
             {filteredItems.map((item, idx) => {
               const isResolved = item.status === "ACTIONED";
+              const isLecturer = item.category === "Lecturer";
               const formattedDate = new Date(item.createdAt).toLocaleDateString("en-US", {
                 month: "short",
                 day: "numeric",
                 year: "numeric",
               });
 
+              // Clean message content
+              const rawContent = item.content.replace(/^\[.*?\]\s*/, "");
+
               return (
                 <article
                   key={item.id}
-                  className="rounded-xl border border-border-subtle bg-white p-4 shadow-card space-y-2 transition-all hover:border-slate-300"
+                  className="rounded-xl border border-border-subtle bg-white p-4 shadow-card space-y-2.5 transition-all hover:border-slate-300"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -182,6 +182,11 @@ export default function ListWhispersPage() {
                       <span className="rounded-md bg-green-tint px-2 py-0.5 text-[11px] font-bold text-primary">
                         {item.category}
                       </span>
+                      {isLecturer && (
+                        <span className="inline-flex items-center gap-1 rounded-md bg-amber-tint px-2 py-0.5 text-[10px] font-bold text-amber-800">
+                          <Icon name="lock" size={11} /> Confidential Review
+                        </span>
+                      )}
                     </div>
 
                     {isResolved ? (
@@ -195,12 +200,25 @@ export default function ListWhispersPage() {
                     )}
                   </div>
 
-                  <p className="text-xs leading-relaxed text-navy">
-                    &ldquo;{item.content.replace(/^\[.*?\]\s*/, "")}&rdquo;
-                  </p>
+                  {/* If Lecturer category and unresolved, redact sensitive accusation details */}
+                  {isLecturer && !isResolved ? (
+                    <div className="rounded-lg border border-amber-200/60 bg-amber-50/50 p-3 space-y-1">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-amber-900">
+                        <Icon name="visibility_off" size={14} className="text-amber-700" />
+                        Specific details redacted for faculty review
+                      </div>
+                      <p className="text-[11.5px] leading-relaxed text-slate-600">
+                        Academic teaching quality feedback submitted anonymously. Individual allegations and evidence files are restricted to accredited QA Committee members to prevent public disclosure during active investigation.
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-xs leading-relaxed text-navy">
+                      &ldquo;{rawContent}&rdquo;
+                    </p>
+                  )}
 
-                  {/* Attachment if available (refNumber is private to submitter) */}
-                  {item.attachmentUrl && (
+                  {/* Evidence attachment handling: public only for general facilities / non-lecturer matters */}
+                  {item.attachmentUrl && !isLecturer && (
                     <div className="pt-0.5">
                       <a
                         href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}${item.attachmentUrl}`}
@@ -214,13 +232,19 @@ export default function ListWhispersPage() {
                     </div>
                   )}
 
+                  {isLecturer && item.attachmentUrl && (
+                    <div className="text-[10.5px] text-text-soft flex items-center gap-1">
+                      <Icon name="lock" size={12} /> Supporting evidence delivered securely to review committee
+                    </div>
+                  )}
+
                   {item.resolutionNote && (
                     <div className="rounded-lg border border-green-tint bg-green-tint p-2.5 text-xs text-primary">
                       <strong className="font-bold">✓ Institutional Resolution:</strong> {item.resolutionNote}
                     </div>
                   )}
 
-                  <div className="text-[11px] text-text-soft pt-1">
+                  <div className="text-[11px] text-text-soft pt-0.5">
                     Submitted {formattedDate} · Anonymously via Whisper Lock
                   </div>
                 </article>
@@ -228,41 +252,7 @@ export default function ListWhispersPage() {
             })}
           </div>
         )}
-      </main>
-
-      {/* Mobile Floating Bottom Bar */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 flex h-14 items-center justify-around border-t border-border-subtle bg-white/95 px-4 shadow-md backdrop-blur-md lg:hidden">
-        <Link
-          href="/"
-          className="flex flex-col items-center gap-1 text-[11px] font-semibold text-text-secondary hover:text-primary"
-        >
-          <Icon name="home" size={18} />
-          Home
-        </Link>
-        <Link
-          href="/track"
-          className="flex flex-col items-center gap-1 text-[11px] font-semibold text-text-secondary hover:text-primary"
-        >
-          <Icon name="search" size={18} />
-          Track
-        </Link>
-        <Link
-          href="/whisper"
-          className="flex flex-col items-center gap-1 text-[11px] font-semibold text-primary"
-        >
-          <span className="-mt-4 flex h-9 w-9 items-center justify-center rounded-full bg-primary text-lg font-bold text-white shadow-button-green">
-            +
-          </span>
-          Give Feedback
-        </Link>
-        <Link
-          href="/listwhispers"
-          className="flex flex-col items-center gap-1 text-[11px] font-semibold text-primary"
-        >
-          <Icon name="chat" size={18} className="text-primary" />
-          Whispers
-        </Link>
-      </nav>
-    </div>
+      </div>
+    </AppShell>
   );
 }

@@ -3,8 +3,8 @@
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { WhisperBrand } from "@/components/ui/WhisperBrand";
 import { Icon } from "@/components/ui/Icon";
+import { AppShell } from "@/components/layout/AppShell";
 
 interface TrackResult {
   refNumber: string;
@@ -15,12 +15,12 @@ interface TrackResult {
 }
 
 const STATUS_META: Record<
-  TrackResult["status"],
+  "NEW" | "ACKNOWLEDGED" | "ACTIONED",
   { label: string; icon: string; cls: string; bg: string }
 > = {
-  NEW: { label: "Received", icon: "inbox", cls: "text-slate-700", bg: "bg-slate-100" },
+  NEW: { label: "Submitted", icon: "inbox", cls: "text-slate-700", bg: "bg-slate-100" },
   ACKNOWLEDGED: { label: "Under Review", icon: "schedule", cls: "text-amber-800", bg: "bg-amber-tint" },
-  ACTIONED: { label: "Resolved", icon: "verified", cls: "text-primary", bg: "bg-green-tint" },
+  ACTIONED: { label: "Resolved / Action Taken", icon: "verified", cls: "text-primary", bg: "bg-green-tint" },
 };
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
@@ -47,11 +47,8 @@ function TrackContent() {
       };
       if (!res.ok || !json.success) {
         let errorMsg = "No whisper found with that reference number. Please check the code and try again.";
-        if (typeof json.error === "string") {
-          errorMsg = json.error;
-        } else if (json.error && typeof json.error === "object" && json.error.message) {
-          errorMsg = json.error.message;
-        }
+        if (typeof json.error === "string") errorMsg = json.error;
+        else if (json.error && typeof json.error === "object" && json.error.message) errorMsg = json.error.message;
         setError(errorMsg);
         return;
       }
@@ -63,7 +60,7 @@ function TrackContent() {
     }
   }
 
-  // Auto-lookup when arriving from the success page with ?ref= pre-filled
+  // Auto-lookup if arriving with ?ref=
   useEffect(() => {
     const initialRef = searchParams.get("ref");
     if (initialRef?.startsWith("WL-")) {
@@ -76,7 +73,7 @@ function TrackContent() {
     e.preventDefault();
     const trimmed = ref.trim().toUpperCase();
     if (!trimmed.startsWith("WL-")) {
-      setError("Reference numbers start with WL- (e.g. WL-2026-118374).");
+      setError("Reference numbers begin with WL- (e.g. WL-2026-118374).");
       return;
     }
     await doLookup(trimmed);
@@ -85,133 +82,151 @@ function TrackContent() {
   const meta = result ? STATUS_META[result.status] : null;
 
   return (
-    <div className="min-h-screen bg-background text-navy">
-      {/* Header */}
-      <header className="sticky top-0 z-30 border-b border-border-subtle bg-white/95 backdrop-blur-md">
-        <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3 sm:px-6">
-          <WhisperBrand href="/" />
-          <Link
-            href="/whisper"
-            className="rounded-lg border border-border-subtle bg-white px-3.5 py-1.5 text-xs font-semibold text-navy hover:bg-slate-50 transition-colors"
-          >
-            Give Feedback →
-          </Link>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
-        {/* Hero */}
-        <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-green-tint">
-            <Icon name="search" size={28} className="text-primary" />
-          </div>
-          <h1 className="font-montserrat text-2xl font-bold tracking-tight text-navy sm:text-3xl">
+    <AppShell>
+      <div className="mx-auto max-w-2xl space-y-6">
+        {/* Header */}
+        <div className="text-center sm:text-left">
+          <span className="text-xs font-bold uppercase tracking-wider text-primary">
+            Anonymous Tracking
+          </span>
+          <h1 className="mt-1 font-montserrat text-2xl font-bold tracking-tight text-navy sm:text-3xl">
             Track Your Whisper
           </h1>
-          <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-            Enter the reference number from your submission confirmation to check its current status.
+          <p className="mt-1 text-xs text-text-secondary">
+            Enter your unique reference number to check the investigation and resolution status of your submission.
           </p>
         </div>
 
-        {/* Lookup Form */}
-        <div className="rounded-2xl border border-border-subtle bg-white p-6 shadow-card">
-          <form onSubmit={handleLookup} className="space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-navy">
-                Feedback Reference Number
-              </label>
+        {/* Lookup Box */}
+        <div className="rounded-2xl border border-border-subtle bg-white p-6 shadow-card space-y-4">
+          <form onSubmit={handleLookup} className="space-y-3">
+            <label className="block text-xs font-bold uppercase tracking-wider text-navy">
+              Reference Number
+            </label>
+            <div className="flex flex-col gap-2 sm:flex-row">
               <input
                 type="text"
                 value={ref}
                 onChange={(e) => setRef(e.target.value)}
                 placeholder="WL-2026-118374"
-                className="wl-input font-mono tracking-wider"
+                className="wl-input flex-1 font-mono tracking-wider text-sm"
                 spellCheck={false}
                 autoComplete="off"
               />
-              <p className="text-[11px] text-text-soft">
-                Found on your submission confirmation page. Format: WL-YYYY-XXXXXX
-              </p>
+              <button
+                type="submit"
+                disabled={loading || !ref.trim()}
+                className="btn-primary-green shrink-0 px-6 py-2.5 text-sm font-semibold disabled:opacity-50"
+              >
+                {loading ? "Checking…" : "Track Status →"}
+              </button>
             </div>
-
-            {error && (
-              <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-xs font-semibold text-red-700">
-                <Icon name="error" size={14} className="shrink-0 text-red-600" />
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading || !ref.trim()}
-              className="btn-primary-green w-full py-3 text-sm font-semibold disabled:opacity-50"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  Searching…
-                </span>
-              ) : (
-                "Check Status →"
-              )}
-            </button>
+            <p className="text-[11px] text-text-soft">
+              Found on your confirmation screen upon submission. Format: WL-YYYY-XXXXXX
+            </p>
           </form>
 
-          {/* Result */}
+          {error && (
+            <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-xs font-semibold text-red-700">
+              <Icon name="error" size={16} className="shrink-0 text-red-600" />
+              {error}
+            </div>
+          )}
+
+          {/* Result and Status Timeline */}
           {result && meta && (
-            <div className="mt-6 space-y-4 border-t border-border-subtle pt-6">
-              {/* Status pill */}
+            <div className="mt-6 border-t border-border-subtle pt-6 space-y-5">
+              {/* Summary Banner */}
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-wider text-text-soft">
-                  Status
-                </span>
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-text-soft">
+                    Category
+                  </span>
+                  <div className="font-montserrat text-sm font-bold text-navy">
+                    {result.category}
+                  </div>
+                </div>
                 <span
                   className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${meta.bg} ${meta.cls}`}
                 >
-                  <Icon name={meta.icon} size={13} />
+                  <Icon name={meta.icon} size={14} />
                   {meta.label}
                 </span>
               </div>
 
-              {/* Category + Date */}
-              <div className="grid grid-cols-2 gap-4 rounded-xl border border-border-subtle bg-slate-50/70 p-4">
-                <div>
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-text-soft">
-                    Category
+              {/* Status Timeline */}
+              <div className="rounded-xl border border-border-subtle bg-slate-50/70 p-4 space-y-3">
+                <div className="text-xs font-bold text-navy">Status Timeline</div>
+                
+                <div className="space-y-4">
+                  {/* Step 1 */}
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-white text-[10px] font-bold">
+                      ✓
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-navy">Feedback Received & Encrypted</div>
+                      <div className="text-[11px] text-text-soft">
+                        Submitted on {new Date(result.createdAt).toLocaleDateString(undefined, {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })} · Reference: {result.refNumber}
+                      </div>
+                    </div>
                   </div>
-                  <div className="mt-0.5 text-xs font-semibold text-navy">
-                    {result.category}
+
+                  {/* Step 2 */}
+                  <div className="flex items-start gap-3">
+                    <div
+                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
+                        result.status === "ACKNOWLEDGED" || result.status === "ACTIONED"
+                          ? "bg-primary text-white"
+                          : "border-2 border-slate-300 bg-white text-slate-400"
+                      }`}
+                    >
+                      {result.status === "ACKNOWLEDGED" || result.status === "ACTIONED" ? "✓" : "2"}
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-navy">Under Active Review</div>
+                      <div className="text-[11px] text-text-secondary">
+                        {result.status === "NEW"
+                          ? "Awaiting departmental assignment and review."
+                          : "Assigned to the relevant Quality Assurance committee."}
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-text-soft">
-                    Submitted
-                  </div>
-                  <div className="mt-0.5 text-xs font-semibold text-navy">
-                    {new Date(result.createdAt).toLocaleDateString(undefined, {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
-                  </div>
-                </div>
-                <div className="col-span-2">
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-text-soft">
-                    Reference
-                  </div>
-                  <div className="mt-0.5 font-mono text-xs font-bold text-primary">
-                    {result.refNumber}
+
+                  {/* Step 3 */}
+                  <div className="flex items-start gap-3">
+                    <div
+                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
+                        result.status === "ACTIONED"
+                          ? "bg-primary text-white"
+                          : "border-2 border-slate-300 bg-white text-slate-400"
+                      }`}
+                    >
+                      {result.status === "ACTIONED" ? "✓" : "3"}
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-navy">Resolution & Action</div>
+                      <div className="text-[11px] text-text-secondary">
+                        {result.status === "ACTIONED"
+                          ? result.resolutionNote || "Issue addressed by the university."
+                          : "Action steps will be published here once finalized."}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Resolution Note */}
+              {/* Resolution Note Alert */}
               {result.status === "ACTIONED" && result.resolutionNote && (
                 <div className="rounded-xl border border-green-tint bg-green-tint p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Icon name="verified" size={14} className="text-primary" />
+                  <div className="flex items-center gap-2 mb-1">
+                    <Icon name="verified" size={16} className="text-primary" />
                     <span className="text-xs font-bold text-primary">
-                      Institutional Response
+                      Official Institutional Resolution
                     </span>
                   </div>
                   <p className="text-xs leading-relaxed text-text-secondary">
@@ -219,31 +234,31 @@ function TrackContent() {
                   </p>
                 </div>
               )}
-
-              {/* Pending message */}
-              {result.status !== "ACTIONED" && (
-                <div className="rounded-xl border border-border-subtle bg-slate-50/70 p-4 text-center">
-                  <p className="text-xs leading-relaxed text-text-secondary">
-                    {result.status === "NEW"
-                      ? "Your whisper has been received and is awaiting review by the relevant team."
-                      : "Your whisper is currently under active review. A resolution will be published here when action is taken."}
-                  </p>
-                </div>
-              )}
             </div>
           )}
         </div>
 
-        {/* Privacy note */}
-        <p className="mt-6 text-center text-[11px] leading-relaxed text-text-soft">
-          Only status and resolution details are shown — no personal information is ever stored or
-          displayed.{" "}
-          <Link href="/listwhispers" className="text-primary font-semibold hover:underline">
-            View all public whispers →
-          </Link>
+        {/* Link to public whispers */}
+        <div className="rounded-xl border border-border-subtle bg-white p-4 text-center">
+          <span className="text-xs text-text-secondary">
+            Looking for public feedback and general campus discussions?
+          </span>
+          <div className="mt-1">
+            <Link
+              href="/listwhispers"
+              className="text-xs font-bold text-primary hover:underline"
+            >
+              Browse Student Whispers Feed →
+            </Link>
+          </div>
+        </div>
+
+        {/* Privacy Note */}
+        <p className="text-center text-[11px] text-text-soft">
+          WhisperLock Protected · No matric number, name, or student session details are ever displayed.
         </p>
-      </main>
-    </div>
+      </div>
+    </AppShell>
   );
 }
 

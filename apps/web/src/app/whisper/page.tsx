@@ -5,28 +5,29 @@ import { WhisperLogo } from "@/components/ui/WhisperLogo";
 import { Icon } from "@/components/ui/Icon";
 import { PublicPolls } from "@/components/feedback/PublicPolls";
 import { PublicRecent } from "@/components/feedback/PublicRecent";
+import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 
 export default function WhisperPage() {
   return (
     <div className="min-h-screen bg-background pb-24 text-navy">
       {/* Top Header */}
       <header className="sticky top-0 z-30 border-b border-border-subtle bg-white/95 backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
-          <WhisperBrand href="/" />
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-3 py-2.5 sm:px-6">
+          <WhisperBrand href="/" size="sm" />
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3">
             <Link
               href="/track"
-              className="flex items-center gap-1.5 rounded-lg border border-border-subtle bg-white px-3 py-1.5 text-xs font-semibold text-navy hover:bg-slate-50 transition-colors"
+              className="flex items-center gap-1 rounded-lg border border-border-subtle bg-white px-2.5 py-1.5 text-[11px] sm:text-xs font-semibold text-navy hover:bg-slate-50 transition-colors"
             >
-              <Icon name="search" size={14} className="text-primary" />
-              <span>Track Whisper</span>
+              <Icon name="search" size={13} className="text-primary" />
+              <span className="hidden xs:inline">Track</span>
             </Link>
             <Link
               href="/listwhispers"
-              className="rounded-lg border border-border-subtle bg-white px-3.5 py-1.5 text-xs font-semibold text-navy hover:bg-slate-50 transition-colors"
+              className="rounded-lg border border-border-subtle bg-white px-2.5 py-1.5 text-[11px] sm:text-xs font-semibold text-navy hover:bg-slate-50 transition-colors"
             >
-              Student Whispers
+              <span className="hidden sm:inline">Student </span>Whispers
             </Link>
           </div>
         </div>
@@ -86,39 +87,8 @@ export default function WhisperPage() {
         </div>
       </main>
 
-      {/* Mobile Floating Bottom Bar */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 flex h-14 items-center justify-around border-t border-border-subtle bg-white/95 px-4 shadow-md backdrop-blur-md lg:hidden">
-        <Link
-          href="/"
-          className="flex flex-col items-center gap-1 text-[11px] font-semibold text-text-secondary hover:text-primary"
-        >
-          <Icon name="home" size={18} />
-          Home
-        </Link>
-        <Link
-          href="/track"
-          className="flex flex-col items-center gap-1 text-[11px] font-semibold text-text-secondary hover:text-primary"
-        >
-          <Icon name="search" size={18} />
-          Track
-        </Link>
-        <Link
-          href="/whisper"
-          className="flex flex-col items-center gap-1 text-[11px] font-semibold text-primary"
-        >
-          <span className="-mt-4 flex h-9 w-9 items-center justify-center rounded-full bg-primary text-lg font-bold text-white shadow-button-green">
-            +
-          </span>
-          Give Feedback
-        </Link>
-        <Link
-          href="/listwhispers"
-          className="flex flex-col items-center gap-1 text-[11px] font-semibold text-text-secondary hover:text-primary"
-        >
-          <Icon name="chat" size={18} />
-          Whispers
-        </Link>
-      </nav>
+
+      <MobileBottomNav />
     </div>
   );
 }

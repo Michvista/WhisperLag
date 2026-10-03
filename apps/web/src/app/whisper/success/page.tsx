@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { WhisperBrand } from "@/components/ui/WhisperBrand";
 import { Icon } from "@/components/ui/Icon";
+import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 
 function WhisperSuccessContent() {
   const searchParams = useSearchParams();
@@ -199,14 +200,14 @@ function WhisperSuccessContent() {
           </Link>
 
           <Link
-            href="/whispers"
+            href="/track"
             className="btn-primary-green w-full py-4 text-center text-sm font-extrabold"
           >
             View My Whispers &nbsp;→
           </Link>
 
           <Link
-            href="/"
+            href="/dashboard"
             className="btn-primary-blue w-full py-4 text-center text-sm font-extrabold"
           >
             Back to Home &nbsp;→
@@ -218,6 +219,8 @@ function WhisperSuccessContent() {
           <Link href="/track" className="text-primary font-semibold hover:underline">/track</Link>
         </p>
       </main>
+
+      <MobileBottomNav />
     </div>
   );
 }

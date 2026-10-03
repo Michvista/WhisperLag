@@ -1,12 +1,14 @@
 "use client";
 
 import { Footer } from "./Footer";
-import { MobileNav, Sidebar } from "./Sidebar";
+import { Sidebar } from "./Sidebar";
+import { MobileBottomNav } from "./MobileBottomNav";
 import { useAuth } from "@/lib/useAuth";
 
 /**
  * Authenticated app shell. Shows a loader while auth resolves, then renders
- * the role-aware nav (sidebar on desktop, top bar on mobile) beside content.
+ * the role-aware nav (sidebar on desktop, bottom nav on mobile for students)
+ * beside content.
  */
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { ready } = useAuth();
@@ -22,9 +24,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col bg-surface">
       <Sidebar />
-      <MobileNav />
+      <MobileBottomNav />
       <div className="flex min-h-screen flex-col lg:pl-64">
-        <main className="w-full flex-1 px-margin-mobile pb-12 pt-28 lg:px-margin-desktop lg:pt-12">
+        {/* Extra bottom padding on mobile for the bottom nav bar */}
+        <main className="w-full flex-1 px-margin-mobile pb-20 pt-6 lg:px-margin-desktop lg:pt-12">
           {children}
         </main>
         <Footer />

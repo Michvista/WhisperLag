@@ -35,7 +35,7 @@ interface WhisperFeed {
 }
 
 
-type FilterTab = "All" | "New" | "Under Review" | "Resolved";
+type FilterTab = "All" | "New" | "Under Review" | "Suggestions" | "Resolved";
 
 function parseTitleFromContent(content: string, category: string, aiTag: WhisperItem["aiTag"]): string {
   if (aiTag?.lecturer) return aiTag.lecturer;
@@ -144,11 +144,13 @@ export default function WhispersPage() {
   const allCount = items.length;
   const newCount = items.filter((w) => w.status === "NEW").length;
   const reviewCount = items.filter((w) => w.status === "ACKNOWLEDGED").length;
+  const suggestionCount = items.filter((w) => w.content.includes("[Suggestion Box]") || w.category === "Other").length;
   const resolvedCount = items.filter((w) => w.status === "ACTIONED").length;
 
   const filteredItems = items.filter((item) => {
     if (activeTab === "New" && item.status !== "NEW") return false;
     if (activeTab === "Under Review" && item.status !== "ACKNOWLEDGED") return false;
+    if (activeTab === "Suggestions" && !item.content.includes("[Suggestion Box]") && item.category !== "Other") return false;
     if (activeTab === "Resolved" && item.status !== "ACTIONED") return false;
 
     if (!searchQuery.trim()) return true;
@@ -210,6 +212,7 @@ export default function WhispersPage() {
             { id: "All" as FilterTab, label: "All", count: allCount },
             { id: "New" as FilterTab, label: "New", count: newCount },
             { id: "Under Review" as FilterTab, label: "Under Review", count: reviewCount },
+            { id: "Suggestions" as FilterTab, label: "💡 Suggestions", count: suggestionCount },
             { id: "Resolved" as FilterTab, label: "Resolved", count: resolvedCount },
           ].map((tab) => {
             const isActive = activeTab === tab.id;
@@ -275,6 +278,7 @@ export default function WhispersPage() {
             const body = cleanBody(item.content);
             const isResolved = item.status === "ACTIONED";
             const isUnderReview = item.status === "ACKNOWLEDGED";
+            const isSuggestion = item.content.includes("[Suggestion Box]");
 
             const formattedDate = new Date(item.createdAt).toLocaleDateString("en-US", {
               month: "short",
@@ -296,6 +300,11 @@ export default function WhispersPage() {
                       <span className="rounded-md bg-green-tint px-2 py-0.5 text-[11px] font-bold text-primary">
                         {item.category}
                       </span>
+                      {isSuggestion && (
+                        <span className="rounded-md bg-amber-tint px-2 py-0.5 text-[11px] font-bold text-amber-800">
+                          💡 Suggestion Box
+                        </span>
+                      )}
                       {item.department && (
                         <span className="text-[11px] font-medium text-text-secondary">
                           · {item.department.name}
