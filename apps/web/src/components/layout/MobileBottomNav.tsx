@@ -26,7 +26,7 @@ const STAFF_ROUTES = [
 
 const STUDENT_TABS: TabItem[] = [
   { href: "/", label: "Home", icon: "home" },
-  { href: "/whisper", label: "Give Feedback", icon: "add", isPrimary: true },
+  { href: "/whisper", label: "Give Feedback", icon: "rate_review" },
   { href: "/track", label: "Track", icon: "search" },
   { href: "/more", label: "More", icon: "widgets" },
 ];
@@ -40,51 +40,26 @@ export function MobileBottomNav() {
   if (isStaffRoute && (role === "ADMIN" || role === "FACULTY")) return null;
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-[100] flex h-16 items-end border-t border-border-subtle bg-white/95 pb-2 shadow-lg backdrop-blur-md lg:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-[100] flex h-14 items-center justify-around border-t border-border-subtle bg-white/95 px-2 shadow-lg backdrop-blur-md lg:hidden">
       {STUDENT_TABS.map((tab) => {
         const active =
           tab.href === "/"
             ? pathname === "/" || pathname === "/dashboard"
             : pathname === tab.href || pathname.startsWith(tab.href + "/");
 
-        if (tab.isPrimary) {
-          return (
-            <Link
-              key={tab.href}
-              href={tab.href}
-              className="flex flex-1 flex-col items-center gap-0.5 pb-1"
-            >
-              <span
-                className={`-mt-5 flex h-11 w-11 items-center justify-center rounded-full shadow-button-green transition-all ${
-                  active ? "bg-primary-dark" : "bg-primary"
-                }`}
-              >
-                <Icon name={tab.icon} size={22} className="text-white" />
-              </span>
-              <span
-                className={`text-[10px] font-semibold leading-tight ${
-                  active ? "text-primary font-bold" : "text-text-soft"
-                }`}
-              >
-                {tab.label}
-              </span>
-            </Link>
-          );
-        }
-
         return (
           <Link
             key={tab.href}
             href={tab.href}
-            className="flex flex-1 flex-col items-center gap-0.5 pb-1 pt-1.5"
+            className="flex flex-1 flex-col items-center justify-center gap-1 py-1 transition-colors"
           >
             <Icon
               name={tab.icon}
-              size={22}
+              size={20}
               className={active ? "text-primary" : "text-text-soft"}
             />
             <span
-              className={`text-[10px] font-semibold leading-tight ${
+              className={`text-[10px] font-semibold leading-none ${
                 active ? "text-primary font-bold" : "text-text-soft"
               }`}
             >

@@ -250,6 +250,20 @@ const PATHS: Record<string, React.ReactNode> = {
   refresh: (
     <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 0 1-15.357-2m15.357 2H15" />
   ),
+  widgets: (
+    <>
+      <rect x="3" y="3" width="7" height="7" rx="1.5" />
+      <rect x="14" y="3" width="7" height="7" rx="1.5" />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" />
+      <rect x="14" y="14" width="7" height="7" rx="1.5" />
+    </>
+  ),
+  rate_review: (
+    <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h8M8 16h5M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H7l-4 3V6a2 2 0 0 1 2-2Z" />
+  ),
+  chat_bubble: (
+    <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h8M8 14h5M21 12c0 4.418-4.03 8-9 8a9.77 9.77 0 0 1-4-.837L3 21l1.1-3.5C3.4 16.13 3 14.614 3 13c0-4.418 4.03-8 9-8s9 3.582 9 7Z" />
+  ),
 };
 
 /**
