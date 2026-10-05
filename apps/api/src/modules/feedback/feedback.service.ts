@@ -201,6 +201,12 @@ export class FeedbackService {
    */
   async recent(limit = 8) {
     return prisma.whisper.findMany({
+      where: {
+        NOT: [
+          { category: { in: ["Lecturer", "Lecturers", "Lecturer / Supervisor"] } },
+          { content: { startsWith: "[Lecturer" } },
+        ],
+      },
       orderBy: { createdAt: "desc" },
       take: limit,
       select: {

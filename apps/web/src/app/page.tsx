@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import { useReducedMotion } from "framer-motion";
 import { WhisperBrand } from "@/components/ui/WhisperBrand";
 import { Icon } from "@/components/ui/Icon";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
@@ -66,25 +65,6 @@ const DEFAULT_MOCK_WHISPERS: {
   },
 ];
 
-const TRUST_ITEMS = [
-  {
-    num: "01",
-    title: "Cryptographically Anonymous",
-    body: "Every submission is stripped of identifying metadata before it reaches our servers. The Whisper Lock ensures your identity remains solely yours.",
-  },
-  {
-    num: "02",
-    title: "Editorial Clarity & Dignity",
-    body: "We prioritize the substance of your message. A calm, distraction-free space to articulate complex concerns with focus and institutional respect.",
-  },
-  {
-    num: "03",
-    title: "Direct Institutional Routing",
-    body: "Feedback isn't shouted into a void. It is securely routed to the appropriate faculty boards and Quality Assurance units for confidential review.",
-  },
-];
-
-
 function formatTimeAgo(isoString: string): string {
   try {
     const diffMs = Date.now() - new Date(isoString).getTime();
@@ -102,75 +82,38 @@ function formatTimeAgo(isoString: string): string {
   }
 }
 
-/** Animated counter for the live stats band. */
-function Counter({ value, suffix = "" }: { value: number; suffix?: string }) {
-  const reduce = useReducedMotion();
-  const [n, setN] = useState(0);
-
-  useEffect(() => {
-    if (reduce) {
-      setN(value);
-      return;
-    }
-    const duration = 1000;
-    const start = performance.now();
-    let raf = 0;
-    const step = (t: number) => {
-      const p = Math.min(1, (t - start) / duration);
-      setN(Math.round(value * (1 - Math.pow(1 - p, 3))));
-      if (p < 1) raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [value, reduce]);
-
-  return (
-    <span className="font-montserrat text-3xl font-bold tracking-tight text-navy md:text-4xl">
-      {n.toLocaleString()}
-      <span className="text-primary">{suffix}</span>
-    </span>
-  );
-}
-
 export default function LandingPage() {
   const { role } = useAuth();
-  const [stats, setStats] = useState<{ whispers: number; departments: number; rate: number } | null>(null);
   const [liveWhispers, setLiveWhispers] = useState<PublicWhisper[]>([]);
   const [filterStatus, setFilterStatus] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const d = await api<{ totalWhispers: number; totalDepartments: number; resolutionRate: number }>(
-          "/stats/public",
-          { cache: "no-store" },
-        );
-        setStats({ whispers: d.totalWhispers, departments: d.totalDepartments, rate: d.resolutionRate });
-      } catch {
-        setStats({ whispers: 48, departments: 16, rate: 96 });
-      }
-    };
-
     const fetchRecentWhispers = async () => {
       try {
-        const items = await api<PublicWhisper[]>("/feedback/public-recent?limit=8", { cache: "no-store" });
+        const items = await api<PublicWhisper[]>("/feedback/public-recent?limit=20", { cache: "no-store" });
         if (items && items.length > 0) {
           setLiveWhispers(items);
         }
       } catch {
-        // Fallback gracefully to default items
+        // Fallback gracefully to default mock items
       }
     };
 
-    void fetchStats();
     void fetchRecentWhispers();
   }, []);
 
   // Normalise whispers combining live database submissions with default examples
+  // Strictly filter out sensitive lecturer feedback from public landing page
   const displayWhispers = useMemo(() => {
-    if (liveWhispers.length > 0) {
-      return liveWhispers.map((w, idx) => {
+    const publicItems = liveWhispers.filter((w) => {
+      const cat = (w.category || "").toLowerCase();
+      const content = (w.content || "").toLowerCase();
+      return !cat.includes("lecturer") && !content.startsWith("[lecturer");
+    });
+
+    if (publicItems.length > 0) {
+      return publicItems.map((w, idx) => {
         let statusLabel: "Under Review" | "Action Taken" | "Resolved" = "Under Review";
         if (w.status === "ACTIONED") {
           statusLabel = w.resolutionNote ? "Resolved" : "Action Taken";
@@ -178,7 +121,6 @@ export default function LandingPage() {
           statusLabel = "Under Review";
         }
 
-        // Generate a concise title if content doesn't have markdown title
         const cleanContent = w.content.replace(/^\[.*?\]\s*/, "");
         const firstSentence = cleanContent.split(/[.!?\n]/)[0] || "Campus Experience";
         const title = firstSentence.length > 40 ? `${firstSentence.slice(0, 37)}…` : firstSentence;
@@ -320,30 +262,30 @@ export default function LandingPage() {
               </div>
 
               {/* Actions row: Give Feedback CTA + 100% Anonymous Badge */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 pt-2">
                 <Link
                   href="/whisper"
-                  className="group flex items-center justify-between sm:justify-start gap-3 rounded-xl bg-primary px-6 py-4 text-white shadow-button-green transition-all hover:bg-primary-hover active:scale-[0.99]"
+                  className="group flex items-center justify-between sm:justify-start gap-3.5 rounded-2xl bg-primary px-6 py-4 text-white shadow-button-green transition-all hover:bg-primary-hover hover:shadow-lg active:scale-[0.99]"
                 >
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/20">
-                    <Icon name="chat" size={18} className="text-white" />
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/20">
+                    <Icon name="chat" size={20} className="text-white" />
                   </div>
                   <div className="text-left">
                     <div className="font-montserrat text-sm font-bold flex items-center gap-1.5">
                       <span>Give Feedback</span>
                       <span className="transition-transform group-hover:translate-x-1">→</span>
                     </div>
-                    <div className="text-[11px] text-white/80">Share your experience anonymously</div>
+                    <div className="text-[11.5px] text-white/85">Share your experience anonymously</div>
                   </div>
                 </Link>
 
-                <div className="flex items-center gap-3 rounded-xl border border-green-200/80 bg-green-50/70 p-3 sm:py-3.5 sm:px-4">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-green-100 text-primary">
-                    <Icon name="lock" size={18} className="text-primary" />
+                <div className="flex items-center gap-3.5 rounded-2xl border border-green-200/80 bg-green-50/70 p-3.5 sm:px-4">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-100 text-primary">
+                    <Icon name="lock" size={20} className="text-primary" />
                   </div>
                   <div>
                     <div className="text-xs font-bold text-navy">100% Anonymous</div>
-                    <div className="text-[10.5px] text-text-secondary leading-snug">
+                    <div className="text-[11px] text-text-secondary leading-snug">
                       No name, no matric number, no personal information.
                     </div>
                   </div>
@@ -682,60 +624,6 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ── Live Stats Band ── */}
-        <section className="rounded-xl border border-border-subtle bg-white p-6 shadow-card">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            <div className="flex flex-col gap-1 md:border-r md:border-border-subtle md:pr-6">
-              <span className="text-xs font-bold uppercase tracking-wider text-text-soft">
-                Anonymous Whispers Submitted
-              </span>
-              <Counter value={stats?.whispers ?? 48} />
-              <span className="text-xs font-semibold text-primary">Every identity protected</span>
-            </div>
-            <div className="flex flex-col gap-1 md:border-r md:border-border-subtle md:px-6">
-              <span className="text-xs font-bold uppercase tracking-wider text-text-soft">
-                Faculties &amp; Units Covered
-              </span>
-              <Counter value={stats?.departments ?? 16} />
-              <span className="text-xs font-semibold text-secondary">Across the University of Lagos</span>
-            </div>
-            <div className="flex flex-col gap-1 md:pl-6">
-              <span className="text-xs font-bold uppercase tracking-wider text-text-soft">
-                Resolution Rate
-              </span>
-              <Counter value={stats?.rate ?? 96} suffix="%" />
-              <span className="text-xs font-semibold text-text-secondary">Closed through institutional review</span>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Architecture of Trust Section ── */}
-        <section id="trust" className="rounded-xl border border-border-subtle bg-white p-6 sm:p-8 shadow-card">
-          <div className="mb-6">
-            <span className="text-xs font-bold uppercase tracking-wider text-primary">
-              Security &amp; Charter
-            </span>
-            <h2 className="mt-1 font-montserrat text-2xl font-extrabold text-navy">
-              The Architecture of Trust
-            </h2>
-          </div>
-          <div className="space-y-4">
-            {TRUST_ITEMS.map((item) => (
-              <div
-                key={item.title}
-                className="flex flex-col gap-2 border-t border-border-subtle pt-4 sm:flex-row sm:items-start sm:gap-6"
-              >
-                <span className="font-montserrat text-lg font-extrabold text-primary sm:w-10">
-                  {item.num}
-                </span>
-                <div className="flex-1">
-                  <h3 className="font-montserrat text-sm font-bold text-navy">{item.title}</h3>
-                  <p className="mt-0.5 text-xs leading-relaxed text-text-secondary">{item.body}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
       </div>
 
       {/* ── Footer ── */}

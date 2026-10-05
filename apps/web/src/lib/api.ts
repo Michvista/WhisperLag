@@ -56,10 +56,24 @@ export async function api<T>(
     },
   });
 
-  const body = (await res.json().catch(() => ({}))) as ApiErrorBody & { data?: T };
+  const body = (await res.json().catch(() => ({}))) as any;
 
   if (!res.ok) {
-    throw new Error(body.error?.message ?? `Request failed (${res.status})`);
+    let msg = `Request failed (${res.status})`;
+    if (typeof body === "string" && body) {
+      msg = body;
+    } else if (body && typeof body === "object") {
+      if (typeof body.error === "string" && body.error) {
+        msg = body.error;
+      } else if (body.error && typeof body.error === "object" && body.error.message) {
+        msg = body.error.message;
+      } else if (body.message && typeof body.message === "string") {
+        msg = body.message;
+      } else if (Array.isArray(body.error)) {
+        msg = body.error.map((e: any) => e.message || String(e)).join("; ");
+      }
+    }
+    throw new Error(msg);
   }
 
   return body.data as T;

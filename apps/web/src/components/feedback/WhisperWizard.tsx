@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { flushOutbox, submitWhisperOfflineAware } from "@/lib/offline";
 import { toast } from "@/lib/toast";
-import { api } from "@/lib/api";
+import { api, API_BASE } from "@/lib/api";
 import { Icon } from "@/components/ui/Icon";
 
 export interface CategoryOption {
@@ -69,14 +69,6 @@ export const CATEGORY_OPTIONS: CategoryOption[] = [
 
 const FEEDBACK_TYPES = ["Constructive", "Concern", "Suggestion", "Praise", "Urgent"];
 
-const UNILAG_DOMAINS = ["unilag.edu.ng", "live.unilag.edu.ng"];
-
-function isUnilagEmail(email: string): boolean {
-  if (!email) return true;
-  const domain = email.trim().toLowerCase().split("@").pop() ?? "";
-  return UNILAG_DOMAINS.includes(domain);
-}
-
 interface Department {
   id: string;
   name: string;
@@ -95,11 +87,9 @@ export function WhisperWizard() {
   const [content, setContent] = useState<string>("");
   const [departmentId, setDepartmentId] = useState<string>("");
   const [departments, setDepartments] = useState<Department[]>([]);
-  const [unilagEmail, setUnilagEmail] = useState<string>("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   // Validation / Status
-  const [emailError, setEmailError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
@@ -138,13 +128,6 @@ export function WhisperWizard() {
       setError("Please enter your feedback message before continuing.");
       return;
     }
-    if (!isUnilagEmail(unilagEmail)) {
-      setEmailError(
-        "That doesn't look like a UNILAG address. Leave it blank to stay completely anonymous."
-      );
-      return;
-    }
-    setEmailError(null);
     setError(null);
     setStep(3);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -170,16 +153,20 @@ export function WhisperWizard() {
         fd.append("content", contentBody);
         fd.append("refNumber", refCode);
         if (departmentId) fd.append("departmentId", departmentId);
-        if (unilagEmail.trim()) fd.append("unilagEmail", unilagEmail.trim());
         fd.append("attachment", selectedFile);
 
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api/v1/feedback/public`,
-          { method: "POST", body: fd }
-        );
+        const res = await fetch(`${API_BASE}/feedback/public`, {
+          method: "POST",
+          body: fd,
+        });
+
         if (!res.ok) {
-          const json = (await res.json()) as { error?: string };
-          throw new Error(json.error ?? "Upload failed");
+          const json = (await res.json().catch(() => ({}))) as any;
+          const errMsg =
+            typeof json.error === "string"
+              ? json.error
+              : json.error?.message || json.message || "Upload failed";
+          throw new Error(errMsg);
         }
         mode = "online";
       } else {
@@ -188,7 +175,6 @@ export function WhisperWizard() {
           category,
           content: contentBody,
           departmentId: departmentId || undefined,
-          unilagEmail: unilagEmail.trim() || undefined,
           refNumber: refCode,
         };
         const result = await submitWhisperOfflineAware(payload);
@@ -216,10 +202,11 @@ export function WhisperWizard() {
           )}`
         );
       }
-    } catch (err) {
+    } catch (err: any) {
       setSubmitting(false);
-      setError(err instanceof Error ? err.message : "Failed to submit feedback");
-      toast("Failed to submit feedback", "error");
+      const msg = err instanceof Error ? err.message : typeof err === "string" ? err : "Failed to submit feedback";
+      setError(msg);
+      toast(msg, "error");
     }
   }
 
@@ -486,22 +473,7 @@ export function WhisperWizard() {
             </div>
           </div>
 
-          {/* Soft Gate UNILAG email (Optional) */}
-          <div className="space-y-1">
-            <label className="text-xs font-bold uppercase tracking-wider text-text-soft">
-              UNILAG Email (Optional — Verified, never stored or linked)
-            </label>
-            <input
-              type="email"
-              value={unilagEmail}
-              onChange={(e) => setUnilagEmail(e.target.value)}
-              placeholder="you@live.unilag.edu.ng"
-              className="wl-input"
-            />
-            {emailError && (
-              <p className="text-xs font-semibold text-error">{emailError}</p>
-            )}
-          </div>
+
 
           {error && (
             <div className="rounded-md border border-red-200 bg-red-50 p-3 text-xs font-semibold text-error">
