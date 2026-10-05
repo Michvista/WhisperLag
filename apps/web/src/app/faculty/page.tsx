@@ -185,26 +185,28 @@ export default function FacultyHubPage() {
 
   const facultyName = me?.department?.faculty ?? me?.department?.name ?? "Faculty Hub";
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 17) return "Good afternoon";
+    return "Good evening";
+  };
+
   return (
     <RoleGate minRole={ROLES.FACULTY}>
       <AppShell>
-        <div className="py-6 px-4 md:px-8 max-w-6xl mx-auto space-y-7">
+        <div className="py-6 px-4 md:px-8 max-w-6xl mx-auto space-y-6">
           {/* Header Banner */}
           <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border-subtle bg-white p-6 shadow-card">
             <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-primary">
-                  Faculty Portal
-                </span>
-                <span className="rounded-full bg-green-tint px-2.5 py-0.5 text-[11px] font-bold text-primary border border-primary/20">
-                  {facultyName}
-                </span>
-              </div>
+              <span className="text-xs font-bold uppercase tracking-wider text-primary">
+                Faculty Portal
+              </span>
               <h1 className="font-montserrat text-2xl font-extrabold tracking-tight text-navy sm:text-3xl">
-                Faculty Overview
+                {getGreeting()}, {me?.name ?? "Professor"}
               </h1>
               <p className="text-xs text-text-secondary">
-                Real-time quality assurance, student sentiment, and course evaluations for {facultyName}.
+                {me?.department?.name ? `${me.department.name} · ` : ""}{facultyName}
               </p>
             </div>
 
@@ -217,92 +219,117 @@ export default function FacultyHubPage() {
                   Logged In As
                 </div>
                 <div className="font-montserrat text-sm font-bold text-navy">
-                  {me?.name ?? "Faculty Lead"}
+                  {me?.name ?? "Faculty Member"}
                 </div>
                 <div className="text-[11px] text-text-secondary">
-                  {me?.department?.name ?? "Department"}
+                  {me?.department?.name ?? facultyName}
                 </div>
               </div>
             </div>
           </div>
 
           {loading ? (
-            <LoadingBlock label="Loading faculty data…" />
+            <LoadingBlock label="Loading faculty dashboard…" />
           ) : error ? (
             <ErrorBlock message={error} onRetry={() => window.location.reload()} />
           ) : (
             <>
-              {/* Modern KPI Cards Grid (Designer-inspired soft icon badges) */}
+              {/* Needs Your Attention Alert (if there are pending items) */}
+              {(summary?.pendingInterventions ?? 0) > 0 && (
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50/80 p-4 shadow-xs">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-800">
+                      <Icon name="alert" size={18} />
+                    </div>
+                    <div>
+                      <h3 className="font-montserrat text-xs font-bold text-amber-900">
+                        Needs your attention
+                      </h3>
+                      <p className="text-xs text-amber-800">
+                        {summary?.pendingInterventions} unresolved student whisper{summary?.pendingInterventions === 1 ? "" : "s"} require your review.
+                      </p>
+                    </div>
+                  </div>
+                  <Link
+                    href="/whispers"
+                    className="inline-flex items-center justify-center rounded-xl bg-amber-600 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-amber-700 transition-colors"
+                  >
+                    Review Whispers →
+                  </Link>
+                </div>
+              )}
+
+              {/* Simplified Stat Cards Grid matching mockup */}
               <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                {/* Sentiment Score */}
+                {/* Total Feedback */}
                 <div className="rounded-2xl border border-border-subtle bg-white p-5 shadow-card transition-all hover:border-slate-300">
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center justify-between mb-2">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-text-soft">
-                      Sentiment Score
+                      Total Feedback
                     </span>
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#EAF7F0] text-[#009A44]">
-                      <Icon name="star" size={18} className="text-[#009A44]" />
+                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#EEF3FF] text-[#3775D6]">
+                      <Icon name="forum" size={16} className="text-[#3775D6]" />
+                    </div>
+                  </div>
+                  <div className="font-montserrat text-2xl font-extrabold text-navy">
+                    {summary?.responseCount ?? 0}
+                  </div>
+                  <p className="mt-1 text-[11px] text-text-secondary">
+                    Total student submissions
+                  </p>
+                </div>
+
+                {/* Avg Evaluation Score */}
+                <div className="rounded-2xl border border-border-subtle bg-white p-5 shadow-card transition-all hover:border-slate-300">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-text-soft">
+                      Avg Evaluation Score
+                    </span>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#EAF7F0] text-[#009A44]">
+                      <Icon name="star" size={16} className="text-[#009A44]" />
                     </div>
                   </div>
                   <div className="font-montserrat text-2xl font-extrabold text-navy">
                     {summary ? `${summary.averageRating.toFixed(1)}/5` : "—"}
                   </div>
                   <p className="mt-1 text-[11px] text-text-secondary">
-                    {summary?.responseCount ?? 0} student ratings in {facultyName}
+                    Across {courses.length} courses
                   </p>
                 </div>
 
-                {/* Member Departments */}
+                {/* Positive Sentiment */}
                 <div className="rounded-2xl border border-border-subtle bg-white p-5 shadow-card transition-all hover:border-slate-300">
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center justify-between mb-2">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-text-soft">
-                      Departments
+                      Positive Sentiment
                     </span>
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#EEF3FF] text-[#3775D6]">
-                      <Icon name="school" size={18} className="text-[#3775D6]" />
+                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#F2EDFF] text-[#7138D5]">
+                      <Icon name="sparkles" size={16} className="text-[#7138D5]" />
                     </div>
                   </div>
                   <div className="font-montserrat text-2xl font-extrabold text-navy">
-                    {departments.length}
+                    {sentimentPct}%
                   </div>
                   <p className="mt-1 text-[11px] text-text-secondary">
-                    Official academic departments
+                    Satisfaction rating
                   </p>
                 </div>
 
-                {/* Active Courses */}
+                {/* Unresolved Whispers */}
                 <div className="rounded-2xl border border-border-subtle bg-white p-5 shadow-card transition-all hover:border-slate-300">
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center justify-between mb-2">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-text-soft">
-                      Active Courses
+                      Unresolved
                     </span>
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#F2EDFF] text-[#7138D5]">
-                      <Icon name="book" size={18} className="text-[#7138D5]" />
-                    </div>
-                  </div>
-                  <div className="font-montserrat text-2xl font-extrabold text-navy">
-                    {courses.length}
-                  </div>
-                  <p className="mt-1 text-[11px] text-text-secondary">
-                    Tracked under {facultyName}
-                  </p>
-                </div>
-
-                {/* Pending Interventions */}
-                <div className="rounded-2xl border border-border-subtle bg-white p-5 shadow-card transition-all hover:border-slate-300">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-text-soft">
-                      Whispers
-                    </span>
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FFF3E5] text-[#E88917]">
-                      <Icon name="forum" size={18} className="text-[#E88917]" />
+                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#FFF3E5] text-[#E88917]">
+                      <Icon name="notifications" size={16} className="text-[#E88917]" />
                     </div>
                   </div>
                   <div className="font-montserrat text-2xl font-extrabold text-amber-800">
                     {summary?.pendingInterventions ?? 0}
                   </div>
                   <p className="mt-1 text-[11px] text-text-secondary">
-                    Requires departmental review
+                    Pending review
                   </p>
                 </div>
               </div>

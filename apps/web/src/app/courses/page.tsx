@@ -129,13 +129,13 @@ export default function CourseHubPage() {
           <div className="flex flex-wrap items-start justify-between gap-4 rounded-xl border border-border-subtle bg-white p-6 shadow-card">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-primary">
-                Academic Catalog &amp; QA
+                Courses &amp; Evaluations
               </span>
               <h1 className="mt-1 font-montserrat text-2xl font-bold text-navy sm:text-3xl">
-                Course Hub
+                Courses
               </h1>
               <p className="mt-1 text-xs text-text-secondary">
-                Official course syllabus records alongside student anonymous evaluation results.
+                View your courses and their evaluation performance.
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -206,7 +206,7 @@ export default function CourseHubPage() {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search courses, codes, lecturers…"
+                placeholder="Search courses..."
                 className="w-full rounded-lg border border-border-subtle bg-white py-1.5 pl-9 pr-3 text-xs text-navy placeholder-text-soft outline-none focus:border-primary shadow-xs"
               />
             </div>

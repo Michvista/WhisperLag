@@ -28,9 +28,8 @@ const ADMIN_TABS: TabItem[] = [
 
 const FACULTY_TABS: TabItem[] = [
   { href: "/faculty", label: "Home", icon: "home" },
+  { href: "/courses", label: "Courses", icon: "book" },
   { href: "/whispers", label: "Whispers", icon: "forum" },
-  { href: "/surveys", label: "Surveys", icon: "summarize" },
-  { href: "/collaboration", label: "Chat", icon: "chat" },
   { href: "/more", label: "More", icon: "widgets" },
 ];
 

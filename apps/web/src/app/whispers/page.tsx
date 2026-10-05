@@ -170,7 +170,7 @@ export default function WhispersPage() {
         <div>
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold uppercase tracking-wider text-primary">
-              {isAdminOrFaculty ? "Quality Assurance & Review" : "Campus Feedback Feed"}
+              Feedback &amp; Whispers
             </span>
             {userFaculty && (
               <span className="rounded-full bg-green-tint px-2.5 py-0.5 text-[10.5px] font-bold text-primary border border-primary/20">
@@ -179,14 +179,10 @@ export default function WhispersPage() {
             )}
           </div>
           <h1 className="mt-1 font-montserrat text-2xl font-bold tracking-tight text-navy sm:text-3xl">
-            {role === ROLES.FACULTY ? "Faculty Whispers" : isAdminOrFaculty ? "Anonymous Whispers Feed" : "Student Whispers"}
+            Whispers
           </h1>
           <p className="mt-1 text-xs text-text-secondary">
-            {role === ROLES.FACULTY
-              ? `Anonymous student submissions regarding ${userFaculty ?? "your faculty"} · ${items.length} total`
-              : isAdminOrFaculty
-              ? `Every student submission with no identity attached · ${items.length} total`
-              : "Live anonymous submissions and institutional resolutions across UNILAG"}
+            See what students are telling you · {items.length} total
           </p>
         </div>
 

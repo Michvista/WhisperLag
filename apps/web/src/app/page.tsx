@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import { motion, type Variants, useReducedMotion } from "framer-motion";
+import { useReducedMotion } from "framer-motion";
 import { WhisperBrand } from "@/components/ui/WhisperBrand";
 import { Icon } from "@/components/ui/Icon";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";

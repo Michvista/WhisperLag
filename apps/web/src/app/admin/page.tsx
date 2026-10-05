@@ -164,13 +164,13 @@ export default function AdminCommandCenterPage() {
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border-subtle pb-5">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-primary">
-                UNILAG Command Center
+                Admin Portal
               </span>
               <h1 className="mt-1 font-montserrat text-2xl font-bold tracking-tight text-navy sm:text-3xl">
                 Institutional Overview
               </h1>
               <p className="mt-1 text-xs text-text-secondary">
-                Real-time monitoring of campus sentiment, student whispers, and faculty curriculum.
+                Monitor campus feedback, student whispers, and course performance across UNILAG.
               </p>
             </div>
             <button
@@ -188,7 +188,7 @@ export default function AdminCommandCenterPage() {
           )}
 
           {loading ? (
-            <LoadingBlock label="Loading live metrics…" />
+            <LoadingBlock label="Loading dashboard metrics…" />
           ) : error ? (
             <ErrorBlock message={error} onRetry={loadAll} />
           ) : (
@@ -222,13 +222,13 @@ export default function AdminCommandCenterPage() {
 
                   <div className="rounded-xl border border-border-subtle bg-white p-5 shadow-card">
                     <span className="text-xs font-bold uppercase tracking-wider text-text-soft">
-                      Pending Interventions
+                      Pending Review
                     </span>
                     <div className="mt-2 font-montserrat text-3xl font-bold text-amber-800">
                       {overview.pendingInterventions}
                     </div>
                     <span className="mt-1 block text-xs font-semibold text-amber-800">
-                      Requires departmental review
+                      Requires departmental attention
                     </span>
                   </div>
 

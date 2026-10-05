@@ -169,12 +169,30 @@ export default function MorePage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="font-montserrat text-xs font-bold text-navy group-hover:text-primary">
-                    Institutional Reports
+                    Reports
                   </div>
                   <div className="text-[11px] text-text-secondary truncate">Export analytics &amp; summaries</div>
                 </div>
                 <Icon name="chevron_right" size={16} className="text-text-soft" />
               </Link>
+
+              {isFaculty && (
+                <Link
+                  href="/courses"
+                  className="group flex items-center gap-3.5 rounded-xl border border-border-subtle bg-white p-4 transition-all hover:border-primary/40 hover:shadow-card"
+                >
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-tint text-amber-700">
+                    <Icon name="book" size={20} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-montserrat text-xs font-bold text-navy group-hover:text-primary">
+                      My Courses
+                    </div>
+                    <div className="text-[11px] text-text-secondary truncate">Course performance &amp; ratings</div>
+                  </div>
+                  <Icon name="chevron_right" size={16} className="text-text-soft" />
+                </Link>
+              )}
 
               {isAdmin && (
                 <>
