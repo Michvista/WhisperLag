@@ -43,19 +43,22 @@ function useNavItems() {
             { href: "/reports", label: "Reports", iconName: "file" },
           ]
         : [
-            // Student primary nav
+            // Student primary nav matching UI design
+            { href: "/", label: "Home", iconName: "home" },
             { href: "/whisper", label: "Give Feedback", iconName: "add" },
             { href: "/track", label: "Track Whisper", iconName: "search" },
-            { href: "/listwhispers", label: "Student Whispers", iconName: "forum" },
+            { href: "/listwhispers", label: "Campus Whispers", iconName: "forum" },
+            { href: "/evaluations", label: "Evaluations", iconName: "file" },
+            { href: "/polls", label: "Polls", iconName: "bar_chart" },
+            { href: "/results", label: "Poll Results", iconName: "pie_chart" },
+            { href: "/suggestion", label: "Suggestion Box", iconName: "lightbulb" },
           ];
 
   // More section links for student desktop sidebar
   const moreItems: { href: string; label: string; iconName: string }[] =
     isStudent
       ? [
-          { href: "/evaluations", label: "Evaluations", iconName: "star" },
-          { href: "/polls", label: "Campus Polls", iconName: "bar_chart" },
-          { href: "/suggestion", label: "Suggestion Box", iconName: "lightbulb" },
+          { href: "/more", label: "More Features", iconName: "widgets" },
           { href: "/notifications", label: "Notifications", iconName: "notifications" },
           { href: "/settings", label: "Settings", iconName: "settings" },
         ]
@@ -88,7 +91,10 @@ export function Sidebar() {
           </p>
           <ul className="flex flex-col gap-1">
             {items.map((item) => {
-              const active = pathname === item.href || (item.href !== "/" && item.href !== "/dashboard" && pathname.startsWith(item.href));
+              const active =
+                item.href === "/"
+                  ? pathname === "/" || pathname === "/dashboard"
+                  : pathname === item.href || pathname.startsWith(item.href + "/");
               return (
                 <li key={item.href}>
                   <Link

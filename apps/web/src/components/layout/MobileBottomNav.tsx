@@ -9,25 +9,28 @@ interface TabItem {
   href: string;
   label: string;
   icon: string;
-  isPrimary?: boolean;
 }
-
-const STAFF_ROUTES = [
-  "/admin",
-  "/faculty",
-  "/whispers",
-  "/reports",
-  "/integrations",
-  "/collaboration",
-  "/surveys",
-  "/insights",
-  "/courses",
-];
 
 const STUDENT_TABS: TabItem[] = [
   { href: "/", label: "Home", icon: "home" },
-  { href: "/whisper", label: "Give Feedback", icon: "rate_review" },
+  { href: "/whisper", label: "Give Feedback", icon: "add" },
   { href: "/track", label: "Track", icon: "search" },
+  { href: "/more", label: "More", icon: "widgets" },
+];
+
+const ADMIN_TABS: TabItem[] = [
+  { href: "/admin", label: "Home", icon: "home" },
+  { href: "/whispers", label: "Whispers", icon: "forum" },
+  { href: "/reports", label: "Reports", icon: "file" },
+  { href: "/insights", label: "Insights", icon: "sparkles" },
+  { href: "/more", label: "More", icon: "widgets" },
+];
+
+const FACULTY_TABS: TabItem[] = [
+  { href: "/faculty", label: "Home", icon: "home" },
+  { href: "/whispers", label: "Whispers", icon: "forum" },
+  { href: "/surveys", label: "Surveys", icon: "summarize" },
+  { href: "/collaboration", label: "Chat", icon: "chat" },
   { href: "/more", label: "More", icon: "widgets" },
 ];
 
@@ -35,16 +38,23 @@ export function MobileBottomNav() {
   const { role } = useAuth();
   const pathname = usePathname();
 
-  // Only hide when genuinely navigating inside staff / admin control rooms
-  const isStaffRoute = STAFF_ROUTES.some((r) => pathname.startsWith(r));
-  if (isStaffRoute && (role === "ADMIN" || role === "FACULTY")) return null;
+  const tabs =
+    role === "ADMIN"
+      ? ADMIN_TABS
+      : role === "FACULTY"
+      ? FACULTY_TABS
+      : STUDENT_TABS;
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-[100] flex h-14 items-center justify-around border-t border-border-subtle bg-white/95 px-2 shadow-lg backdrop-blur-md lg:hidden">
-      {STUDENT_TABS.map((tab) => {
+      {tabs.map((tab) => {
         const active =
           tab.href === "/"
             ? pathname === "/" || pathname === "/dashboard"
+            : tab.href === "/admin"
+            ? pathname === "/admin"
+            : tab.href === "/faculty"
+            ? pathname === "/faculty"
             : pathname === tab.href || pathname.startsWith(tab.href + "/");
 
         return (
@@ -53,11 +63,13 @@ export function MobileBottomNav() {
             href={tab.href}
             className="flex flex-1 flex-col items-center justify-center gap-1 py-1 transition-colors"
           >
-            <Icon
-              name={tab.icon}
-              size={20}
-              className={active ? "text-primary" : "text-text-soft"}
-            />
+            <div className={`flex items-center justify-center transition-transform ${active ? "scale-105" : ""}`}>
+              <Icon
+                name={tab.icon}
+                size={20}
+                className={active ? "text-primary" : "text-text-soft"}
+              />
+            </div>
             <span
               className={`text-[10px] font-semibold leading-none ${
                 active ? "text-primary font-bold" : "text-text-soft"

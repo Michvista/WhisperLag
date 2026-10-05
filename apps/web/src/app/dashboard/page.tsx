@@ -254,10 +254,10 @@ function StaffDashboard() {
 // ─── Student Dashboard ──────────────────────────────────────────────────────
 
 const QUICK_ACTIONS = [
-  { href: "/evaluations", label: "Evaluations", icon: "star", iconBg: "bg-amber-tint", iconColor: "text-amber-700" },
+  { href: "/evaluations", label: "Evaluations", icon: "file", iconBg: "bg-green-tint", iconColor: "text-primary" },
   { href: "/polls", label: "Polls", icon: "bar_chart", iconBg: "bg-blue-tint", iconColor: "text-secondary" },
-  { href: "/suggestion", label: "Suggestion Box", icon: "lightbulb", iconBg: "bg-amber-tint", iconColor: "text-amber-700" },
-  { href: "/track", label: "My Whispers", icon: "schedule", iconBg: "bg-green-tint", iconColor: "text-primary" },
+  { href: "/results", label: "Poll Results", icon: "pie_chart", iconBg: "bg-green-tint", iconColor: "text-primary" },
+  { href: "/suggestion", label: "Suggestion Box", icon: "lightbulb", iconBg: "bg-purple-tint", iconColor: "text-tertiary" },
 ] as const;
 
 function StudentDashboard() {
@@ -278,33 +278,39 @@ function StudentDashboard() {
             {greeting}! 👋
           </h1>
           <p className="mt-0.5 text-xs text-text-secondary">
-            Your voice makes UNILAG a better place for students.
+            Your voice makes UNILAG a better place. Share challenges and ideas anonymously.
           </p>
         </div>
 
         {/* Give Feedback CTA */}
         <Link
           href="/whisper"
-          className="flex items-center justify-between rounded-xl bg-primary p-5 text-white shadow-button-green"
+          className="flex items-center justify-between rounded-xl bg-primary p-4 sm:p-5 text-white shadow-button-green"
         >
-          <div>
-            <div className="font-montserrat text-base font-bold">Give Feedback</div>
-            <div className="mt-0.5 text-xs opacity-80">Share your experience anonymously</div>
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/20">
+              <Icon name="chat" size={20} className="text-white" />
+            </div>
+            <div>
+              <div className="font-montserrat text-sm sm:text-base font-bold">Give Feedback →</div>
+              <div className="text-[11px] opacity-80">Share your experience anonymously</div>
+            </div>
           </div>
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20">
-            <Icon name="arrow_forward" size={20} className="text-white" />
-          </div>
+          <Icon name="arrow_forward" size={18} className="text-white" />
         </Link>
 
-        {/* Whisper Lock badge */}
-        <div className="flex items-center gap-3 rounded-xl border border-border-subtle bg-white p-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-green-tint">
-            <Icon name="lock" size={20} className="text-primary" />
+        {/* 100% Anonymous badge */}
+        <div className="flex items-center justify-between rounded-xl border border-green-200 bg-green-50/70 p-3.5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-green-100">
+              <Icon name="lock" size={18} className="text-primary" />
+            </div>
+            <div>
+              <div className="text-xs font-bold text-navy">100% Anonymous</div>
+              <div className="text-[10.5px] text-text-secondary">No name, no matric number, no personal information.</div>
+            </div>
           </div>
-          <div>
-            <div className="text-xs font-bold text-navy">Your whisper is hidden</div>
-            <div className="text-[11px] text-text-secondary">Nobody knows it is you. No name. No matric number.</div>
-          </div>
+          <Icon name="chevron_right" size={16} className="text-text-soft" />
         </div>
 
         {/* Quick Actions */}

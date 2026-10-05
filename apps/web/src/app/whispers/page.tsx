@@ -339,7 +339,7 @@ export default function WhispersPage() {
                       )}
                       {item.attachmentUrl && (
                         <a
-                          href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}${item.attachmentUrl}`}
+                          href={item.attachmentUrl.startsWith("http") ? item.attachmentUrl : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}${item.attachmentUrl}`}
                           target="_blank"
                           rel="noreferrer"
                           className="inline-flex items-center gap-1 rounded-md border border-border-subtle bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-secondary hover:bg-blue-tint hover:text-secondary hover:border-secondary transition-colors"

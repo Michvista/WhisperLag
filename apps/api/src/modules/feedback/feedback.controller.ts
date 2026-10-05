@@ -8,6 +8,7 @@ import { asyncHandler } from "../../middleware/asyncHandler.js";
 import { feedbackService } from "./feedback.service.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { isUnilagEmail } from "../../utils/unilagEmail.js";
+import { uploadToCloudinaryOrLocal } from "../../lib/cloudinary.js";
 import type { CreateWhisperInput, PublicWhisperInput, UpdateWhisperStatusInput } from "./feedback.schema.js";
 
 // Ensure uploads directory exists next to the running process
@@ -125,11 +126,10 @@ export const feedbackController = {
 
     if (contentType.includes("multipart/form-data")) {
       // Parse multipart — file goes to disk, fields come back as strings
-      const { fields, filePath } = await parseMultipart(req);
+      const { fields, filePath, mimeType } = await parseMultipart(req);
 
       if (filePath) {
-        const filename = path.basename(filePath);
-        attachmentUrl = `/uploads/${filename}`;
+        attachmentUrl = await uploadToCloudinaryOrLocal(filePath, mimeType);
       }
 
       // Validate email if provided
