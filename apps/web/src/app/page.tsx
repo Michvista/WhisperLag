@@ -133,7 +133,7 @@ function Counter({ value, suffix = "" }: { value: number; suffix?: string }) {
 }
 
 export default function LandingPage() {
-  const { user, role } = useAuth();
+  const { role } = useAuth();
   const [stats, setStats] = useState<{ whispers: number; departments: number; rate: number } | null>(null);
   const [liveWhispers, setLiveWhispers] = useState<PublicWhisper[]>([]);
   const [filterStatus, setFilterStatus] = useState<string>("All");
@@ -246,16 +246,18 @@ export default function LandingPage() {
               <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary" />
             </Link>
 
-            {user ? (
+            {role ? (
               <div className="flex items-center gap-2">
                 <Link
                   href={role === "ADMIN" ? "/admin" : role === "FACULTY" ? "/faculty" : "/more"}
                   className="flex items-center gap-2 rounded-full border border-border-subtle bg-slate-50 px-3 py-1 text-xs font-semibold text-navy hover:bg-slate-100"
                 >
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-green-tint text-[11px] font-bold text-primary">
-                    {user.name ? user.name[0].toUpperCase() : "U"}
+                    {role[0].toUpperCase()}
                   </span>
-                  <span className="hidden sm:inline">{user.name || "My Dashboard"}</span>
+                  <span className="hidden sm:inline">
+                    {role === "ADMIN" ? "Admin Portal" : role === "FACULTY" ? "Faculty Portal" : "My Dashboard"}
+                  </span>
                 </Link>
               </div>
             ) : (
