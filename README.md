@@ -85,9 +85,9 @@ Most university feedback systems offer an optional "submit anonymously" checkbox
 - **Export Catalog**: Download the active course registry as a formatted JSON document.
 
 ### 10. 📧 Real-Time Email Notifications & Collaboration (`/collaboration`)
-- **TLS SMTP Dispatcher**: Direct SSL connection to Gmail (port 465) for instant notification delivery.
-- **Incoming Whisper Alerts**: Automatically notifies QA Admins and Deans when new feedback or urgent issues arrive.
-- **Internal Collaboration Alerts**: Notifies staff members when a team note is posted in the Collaboration Hub.
+- **Brevo REST API Engine**: High-reliability email delivery via **Brevo** (formerly Sendinblue) HTTP API over port 443 (bypassing cloud host SMTP port restrictions).
+- **Incoming Whisper Alerts**: Automatically dispatches alerts to QA Administrators, Deans, and configured institutional emails whenever new student feedback or urgent facility reports arrive.
+- **Internal Collaboration Alerts**: Instantly notifies faculty staff and department heads when collaborative notes are posted in the QA Hub.
 
 ---
 
@@ -192,7 +192,7 @@ WhisperLag/
 - **Cloud Media Storage**: [Cloudinary](https://cloudinary.com/) (Secure evidence attachments with EXIF metadata stripping).
 - **Artificial Intelligence**: [Groq Cloud](https://groq.com/) (`llama-3.1-70b-versatile` / `openai/gpt-oss-120b`) for automated intent analysis, routing, noise filtering, and report synthesis.
 - **Database**: PostgreSQL (Hosted on [Neon Serverless](https://neon.tech/)).
-- **Email Notifications**: Zero-dependency TLS SMTP Client connecting directly over port 465.
+- **Email Notifications**: [Brevo](https://www.brevo.com/) REST API (with Resend and STARTTLS/SMTPS fallbacks).
 
 ---
 
@@ -221,12 +221,11 @@ GROQ_MODEL="llama-3.1-70b-versatile"
 # Cloudinary Storage Configuration
 CLOUDINARY_URL="cloudinary://<api_key>:<api_secret>@<cloud_name>"
 
-# Email Notifications (Port 465)
-SMTP_HOST="smtp.gmail.com"
-SMTP_PORT=465
-SMTP_USER="your-email@gmail.com"
-SMTP_PASS="your-gmail-app-password"
-ADMIN_NOTIFICATION_EMAILS="qa-admin@unilag.edu.ng"
+# Email Notifications (Brevo REST API - Recommended)
+BREVO_API_KEY="xkeysib-your_brevo_api_key"
+BREVO_SENDER_EMAIL="your-verified-email@gmail.com"
+BREVO_SENDER_NAME="WhisperLag UNILAG"
+ADMIN_NOTIFICATION_EMAILS="olumidenifemi07@gmail.com"
 ```
 
 Create `.env.local` in `apps/web/`:
