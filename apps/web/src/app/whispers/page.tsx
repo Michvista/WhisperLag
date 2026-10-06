@@ -51,13 +51,14 @@ interface InsightResult {
 
 type FilterTab = "All" | "New" | "Under Review" | "Suggestions" | "Noise" | "Resolved";
 
-const NOISE_HINTS = /\b(lol|test|asap|pls|please fix|fix this|ok|okay|nice|good|bad|hi|hello)\b/i;
+const NOISE_HINTS = /\b(lol|test|testing|asap|pls|please fix|fix this|ok|okay|nice|good|bad|hi|hello|rubbish|nonsense|trash|fake|dummy|asdf|qwerty|zzz|no|nope|yes|k|kk|whatever|nothing)\b/i;
 
 function isLikelyNoiseText(content: string): boolean {
   const clean = content.replace(/^\[.*?\]\s*/, "").trim();
-  if (clean.length < 15) return true;
+  if (clean.length < 25) return true;
   if (!/[a-zA-Z]{3}/.test(clean)) return true;
-  if (clean.split(/\s+/).length <= 2 && NOISE_HINTS.test(clean)) return true;
+  if (NOISE_HINTS.test(clean) && clean.split(/\s+/).length <= 6) return true;
+  if (/(.)\1{3,}/.test(clean)) return true;
   return false;
 }
 
