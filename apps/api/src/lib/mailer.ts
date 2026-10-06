@@ -160,7 +160,6 @@ export async function notifyNewWhisper(data: {
       if (em.trim()) recipientSet.add(em.trim());
     }
   }
-  recipientSet.add("enewsmedia90@gmail.com");
 
   // Fetch all registered admin & faculty emails from the database
   try {
@@ -262,7 +261,6 @@ export async function notifyCollaborationMessage(data: {
       if (em.trim()) recipientSet.add(em.trim());
     }
   }
-  recipientSet.add("enewsmedia90@gmail.com");
 
   // Fetch active staff users (excluding sender)
   try {

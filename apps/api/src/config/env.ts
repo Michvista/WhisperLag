@@ -30,9 +30,9 @@ const envSchema = z.object({
   // Email notifications for Admin & Faculty
   SMTP_HOST: z.string().default("smtp.gmail.com"),
   SMTP_PORT: z.coerce.number().default(465),
-  SMTP_USER: z.string().default("enewsmedia90@gmail.com"),
-  SMTP_PASS: z.string().default("dnojjzptoqfwmapw"),
-  ADMIN_NOTIFICATION_EMAILS: z.string().default("enewsmedia90@gmail.com"),
+  SMTP_USER: z.string().optional().default(""),
+  SMTP_PASS: z.string().optional().default(""),
+  ADMIN_NOTIFICATION_EMAILS: z.string().optional().default(""),
 });
 
 const parsed = envSchema.safeParse(process.env);

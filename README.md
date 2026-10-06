@@ -119,9 +119,37 @@ WhisperLag operates on a clear, three-tier access model designed for maximum pri
 
 | Role | Email | Password | Access Portal |
 |---|---|---|---|
-| **QA Administrator** | `enewsmedia90@gmail.com` | `enewsmedia` *(or `password123`)* | `/admin` (Command Center) |
 | **QA Administrator (Demo)** | `admin@whisperlag.test` | `password123` | `/admin` (Command Center) |
 | **Faculty Lead / Dean** | `faculty@whisperlag.test` | `password123` | `/faculty` (Faculty Hub) |
+
+---
+
+## 📱 Progressive Web App (PWA) & Offline-First Protocol
+
+WhisperLag is engineered as an **Offline-First Progressive Web App (PWA)** to ensure seamless accessibility across UNILAG campus network environments:
+
+- **Service Worker (`public/sw.js`)**: Caches static assets, stylesheets, icons, and shell layouts with a stale-while-revalidate strategy for instant load times.
+- **Offline Outbox (`apps/web/src/lib/offline.ts`)**: When a student submits a whisper or survey while disconnected, feedback is cryptographically preserved in a local encrypted client queue.
+- **Auto-Sync on Reconnect**: Automatically detects online status restoration and flushes queued submissions in the background without user intervention.
+- **Mobile-First App Experience**: Fully installable on iOS and Android devices (Add to Home Screen) with standalone display mode and native-feeling gesture navigation.
+
+---
+
+## 🛡️ Governance, Audit Logging & Fallback Matchers
+
+### 1. Administrative Audit Logging (`AuditLog`)
+To maintain institutional accountability and prevent moderation abuse, WhisperLag maintains immutable audit logs in PostgreSQL (`model AuditLog`):
+- `actorId` & `actorRole`: Staff member who performed the action.
+- `action`: Specific operation (e.g. `STATUS_UPDATE`, `BULK_SIS_IMPORT`, `REPORT_GENERATION`).
+- `target`: Modified entity ID or whisper reference number.
+- `meta`: Structured JSON diff of changes made.
+- `createdAt`: Immutable ISO timestamp.
+
+### 2. High-Availability Fallback Matchers
+WhisperLag incorporates resilient deterministic fallback layers if external AI services are unavailable:
+- **Rule-Based Course Matcher (`matchCourse`)**: A deterministic regex engine in `feedback.service.ts` that parses course codes (e.g., `CSC 201`, `NSC 211`, `MEG 301`), lecturer names, and department acronyms directly from student submissions.
+- **Heuristic NLP Clustering (`fallbackInsights`)**: Extracts high-frequency keywords, categorizes sentiment, and filters noise algorithmically when Groq API keys are not provided.
+- **Local Media Storage Fallback**: Gracefully persists attachments to local disk storage if cloud storage credentials are not supplied.
 
 ---
 
@@ -159,12 +187,12 @@ WhisperLag/
 
 ### 🛠️ Technologies Used
 
-- **Frontend (`apps/web`)**: Next.js 14 (App Router), React 18, TypeScript 5, Tailwind CSS 3, Recharts, Hugeicons.
+- **Frontend (`apps/web`)**: Next.js 14 (App Router), React 18, TypeScript 5, Tailwind CSS 3, Recharts, Hugeicons, Service Worker (PWA).
 - **Backend API (`apps/api`)**: Node.js 18+, Express (ES Modules), Prisma ORM v5.19, Zod, Bcryptjs, JWT, Helmet.
 - **Cloud Media Storage**: [Cloudinary](https://cloudinary.com/) (Secure evidence attachments with EXIF metadata stripping).
 - **Artificial Intelligence**: [Groq Cloud](https://groq.com/) (`llama-3.1-70b-versatile` / `openai/gpt-oss-120b`) for automated intent analysis, routing, noise filtering, and report synthesis.
 - **Database**: PostgreSQL (Hosted on [Neon Serverless](https://neon.tech/)).
-- **Email Notifications**: Zero-dependency TLS SMTP Client connecting directly to Gmail (port 465).
+- **Email Notifications**: Zero-dependency TLS SMTP Client connecting directly over port 465.
 
 ---
 
@@ -193,12 +221,12 @@ GROQ_MODEL="llama-3.1-70b-versatile"
 # Cloudinary Storage Configuration
 CLOUDINARY_URL="cloudinary://<api_key>:<api_secret>@<cloud_name>"
 
-# Email Notifications
+# Email Notifications (Port 465)
 SMTP_HOST="smtp.gmail.com"
 SMTP_PORT=465
-SMTP_USER="enewsmedia90@gmail.com"
+SMTP_USER="your-email@gmail.com"
 SMTP_PASS="your-gmail-app-password"
-ADMIN_NOTIFICATION_EMAILS="enewsmedia90@gmail.com"
+ADMIN_NOTIFICATION_EMAILS="qa-admin@unilag.edu.ng"
 ```
 
 Create `.env.local` in `apps/web/`:
