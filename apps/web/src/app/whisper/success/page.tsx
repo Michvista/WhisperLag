@@ -1,19 +1,23 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { WhisperBrand } from "@/components/ui/WhisperBrand";
 import { Icon } from "@/components/ui/Icon";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
+import { toast } from "@/lib/toast";
 
 function WhisperSuccessContent() {
   const searchParams = useSearchParams();
   const queued = searchParams.get("queued") === "1";
   const refCode = searchParams.get("ref") || `WL-2026-${Math.floor(100000 + Math.random() * 900000)}`;
   const category = searchParams.get("cat") || "Academic / Faculty";
-  const subject = searchParams.get("sub") || "General Department";
+  const subject = searchParams.get("sub") || "General Feedback";
   const feedbackType = searchParams.get("type") || "Constructive";
+
+  const [copied, setCopied] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const currentDate = new Date().toLocaleDateString("en-US", {
     month: "short",
@@ -26,200 +30,230 @@ function WhisperSuccessContent() {
     hour12: true,
   });
 
+  async function handleCopyKey() {
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(refCode);
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = refCode;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
+      setCopied(true);
+      toast("Tracking key copied to clipboard!");
+      setTimeout(() => setCopied(false), 3000);
+    } catch {
+      toast("Failed to copy key. Please write it down manually.", "error");
+    }
+  }
+
+  function handleSaveToDevice() {
+    setSaving(true);
+    try {
+      const receiptContent = `================================================
+WHISPERLAG · UNIVERSITY OF LAGOS
+OFFICIAL SUBMISSION RECEIPT
+================================================
+
+YOUR PRIVATE TRACKING KEY:
+${refCode}
+
+Submission Details:
+- Date: ${currentDate} at ${currentTime}
+- Category: ${category}
+- Subject / Target: ${subject}
+- Feedback Type: ${feedbackType}
+- Security: 100% Cryptographically Anonymous & Unlinked
+
+HOW TO TRACK YOUR SUBMISSION:
+1. Visit: https://whisperlag.vercel.app/track
+2. Enter your Tracking Key: ${refCode}
+3. Check investigation progress, status updates, and institutional responses.
+
+SECURITY NOTICE:
+Your identity is never stored or linked to this report.
+Keep this receipt file in a safe place. WhisperLag administrators cannot recover lost tracking keys.
+
+================================================
+University of Lagos · Quality Assurance & Student Feedback
+`;
+
+      const blob = new Blob([receiptContent], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const downloadAnchor = document.createElement("a");
+      downloadAnchor.href = url;
+      downloadAnchor.download = `WhisperLag-Receipt-${refCode}.txt`;
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      document.body.removeChild(downloadAnchor);
+      URL.revokeObjectURL(url);
+      toast("Receipt saved to your device!");
+    } catch {
+      toast("Could not save file. Please copy the key manually.", "error");
+    } finally {
+      setTimeout(() => setSaving(false), 800);
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-[#F5F5F5] pb-20 text-[#10253A]">
-      {/* Header */}
-      <header className="sticky top-0 z-30 border-b border-[#DCE3E7] bg-white/95 backdrop-blur-md">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3 sm:px-6">
+    <div className="min-h-screen bg-[#F8FAFC] pb-24 text-navy antialiased">
+      {/* ── Top Header ── */}
+      <header className="sticky top-0 z-30 border-b border-border-subtle bg-white/95 backdrop-blur-md">
+        <div className="mx-auto flex max-w-xl items-center justify-between px-4 py-3 sm:px-6">
           <Link
-            href="/"
-            className="flex items-center gap-1.5 text-sm font-extrabold text-[#2C7DA0] hover:underline"
+            href="/whisper"
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-border-subtle bg-white text-navy hover:bg-slate-50 transition-colors"
+            title="Back to Whisper Form"
           >
-            ‹ Home
+            <Icon name="arrow_back" size={16} />
           </Link>
           <WhisperBrand href="/" size="sm" />
-          <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#DCE3E7] bg-white text-xs">
-            <Icon name="notifications" size={16} className="text-[#10253A]" />
-          </div>
+          <Link
+            href="/notifications"
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-border-subtle bg-white text-text-secondary hover:bg-slate-50 transition-colors"
+          >
+            <Icon name="notifications" size={16} />
+          </Link>
         </div>
       </header>
 
-      <main className="mx-auto max-w-xl px-4 py-8 sm:px-6 sm:py-10">
-        {/* Success Area with Confetti / Celebration */}
-        <section className="text-center">
-          <div className="relative mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-[#009A44] text-4xl font-extrabold text-white shadow-[0_0_0_12px_#DFF3E9,0_0_0_24px_#EDF9F4]">
-            ✓
-            {/* Confetti flakes */}
-            <span className="absolute -left-8 -top-1 h-3 w-6 rotate-45 rounded-full bg-[#009A44]" />
-            <span className="absolute -right-8 top-3 h-3 w-6 -rotate-45 rounded-full bg-[#2C7DA0]" />
-            <span className="absolute -left-7 bottom-0 h-3 w-5 rotate-12 rounded-full bg-[#7355A2]" />
-            <span className="absolute -right-7 bottom-1 h-3 w-5 -rotate-12 rounded-full bg-[#009A44]" />
+      <main className="mx-auto max-w-md px-4 py-6 sm:py-8 space-y-5">
+        {/* ── Confetti & Success Banner ── */}
+        <div className="relative text-center pt-2">
+          {/* Decorative Confetti Flakes */}
+          <div className="pointer-events-none absolute inset-x-0 -top-2 flex justify-center gap-12 opacity-80">
+            <span className="h-2 w-2 rounded-full bg-primary animate-ping" />
+            <span className="h-2.5 w-2.5 rounded-full bg-secondary rotate-45" />
+            <span className="h-2 w-3 rounded-full bg-amber-400 -rotate-12" />
+            <span className="h-2.5 w-2 rounded-full bg-tertiary rotate-12" />
+            <span className="h-2 w-2 rounded-full bg-primary" />
           </div>
 
-          <h1 className="font-montserrat text-2xl font-extrabold tracking-tight text-[#10253A] sm:text-3xl">
-            Feedback Submitted<br />
-            <span className="text-[#009A44]">Successfully!</span>
+          {/* Green Checkmark Circle */}
+          <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-[#009A44] text-white shadow-[0_0_0_8px_#DFF3E9,0_0_0_18px_#EDF9F4]">
+            <Icon name="check" size={36} className="text-white" />
+          </div>
+
+          <h1 className="font-montserrat text-2xl sm:text-[26px] font-extrabold tracking-tight text-navy">
+            Your whisper has <br />
+            been submitted!
           </h1>
 
-          <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-[#60758C]">
+          <p className="mt-2 text-xs sm:text-sm text-text-secondary">
             {queued
-              ? "You were offline, so your feedback was encrypted on this device and will sync immediately once you reconnect."
-              : "Thank you for sharing your feedback. Your voice makes a difference at the University of Lagos."}
+              ? "You were offline. Your feedback is encrypted on this device and will sync when you're connected."
+              : "Thank you for helping make UNILAG better."}
           </p>
-        </section>
+        </div>
 
-        {/* Identity Protection Reassurance Card */}
-        <section className="mt-8 rounded-2xl border border-[#D3EEE2] bg-[#E5F4EE] p-4 sm:p-5">
-          <div className="flex items-center gap-3.5">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#D0EDDF] text-xl text-[#009A44]">
-              <Icon name="shield" size={22} className="text-[#009A44]" />
-            </div>
-            <div>
-              <div className="font-montserrat text-sm font-extrabold text-[#10253A]">
-                Your identity is protected
-              </div>
-              <div className="mt-0.5 text-xs leading-relaxed text-[#60758C]">
-                Your feedback has been submitted anonymously. No matric number, name, or personal details are attached.
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Feedback Reference & Breakdown Card */}
-        <section className="mt-4 rounded-2xl border border-[#DCE3E7] bg-white p-5 space-y-4 shadow-sm">
-          <div className="flex flex-wrap items-start justify-between gap-2 border-b border-[#EDF0F1] pb-3.5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#E5F4EE] text-base text-[#009A44]">
-                <Icon name="summarize" size={20} className="text-[#009A44]" />
-              </div>
-              <div>
-                <div className="text-[11px] font-bold text-[#60758C]">Feedback Reference</div>
-                <div className="font-montserrat text-lg font-extrabold tracking-tight text-[#009A44]">
-                  {refCode}
-                </div>
-              </div>
-            </div>
-
-            <div className="text-right">
-              <span className="inline-block rounded-full bg-[#E5F4EE] px-2.5 py-1 text-[11px] font-extrabold text-[#009A44]">
-                ✓ Submitted
-              </span>
-              <div className="mt-1 text-[10px] font-semibold text-[#60758C]">
-                {currentDate} • {currentTime}
-              </div>
-            </div>
+        {/* ── Your Tracking Key Box ── */}
+        <div className="rounded-2xl border border-border-subtle bg-white p-4 sm:p-5 shadow-card space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-text-secondary flex items-center gap-1">
+              Your Tracking Key <span className="text-[11px] text-text-soft">ⓘ</span>
+            </span>
+            <span className="rounded-full bg-green-tint px-2 py-0.5 text-[10.5px] font-bold text-primary">
+              Active
+            </span>
           </div>
 
-          <div className="flex items-center gap-3 border-b border-[#EDF0F1] pb-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#E5F4EE] text-sm text-[#009A44]">
-              <Icon name="school" size={18} className="text-[#009A44]" />
-            </div>
-            <div>
-              <div className="text-[11px] font-bold text-[#60758C]">Category</div>
-              <div className="text-xs font-extrabold text-[#10253A]">{category}</div>
-            </div>
+          <div className="flex items-center justify-between rounded-xl bg-slate-50/80 border border-slate-200/80 px-4 py-3">
+            <span className="font-mono text-base sm:text-lg font-extrabold tracking-wider text-navy selection:bg-green-100">
+              {refCode}
+            </span>
+            <button
+              onClick={handleCopyKey}
+              type="button"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-primary hover:bg-green-100 transition-colors"
+              title="Copy Tracking Key"
+            >
+              <Icon name={copied ? "check" : "content_copy"} size={18} className="text-primary" />
+            </button>
           </div>
+        </div>
 
-          <div className="flex items-center gap-3 border-b border-[#EDF0F1] pb-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#E5F0F5] text-sm text-[#2C7DA0]">
-              <Icon name="forum" size={18} className="text-[#2C7DA0]" />
-            </div>
-            <div>
-              <div className="text-[11px] font-bold text-[#60758C]">Subject / Target</div>
-              <div className="text-xs font-extrabold text-[#10253A]">{subject}</div>
-            </div>
+        {/* ── Keep This Key Safe Alert Box ── */}
+        <div className="flex items-start gap-3 rounded-2xl border border-amber-200/90 bg-amber-50/90 p-4 text-xs">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-800">
+            <Icon name="lock" size={17} className="text-amber-800" />
           </div>
-
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#EEE8F8] text-sm text-[#7355A2]">
-              <Icon name="tune" size={18} className="text-[#7355A2]" />
-            </div>
-            <div>
-              <div className="text-[11px] font-bold text-[#60758C]">Feedback Type</div>
-              <div className="text-xs font-extrabold text-[#10253A]">{feedbackType}</div>
-            </div>
+          <div className="space-y-1">
+            <h3 className="font-montserrat text-xs font-bold text-amber-950">
+              Keep this key safe.
+            </h3>
+            <p className="text-[11.5px] leading-relaxed text-amber-900/90">
+              It is the only way to privately track your whisper. We cannot recover it because we don&apos;t store your identity with your feedback.
+            </p>
           </div>
-        </section>
+        </div>
 
-        {/* What Happens Next Section */}
-        <section className="mt-8">
-          <h2 className="font-montserrat text-base font-extrabold text-[#10253A]">
-            What happens next?
-          </h2>
-          <p className="mt-1 text-xs text-[#60758C]">
-            Your feedback will be processed by the relevant university department.
-          </p>
+        {/* ── Action Buttons Row: Copy Key & Save to Device ── */}
+        <div className="grid grid-cols-2 gap-3 pt-1">
+          <button
+            onClick={handleCopyKey}
+            type="button"
+            className="flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-xs sm:text-sm font-bold text-white shadow-button-green transition-all hover:bg-primary-hover active:scale-[0.98]"
+          >
+            <Icon name={copied ? "check" : "content_copy"} size={16} className="text-white" />
+            <span>{copied ? "Copied!" : "Copy Key"}</span>
+          </button>
 
-          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl border border-[#D2EEE2] bg-[#EAF7F1] p-4">
-              <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-full bg-[#D2EEE2] text-sm font-bold text-[#009A44]">
-                <Icon name="filter_list" size={18} className="text-[#009A44]" />
-              </div>
-              <div className="font-montserrat text-xs font-extrabold text-[#10253A]">
-                1. Review
-              </div>
-              <div className="mt-1 text-[11px] leading-relaxed text-[#60758C]">
-                The QA &amp; department review teams inspect the concern.
-              </div>
-            </div>
+          <button
+            onClick={handleSaveToDevice}
+            disabled={saving}
+            type="button"
+            className="flex items-center justify-center gap-2 rounded-xl border border-green-200 bg-green-50/90 px-4 py-3 text-xs sm:text-sm font-bold text-primary transition-all hover:bg-green-100 active:scale-[0.98] disabled:opacity-50"
+          >
+            <Icon name="download" size={16} className="text-primary" />
+            <span>{saving ? "Saving…" : "Save to Device"}</span>
+          </button>
+        </div>
 
-            <div className="rounded-2xl border border-[#D4E9F2] bg-[#EAF4F8] p-4">
-              <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-full bg-[#D4E9F2] text-sm font-bold text-[#2C7DA0]">
-                <Icon name="manage_accounts" size={18} className="text-[#2C7DA0]" />
-              </div>
-              <div className="font-montserrat text-xs font-extrabold text-[#10253A]">
-                2. Action
-              </div>
-              <div className="mt-1 text-[11px] leading-relaxed text-[#60758C]">
-                Appropriate steps are taken to resolve the report.
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-[#E2D9F4] bg-[#F1EDFA] p-4">
-              <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-full bg-[#E2D9F4] text-sm font-bold text-[#7355A2]">
-                <Icon name="sparkles" size={18} className="text-[#7355A2]" />
-              </div>
-              <div className="font-montserrat text-xs font-extrabold text-[#10253A]">
-                3. Impact
-              </div>
-              <div className="mt-1 text-[11px] leading-relaxed text-[#60758C]">
-                Your feedback directly improves the UNILAG experience.
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Action Buttons */}
-        <div className="mt-8 space-y-3">
+        {/* ── Track My Whisper Full Width Button ── */}
+        <div className="pt-1">
           <Link
             href={`/track?ref=${encodeURIComponent(refCode)}`}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-border-subtle bg-white py-3.5 text-center text-sm font-extrabold text-navy hover:bg-slate-50 shadow-xs transition-colors"
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-border-subtle bg-white py-3.5 text-xs sm:text-sm font-bold text-navy shadow-card transition-all hover:bg-slate-50 hover:border-slate-300 active:scale-[0.98]"
           >
-            <Icon name="search" size={16} className="text-primary" />
-            Track this Whisper
-          </Link>
-
-          <Link
-            href="/track"
-            className="btn-primary-green w-full py-4 text-center text-sm font-extrabold"
-          >
-            View My Whispers &nbsp;→
-          </Link>
-
-          <Link
-            href="/dashboard"
-            className="btn-primary-blue w-full py-4 text-center text-sm font-extrabold"
-          >
-            Back to Home &nbsp;→
+            <Icon name="search" size={16} className="text-text-secondary" />
+            <span>Track My Whisper</span>
           </Link>
         </div>
 
-        <p className="mt-4 text-center text-[10.5px] text-text-soft">
-          Save your reference number <span className="font-mono font-bold text-primary">{refCode}</span> to track this submission later at{" "}
-          <Link href="/track" className="text-primary font-semibold hover:underline">/track</Link>
-        </p>
+        {/* ── Submission Metadata Breakdown ── */}
+        <div className="rounded-2xl border border-border-subtle bg-white p-4 text-xs space-y-2.5 shadow-2xs">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+            <span className="text-text-secondary font-medium">Category:</span>
+            <span className="font-bold text-navy">{category}</span>
+          </div>
+          <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+            <span className="text-text-secondary font-medium">Subject / Target:</span>
+            <span className="font-bold text-navy truncate max-w-[180px]">{subject}</span>
+          </div>
+          <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+            <span className="text-text-secondary font-medium">Feedback Type:</span>
+            <span className="font-semibold text-primary">{feedbackType}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-text-secondary font-medium">Submitted At:</span>
+            <span className="font-medium text-text-soft">{currentDate} · {currentTime}</span>
+          </div>
+        </div>
+
+        <div className="text-center pt-2">
+          <Link
+            href="/"
+            className="text-xs font-bold text-primary hover:underline"
+          >
+            Return to Homepage →
+          </Link>
+        </div>
       </main>
 
+      {/* Mobile Bottom Nav */}
       <MobileBottomNav />
     </div>
   );
@@ -227,8 +261,14 @@ function WhisperSuccessContent() {
 
 export default function WhisperSuccessPage() {
   return (
-    <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-[#F5F5F5]"><span className="h-7 w-7 animate-spin rounded-full border-2 border-[#009A44] border-t-transparent" /></div>}>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC]">
+          <span className="h-7 w-7 animate-spin rounded-full border-2 border-[#009A44] border-t-transparent" />
+        </div>
+      }
+    >
       <WhisperSuccessContent />
     </Suspense>
   );
-}
+}
