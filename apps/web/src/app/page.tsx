@@ -86,7 +86,6 @@ export default function LandingPage() {
   const { role } = useAuth();
   const [liveWhispers, setLiveWhispers] = useState<PublicWhisper[]>([]);
   const [filterStatus, setFilterStatus] = useState<string>("All");
-  const [searchQuery, setSearchQuery] = useState<string>("");
 
   useEffect(() => {
     const fetchRecentWhispers = async () => {
@@ -139,18 +138,12 @@ export default function LandingPage() {
     return DEFAULT_MOCK_WHISPERS;
   }, [liveWhispers]);
 
-  // Filter based on active pill and search query
+  // Filter based on active status pill
   const filteredWhispers = useMemo(() => {
     return displayWhispers.filter((w) => {
-      const matchesFilter = filterStatus === "All" || w.status === filterStatus;
-      const matchesSearch =
-        searchQuery.trim() === "" ||
-        w.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        w.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        w.category.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesFilter && matchesSearch;
+      return filterStatus === "All" || w.status === filterStatus;
     });
-  }, [displayWhispers, filterStatus, searchQuery]);
+  }, [displayWhispers, filterStatus]);
 
   return (
     <main className="flex min-h-screen flex-col bg-[#F8FAFC] font-body text-navy antialiased">
