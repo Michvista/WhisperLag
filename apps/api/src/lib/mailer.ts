@@ -1,3 +1,4 @@
+import net from "node:net";
 import tls from "node:tls";
 import { env } from "../config/env.js";
 import { prisma } from "./prisma.js";
@@ -11,13 +12,13 @@ interface SendMailOptions {
 }
 
 /**
- * Pure Node.js zero-dependency SSL/TLS SMTP client for Gmail and custom SMTP servers.
- * Connects directly over TLS to port 465 for fast, secure delivery without external dependencies.
+ * Pure Node.js zero-dependency SSL/TLS and STARTTLS SMTP client.
+ * Supports port 465 (Direct TLS) and port 587 (STARTTLS).
  */
 export async function sendEmail(options: SendMailOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
   const host = env.SMTP_HOST || "smtp.gmail.com";
-  const port = env.SMTP_PORT || 465;
-  const user = env.SMTP_USER || "";
+  const port = Number(env.SMTP_PORT) || 587;
+  const user = (env.SMTP_USER || "").trim();
   const pass = (env.SMTP_PASS || "").replace(/\s+/g, "");
   const from = options.from || `WhisperLag UNILAG <${user}>`;
   const rawRecipients = Array.isArray(options.to) ? options.to : [options.to];
@@ -28,116 +29,219 @@ export async function sendEmail(options: SendMailOptions): Promise<{ success: bo
   }
 
   if (!user || !pass) {
-    console.warn("[mailer] SMTP credentials not configured. Skipping email dispatch.");
+    console.warn("[mailer] SMTP credentials not configured (SMTP_USER or SMTP_PASS missing). Skipping email dispatch.");
     return { success: false, error: "SMTP credentials missing" };
   }
 
   return new Promise((resolve) => {
-    let socket: tls.TLSSocket;
-    try {
-      socket = tls.connect({ host, port, rejectUnauthorized: false }, () => {
-        // Connected
-      });
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Unknown connection error";
-      console.error("[mailer] Connection error:", msg);
-      return resolve({ success: false, error: msg });
+    let resolved = false;
+    function finish(res: { success: boolean; messageId?: string; error?: string }) {
+      if (!resolved) {
+        resolved = true;
+        resolve(res);
+      }
     }
 
-    socket.setEncoding("utf8");
-    socket.setTimeout(15000);
+    const isDirectTls = port === 465;
 
-    let stage = 0;
-    let buffer = "";
+    let socket: net.Socket | tls.TLSSocket;
+    let dataBuffer = "";
+    let awaitingReply: ((lines: string[]) => void) | null = null;
 
-    function sendCommand(cmd: string) {
-      socket.write(cmd + "\r\n");
-    }
+    function handleData(chunk: Buffer | string) {
+      dataBuffer += chunk.toString("utf8");
+      const lines = dataBuffer.split("\r\n");
+      dataBuffer = lines.pop() || "";
 
-    socket.on("data", (data: string) => {
-      buffer += data;
-      const lines = buffer.split("\r\n");
-      buffer = lines.pop() || "";
+      const completeLines: string[] = [];
+      let isLast = false;
 
       for (const line of lines) {
         if (!line) continue;
-        const code = parseInt(line.substring(0, 3), 10);
-
-        if (stage === 0 && code === 220) {
-          // Greeting received
-          stage = 1;
-          sendCommand(`EHLO localhost`);
-        } else if (stage === 1 && (code === 250 || line.startsWith("250 "))) {
-          // Auth start
-          stage = 2;
-          sendCommand("AUTH LOGIN");
-        } else if (stage === 2 && code === 334) {
-          // Send base64 username
-          stage = 3;
-          sendCommand(Buffer.from(user).toString("base64"));
-        } else if (stage === 3 && code === 334) {
-          // Send base64 password
-          stage = 4;
-          sendCommand(Buffer.from(pass).toString("base64"));
-        } else if (stage === 4 && code === 235) {
-          // Auth successful
-          stage = 5;
-          sendCommand(`MAIL FROM:<${user}>`);
-        } else if (stage === 5 && code === 250) {
-          // RCPT TO
-          stage = 6;
-          for (const recipient of recipients) {
-            sendCommand(`RCPT TO:<${recipient}>`);
-          }
-          sendCommand("DATA");
-        } else if (stage === 6 && code === 354) {
-          // Send email payload
-          stage = 7;
-          const boundary = `----=_Part_${Date.now()}`;
-          const messageId = `<${Date.now()}@whisperlag.unilag.edu.ng>`;
-          const headers = [
-            `From: ${from}`,
-            `To: ${recipients.join(", ")}`,
-            `Subject: ${options.subject}`,
-            `Message-ID: ${messageId}`,
-            `MIME-Version: 1.0`,
-            `Content-Type: multipart/alternative; boundary="${boundary}"`,
-            "",
-          ];
-
-          let body = "";
-          if (options.text) {
-            body += `--${boundary}\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n${options.text}\r\n\r\n`;
-          }
-          if (options.html) {
-            body += `--${boundary}\r\nContent-Type: text/html; charset=utf-8\r\n\r\n${options.html}\r\n\r\n`;
-          }
-          body += `--${boundary}--\r\n.`;
-
-          socket.write(headers.join("\r\n") + "\r\n" + body + "\r\n");
-        } else if (stage === 7 && code === 250) {
-          // Delivered
-          stage = 8;
-          sendCommand("QUIT");
-          socket.end();
-          resolve({ success: true });
-        } else if (code >= 400) {
-          console.error(`[mailer] SMTP error at stage ${stage}: ${line}`);
-          socket.end();
-          resolve({ success: false, error: line });
+        completeLines.push(line);
+        // An SMTP response block terminates when the 4th character is a space or end of 3-digit code
+        if (line.length === 3 || (line.length >= 4 && line[3] === " ")) {
+          isLast = true;
         }
       }
-    });
 
+      if (isLast && awaitingReply) {
+        const cb = awaitingReply;
+        awaitingReply = null;
+        cb(completeLines);
+      }
+    }
+
+    function readReply(): Promise<string[]> {
+      return new Promise((res, rej) => {
+        const timer = setTimeout(() => rej(new Error("SMTP read timeout")), 15000);
+        awaitingReply = (lines) => {
+          clearTimeout(timer);
+          res(lines);
+        };
+      });
+    }
+
+    function sendCmd(cmd: string) {
+      socket.write(cmd + "\r\n");
+    }
+
+    async function runSession() {
+      try {
+        // 1. Initial Greeting
+        const greeting = await readReply();
+        if (!greeting[greeting.length - 1].startsWith("220")) {
+          throw new Error(`Unexpected greeting: ${greeting.join(" ")}`);
+        }
+
+        // 2. EHLO
+        sendCmd(`EHLO localhost`);
+        await readReply();
+
+        // 3. STARTTLS if not direct TLS
+        if (!isDirectTls) {
+          sendCmd("STARTTLS");
+          const tlsRes = await readReply();
+          if (!tlsRes[tlsRes.length - 1].startsWith("220")) {
+            throw new Error(`STARTTLS failed: ${tlsRes.join(" ")}`);
+          }
+
+          // Upgrade socket to TLS
+          await new Promise<void>((upgraded) => {
+            const tlsSocket = tls.connect(
+              {
+                socket: socket as net.Socket,
+                host,
+                rejectUnauthorized: false,
+              },
+              () => {
+                socket = tlsSocket;
+                socket.on("data", handleData);
+                upgraded();
+              }
+            );
+          });
+
+          // EHLO again after TLS negotiation
+          sendCmd(`EHLO localhost`);
+          await readReply();
+        }
+
+        // 4. AUTH LOGIN
+        sendCmd("AUTH LOGIN");
+        const authReq = await readReply();
+        if (!authReq[authReq.length - 1].startsWith("334")) {
+          throw new Error(`AUTH LOGIN rejected: ${authReq.join(" ")}`);
+        }
+
+        // Send base64 username
+        sendCmd(Buffer.from(user).toString("base64"));
+        const userReq = await readReply();
+        if (!userReq[userReq.length - 1].startsWith("334")) {
+          throw new Error(`Username rejected: ${userReq.join(" ")}`);
+        }
+
+        // Send base64 password
+        sendCmd(Buffer.from(pass).toString("base64"));
+        const passRes = await readReply();
+        if (!passRes[passRes.length - 1].startsWith("235")) {
+          throw new Error(`Authentication failed: ${passRes.join(" ")}`);
+        }
+
+        // 5. MAIL FROM
+        sendCmd(`MAIL FROM:<${user}>`);
+        const mailRes = await readReply();
+        if (!mailRes[mailRes.length - 1].startsWith("250")) {
+          throw new Error(`MAIL FROM rejected: ${mailRes.join(" ")}`);
+        }
+
+        // 6. RCPT TO for each recipient
+        for (const rcpt of recipients) {
+          sendCmd(`RCPT TO:<${rcpt}>`);
+          const rcptRes = await readReply();
+          if (!rcptRes[rcptRes.length - 1].startsWith("250")) {
+            console.warn(`[mailer] Recipient rejected: ${rcpt} (${rcptRes.join(" ")})`);
+          }
+        }
+
+        // 7. DATA
+        sendCmd("DATA");
+        const dataRes = await readReply();
+        if (!dataRes[dataRes.length - 1].startsWith("354")) {
+          throw new Error(`DATA command rejected: ${dataRes.join(" ")}`);
+        }
+
+        // 8. Payload
+        const boundary = `----=_Part_${Date.now()}_${Math.random().toString(36).substring(2)}`;
+        const messageId = `<${Date.now()}.${Math.random().toString(36).substring(2)}@whisperlag.unilag.edu.ng>`;
+        const headers = [
+          `From: ${from}`,
+          `To: ${recipients.join(", ")}`,
+          `Subject: ${options.subject}`,
+          `Message-ID: ${messageId}`,
+          `Date: ${new Date().toUTCString()}`,
+          `MIME-Version: 1.0`,
+          `Content-Type: multipart/alternative; boundary="${boundary}"`,
+          "",
+        ];
+
+        let body = "";
+        if (options.text) {
+          body += `--${boundary}\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Transfer-Encoding: 8bit\r\n\r\n${options.text}\r\n\r\n`;
+        }
+        if (options.html) {
+          body += `--${boundary}\r\nContent-Type: text/html; charset=utf-8\r\nContent-Transfer-Encoding: 8bit\r\n\r\n${options.html}\r\n\r\n`;
+        }
+        body += `--${boundary}--\r\n.`;
+
+        socket.write(headers.join("\r\n") + "\r\n" + body + "\r\n");
+
+        const sendRes = await readReply();
+        if (!sendRes[sendRes.length - 1].startsWith("250")) {
+          throw new Error(`Message delivery failed: ${sendRes.join(" ")}`);
+        }
+
+        // 9. QUIT
+        sendCmd("QUIT");
+        try {
+          await readReply();
+        } catch {
+          // Ignore quit response timeout
+        }
+
+        socket.end();
+        finish({ success: true, messageId });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error("[mailer] SMTP transmission error:", msg);
+        try {
+          socket.destroy();
+        } catch {}
+        finish({ success: false, error: msg });
+      }
+    }
+
+    if (isDirectTls) {
+      socket = tls.connect({ host, port, rejectUnauthorized: false }, () => {
+        socket.on("data", handleData);
+        runSession();
+      });
+    } else {
+      socket = net.connect({ host, port }, () => {
+        socket.on("data", handleData);
+        runSession();
+      });
+    }
+
+    socket.setTimeout(25000);
+    socket.on("timeout", () => {
+      console.error("[mailer] Socket connection timeout");
+      socket.destroy();
+      finish({ success: false, error: "SMTP connection timeout" });
+    });
     socket.on("error", (err) => {
       console.error("[mailer] Socket error:", err.message);
-      resolve({ success: false, error: err.message });
-    });
-
-    socket.on("timeout", () => {
-      console.error("[mailer] Socket timeout");
-      socket.destroy();
-      resolve({ success: false, error: "SMTP connection timeout" });
+      finish({ success: false, error: err.message });
     });
   });
 }
