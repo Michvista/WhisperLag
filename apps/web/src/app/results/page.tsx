@@ -192,7 +192,13 @@ export default function ResultsPage() {
         </div>
 
         {/* ── Archived & Live Poll Results Cards ── */}
-        <div className="space-y-6">
+        {loading ? (
+          <div className="space-y-3 py-8 text-center text-xs font-semibold text-text-secondary">
+            <div className="mx-auto h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            Loading campus poll results…
+          </div>
+        ) : (
+          <div className="space-y-6">
           {ARCHIVED_POLLS.filter(
             (p) => filterCategory === "All" || p.category === filterCategory
           ).map((poll) => (
@@ -293,6 +299,7 @@ export default function ResultsPage() {
             </div>
           ))}
         </div>
+      )}
 
         {/* ── Institutional Notice ── */}
         <div className="rounded-xl border border-border-subtle bg-white p-5 text-center space-y-1.5 shadow-2xs">
