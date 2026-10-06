@@ -218,6 +218,8 @@ async function main() {
         isAnonymous: true,
         departmentId: dept,
         status: w.status,
+        refNumber: `WL-2026-${String(100000 + i * 7919).slice(0, 6)}`,
+        resolutionNote: w.status === WhisperStatus.ACTIONED ? "Issue reviewed and addressed by the Quality Assurance committee." : undefined,
         createdAt: new Date(Date.now() - i * 2.4e6),
       },
     });

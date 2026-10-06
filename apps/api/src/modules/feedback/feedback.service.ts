@@ -25,18 +25,22 @@ interface RouteTag {
  */
 export class FeedbackService {
   async create(input: CreateWhisperInput): Promise<Whisper> {
+    const refCode = input.refNumber || `WL-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
+
     const whisper = await prisma.whisper.create({
       data: {
         category: input.category,
         content: input.content,
         isAnonymous: input.isAnonymous,
         departmentId: input.departmentId ?? null,
+        refNumber: refCode,
+        attachmentUrl: input.attachmentUrl ?? null,
       },
       include: { department: { select: { name: true } } },
     });
 
     void notifyNewWhisper({
-      refNumber: whisper.refNumber || `WL-${new Date().getFullYear()}-${whisper.id.slice(0, 6)}`,
+      refNumber: whisper.refNumber || refCode,
       category: whisper.category,
       content: whisper.content,
       departmentName: whisper.department?.name,
@@ -52,20 +56,22 @@ export class FeedbackService {
    * The optional department tags the complaint for staff routing.
    */
   async createPublic(input: PublicWhisperInput): Promise<Whisper> {
+    const refCode = input.refNumber || `WL-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
+
     const whisper = await prisma.whisper.create({
       data: {
         category: input.category,
         content: input.content,
         isAnonymous: true,
         departmentId: input.departmentId ?? null,
-        refNumber: input.refNumber ?? null,
+        refNumber: refCode,
         attachmentUrl: input.attachmentUrl ?? null,
       },
       include: { department: { select: { name: true } } },
     });
 
     void notifyNewWhisper({
-      refNumber: whisper.refNumber || `WL-${new Date().getFullYear()}-${whisper.id.slice(0, 6)}`,
+      refNumber: whisper.refNumber || refCode,
       category: whisper.category,
       content: whisper.content,
       departmentName: whisper.department?.name,
@@ -202,8 +208,14 @@ export class FeedbackService {
    * Returns only status + resolution note — never any identity data.
    */
   async lookupByRef(ref: string) {
-    return prisma.whisper.findUnique({
-      where: { refNumber: ref },
+    const cleanRef = ref.trim();
+    return prisma.whisper.findFirst({
+      where: {
+        OR: [
+          { refNumber: { equals: cleanRef, mode: "insensitive" } },
+          { id: { equals: cleanRef, mode: "insensitive" } },
+        ],
+      },
       select: {
         refNumber: true,
         category: true,

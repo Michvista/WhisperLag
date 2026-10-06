@@ -38,11 +38,15 @@ function TrackContent() {
     setResult(null);
     try {
       const data = await api<TrackResult>(
-        `/feedback/lookup/${encodeURIComponent(refCode)}`
+        `/feedback/lookup/${encodeURIComponent(refCode.trim())}`
       );
       setResult(data ?? null);
-    } catch (err: any) {
-      setError(err?.message || "No whisper found with that reference number. Please check the code and try again.");
+    } catch (err) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : "No whisper found with that reference number. Please check the code and try again.";
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -51,17 +55,17 @@ function TrackContent() {
   // Auto-lookup if arriving with ?ref=
   useEffect(() => {
     const initialRef = searchParams.get("ref");
-    if (initialRef?.startsWith("WL-")) {
-      void doLookup(initialRef);
+    if (initialRef && initialRef.trim()) {
+      void doLookup(initialRef.trim());
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function handleLookup(e: React.FormEvent) {
     e.preventDefault();
-    const trimmed = ref.trim().toUpperCase();
-    if (!trimmed.startsWith("WL-")) {
-      setError("Reference numbers begin with WL- (e.g. WL-2026-118374).");
+    const trimmed = ref.trim();
+    if (!trimmed) {
+      setError("Please enter your reference number (e.g. WL-2026-372736).");
       return;
     }
     await doLookup(trimmed);

@@ -204,13 +204,13 @@ export const feedbackController = {
 
   /** GET /api/v1/feedback/lookup/:ref : public reference-number tracker. */
   lookupByRef: asyncHandler(async (req: Request, res: Response) => {
-    const ref = req.params.ref;
-    if (!ref || !ref.startsWith("WL-")) {
-      throw ApiError.badRequest("Invalid reference number format. It should look like WL-2026-118374.");
+    const ref = (req.params.ref || "").trim();
+    if (!ref) {
+      throw ApiError.badRequest("Reference number is required.");
     }
     const whisper = await feedbackService.lookupByRef(ref);
     if (!whisper) {
-      throw ApiError.notFound("Whisper with that reference number");
+      throw ApiError.notFound(`No whisper found matching reference "${ref}". Please double-check the tracking code on your confirmation screen or downloaded receipt.`);
     }
     res.status(HTTP_STATUS.OK).json({ success: true, data: whisper, error: null });
   }),
