@@ -48,28 +48,44 @@ export function createApp(): Express {
     res.json({ success: true, data: { status: "ok", service: "whisperlag-api" } });
   });
 
-  // SMTP diagnostic endpoint (admin only via secret token)
+  // Email diagnostic endpoint
   app.get("/api/v1/test-mail", async (_req, res) => {
-    const to = env.ADMIN_NOTIFICATION_EMAILS?.split(",")[0]?.trim() || env.SMTP_USER;
-    console.log("[test-mail] SMTP config →", {
-      host: env.SMTP_HOST,
-      port: env.SMTP_PORT,
-      user: env.SMTP_USER ? env.SMTP_USER.slice(0, 5) + "***" : "NOT SET",
-      passSet: !!env.SMTP_PASS,
+    const to = env.ADMIN_NOTIFICATION_EMAILS?.split(",")[0]?.trim() || env.SMTP_USER || "olumidenifemi07@gmail.com";
+    const provider = env.RESEND_API_KEY ? "resend" : "smtp";
+
+    console.log("[test-mail] Email diagnostic running →", {
+      provider,
+      hasResendKey: Boolean(env.RESEND_API_KEY),
+      smtpHost: env.SMTP_HOST,
+      smtpPort: env.SMTP_PORT,
+      smtpUser: env.SMTP_USER ? env.SMTP_USER.slice(0, 5) + "***" : "NOT SET",
       to,
     });
-    if (!to || !env.SMTP_USER || !env.SMTP_PASS) {
-      res.json({ success: false, error: "SMTP_USER, SMTP_PASS, or ADMIN_NOTIFICATION_EMAILS not configured in environment." });
+
+    if (!env.RESEND_API_KEY && (!env.SMTP_USER || !env.SMTP_PASS)) {
+      res.json({
+        success: false,
+        error: "Neither RESEND_API_KEY nor SMTP credentials (SMTP_USER/SMTP_PASS) are configured.",
+        provider: "none",
+        to,
+      });
       return;
     }
+
     const result = await sendEmail({
       to,
-      subject: "WhisperLag SMTP Diagnostic Test",
-      text: "This is an automated diagnostic email from WhisperLag. If you see this, SMTP is working!",
-      html: "<p><strong>WhisperLag SMTP is fully operational.</strong> Whisper notification emails will be delivered.</p>",
+      subject: "WhisperLag Notification System Test",
+      text: "This is an automated test from WhisperLag. If you see this, email delivery is 100% operational!",
+      html: "<div style='font-family: sans-serif; padding: 20px; color: #10253a;'><h2 style='color: #009A44;'>🌿 WhisperLag UNILAG</h2><p><strong>Email delivery is 100% operational!</strong></p><p>New whispers submitted on the platform will now trigger immediate inbox alerts.</p></div>",
     });
-    console.log("[test-mail] Result:", result);
-    res.json({ success: result.success, to, error: result.error ?? null });
+
+    res.json({
+      success: result.success,
+      provider,
+      to,
+      messageId: result.messageId ?? null,
+      error: result.error ?? null,
+    });
   });
 
   // Feature module routes
