@@ -154,14 +154,14 @@ export default function LandingPage() {
             <WhisperBrand href="/" size="md" />
           </div>
 
-          {/* Desktop Right Links */}
-          <div className="flex items-center gap-3">
+          {/* Right Navigation Area */}
+          <div className="flex items-center gap-2.5">
             <Link
               href="/notifications"
               className="flex h-9 w-9 items-center justify-center rounded-full text-text-secondary hover:bg-slate-100 hover:text-navy transition-colors relative"
               aria-label="Notifications"
             >
-              <Icon name="notifications" size={19} />
+              <Icon name="notifications" size={20} />
               <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary" />
             </Link>
 
@@ -180,7 +180,7 @@ export default function LandingPage() {
                 </Link>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="hidden sm:flex items-center gap-2">
                 <Link
                   href="/login"
                   className="rounded-lg border border-border-subtle bg-white px-3 py-1.5 text-xs font-semibold text-navy transition-colors hover:bg-slate-50"
@@ -200,57 +200,96 @@ export default function LandingPage() {
       </header>
 
       {/* ── Main Content Container ── */}
-      <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8 space-y-8 pb-24 lg:pb-16">
-        {/* ── HERO BANNER ── */}
-        <section className="relative overflow-hidden bg-white">
-          <div className="flex flex-col lg:flex-row items-stretch">
-            {/* Left Content Column */}
-            <div className="flex flex-col justify-center p-6 sm:p-8 lg:p-10 lg:w-7/12 space-y-4">
-              <div>
-                <h1 className="font-montserrat text-3xl font-extrabold leading-tight text-navy sm:text-4xl lg:text-[40px]">
+      <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-4 sm:py-6 sm:px-6 lg:px-8 space-y-8 pb-24 lg:pb-16">
+        {/* ── HERO SECTION (Seamless & Non-boxed) ── */}
+        <section className="relative overflow-hidden pt-2 pb-4 sm:py-6">
+          {/* Mobile Faded Gate Background (Upper Right) */}
+          <div className="absolute right-0 top-0 h-44 sm:h-52 w-7/12 pointer-events-none overflow-hidden lg:hidden">
+            <img
+              src="/unilag-gate.jpg"
+              alt="UNILAG Gate"
+              className="h-full w-full object-cover object-left opacity-85"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#F8FAFC] via-[#F8FAFC]/40 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#F8FAFC] via-transparent to-transparent" />
+          </div>
+
+          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            {/* Left Content */}
+            <div className="lg:w-7/12 space-y-4">
+              <div className="max-w-lg">
+                <h1 className="font-montserrat text-[26px] sm:text-3xl lg:text-[40px] font-extrabold leading-[1.18] tracking-tight text-navy">
                   Your voice <br />
                   makes <span className="text-primary">UNILAG</span> <br />
                   a better place.
                 </h1>
-                <p className="mt-2 text-xs sm:text-sm text-text-secondary">
+                <p className="mt-2 text-xs sm:text-sm text-text-secondary max-w-sm sm:max-w-md leading-relaxed">
                   Share challenges, ideas and experiences anonymously.
                 </p>
               </div>
 
-              {/* Mobile Hero Gate Image */}
-              <div className="relative overflow-hidden rounded-xl h-44 sm:h-52 w-full lg:hidden my-2">
-                <img
-                  src="/unilag-gate.jpg"
-                  alt="University of Lagos Main Gate Akoka"
-                  className="h-full w-full object-cover object-center"
-                />
-              </div>
-
-              {/* Actions row */}
-              <div className="flex flex-wrap items-center gap-3 pt-2">
+              {/* Mobile Card Action Buttons (Stacked matching mockup) */}
+              <div className="flex flex-col gap-2.5 pt-1 lg:hidden">
                 <Link
                   href="/whisper"
-                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-button-green transition-all hover:bg-primary-hover active:scale-98"
+                  className="flex items-center gap-3.5 rounded-2xl bg-primary p-3.5 sm:p-4 text-white shadow-button-green transition-all active:scale-[0.98]"
                 >
-                  <Icon name="chat" size={16} className="text-white" />
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/20 text-white">
+                    <Icon name="chat" size={20} className="text-white" />
+                  </div>
+                  <div>
+                    <span className="block text-sm font-bold leading-tight">Give Feedback →</span>
+                    <span className="block text-[11px] text-white/85 font-medium">Share your experience anonymously</span>
+                  </div>
+                </Link>
+
+                <Link
+                  href="/whisper"
+                  className="flex items-center justify-between rounded-2xl border border-green-200/80 bg-green-50/90 p-3 sm:p-3.5 text-navy transition-all active:scale-[0.98]"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-green-100 text-primary">
+                      <Icon name="lock" size={17} className="text-primary" />
+                    </div>
+                    <div>
+                      <span className="block text-xs font-bold text-navy leading-tight">100% Anonymous</span>
+                      <span className="block text-[10.5px] text-text-secondary">No name, no matric number, no personal info.</span>
+                    </div>
+                  </div>
+                  <span className="text-xs font-bold text-primary px-1">›</span>
+                </Link>
+              </div>
+
+              {/* Desktop Action Buttons (Side-by-side matching mockup) */}
+              <div className="hidden lg:flex items-center gap-4 pt-2">
+                <Link
+                  href="/whisper"
+                  className="inline-flex items-center gap-2.5 rounded-xl bg-primary px-6 py-3.5 text-sm font-bold text-white shadow-button-green transition-all hover:bg-primary-hover active:scale-[0.98]"
+                >
+                  <Icon name="chat" size={18} className="text-white" />
                   <span>Give Feedback →</span>
                 </Link>
 
-                <div className="inline-flex items-center gap-2 rounded-xl border border-green-200 bg-green-50/80 px-3.5 py-2 text-xs font-semibold text-primary">
-                  <Icon name="lock" size={14} className="text-primary" />
-                  <span>100% Anonymous</span>
+                <div className="inline-flex items-center gap-3 rounded-xl border border-green-200 bg-green-50/80 px-4 py-2.5 text-xs font-semibold text-primary">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-green-100 text-primary">
+                    <Icon name="lock" size={15} className="text-primary" />
+                  </div>
+                  <div>
+                    <span className="block font-bold text-navy">100% Anonymous</span>
+                    <span className="block text-[11px] text-text-secondary font-normal">No name, no matric number, no personal information.</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Right Desktop Image Column — more visible, less gradient */}
-            <div className="relative hidden lg:block lg:w-5/12 overflow-hidden">
+            {/* Right Desktop Image Column (Smooth edge blend) */}
+            <div className="relative hidden lg:block lg:w-5/12 h-[290px] xl:h-[320px] rounded-2xl overflow-hidden shadow-sm">
               <img
                 src="/unilag-gate.jpg"
                 alt="University of Lagos Main Gate Akoka"
-                className="h-full w-full object-cover object-center min-h-[320px]"
+                className="h-full w-full object-cover object-center"
               />
-              <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white to-transparent pointer-events-none" />
+              <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-[#F8FAFC] to-transparent pointer-events-none" />
             </div>
           </div>
         </section>
