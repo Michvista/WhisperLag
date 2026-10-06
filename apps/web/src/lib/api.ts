@@ -33,9 +33,6 @@ export function clearSession() {
   localStorage.removeItem(ROLE_KEY);
 }
 
-interface ApiErrorBody {
-  error?: { code?: string; message?: string };
-}
 
 /**
  * Parses the shared ApiResponse envelope and throws on failure so callers
