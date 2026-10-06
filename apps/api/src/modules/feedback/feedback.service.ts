@@ -40,7 +40,7 @@ export class FeedbackService {
     });
 
     try {
-      await notifyNewWhisper({
+      void notifyNewWhisper({
         refNumber: whisper.refNumber || refCode,
         category: whisper.category,
         content: whisper.content,
@@ -75,7 +75,7 @@ export class FeedbackService {
     });
 
     try {
-      await notifyNewWhisper({
+      void notifyNewWhisper({
         refNumber: whisper.refNumber || refCode,
         category: whisper.category,
         content: whisper.content,

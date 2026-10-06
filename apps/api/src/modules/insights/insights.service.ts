@@ -25,12 +25,14 @@ interface InsightResult {
   noise: { id: string; category: string; content: string; reason: string; status: string }[];
 }
 
-const NOISE_HINTS = /\b(lol|test|asap|pls|please fix|fix this)\b/i;
+const NOISE_HINTS = /\b(lol|test|testing|asap|pls|please fix|fix this|ok|okay|nice|good|bad|hi|hello|rubbish|nonsense|trash|fake|dummy|asdf|qwerty|zzz|nope|yes|k|kk|whatever|nothing)\b/i;
 
 function isLikelyNoise(w: WhisperRecord): string | null {
-  if (w.content.trim().length < 12) return "Too short to be actionable";
-  if (!/[a-zA-Z]{3}/.test(w.content)) return "Contains no meaningful words";
-  if (NOISE_HINTS.test(w.content)) return "Likely non-substantive";
+  const clean = w.content.replace(/^\[.*?\]\s*/, "").trim();
+  if (clean.length < 25) return "Too short to be actionable";
+  if (!/[a-zA-Z]{3}/.test(clean)) return "Contains no meaningful words";
+  if (/(.)\1{3,}/.test(clean)) return "Repetitive characters — likely spam";
+  if (NOISE_HINTS.test(clean) && clean.split(/\s+/).length <= 6) return "Likely non-substantive";
   return null;
 }
 
