@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, storeSession } from "@/lib/api";
 import { toast } from "@/lib/toast";
+import { Icon } from "@/components/ui/Icon";
 
 export function LoginForm() {
   const router = useRouter();
