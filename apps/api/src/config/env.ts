@@ -28,6 +28,10 @@ const envSchema = z.object({
   CLOUDINARY_API_KEY: z.string().optional(),
   CLOUDINARY_API_SECRET: z.string().optional(),
   // Email notifications for Admin & Faculty
+  // Resend (HTTP API, works on Render free tier) — preferred over raw SMTP
+  RESEND_API_KEY: z.string().optional().default(""),
+  RESEND_FROM: z.string().optional().default("WhisperLag UNILAG <onboarding@resend.dev>"),
+  // SMTP fallback (blocked by most cloud providers on free tier)
   SMTP_HOST: z.string().default("smtp.gmail.com"),
   SMTP_PORT: z.coerce.number().default(465),
   SMTP_USER: z.string().optional().default(""),

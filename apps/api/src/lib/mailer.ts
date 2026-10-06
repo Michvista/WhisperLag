@@ -11,16 +11,47 @@ interface SendMailOptions {
   from?: string;
 }
 
+/** Send via Resend HTTP API — works on any cloud platform (port 443). */
+async function sendViaResend(options: SendMailOptions, recipients: string[]): Promise<{ success: boolean; messageId?: string; error?: string }> {
+  const apiKey = env.RESEND_API_KEY;
+  if (!apiKey) return { success: false, error: "RESEND_API_KEY not set" };
+
+  const from = options.from || env.RESEND_FROM || "WhisperLag UNILAG <onboarding@resend.dev>";
+
+  const payload: Record<string, unknown> = {
+    from,
+    to: recipients,
+    subject: options.subject,
+  };
+  if (options.html) payload.html = options.html;
+  if (options.text) payload.text = options.text;
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(15000),
+  });
+
+  const body = await res.json() as { id?: string; message?: string; name?: string };
+  if (!res.ok) {
+    const errMsg = body.message || body.name || `Resend API error ${res.status}`;
+    console.error("[mailer] Resend error:", errMsg);
+    return { success: false, error: errMsg };
+  }
+
+  console.log("[mailer] Resend delivery OK, id:", body.id);
+  return { success: true, messageId: body.id };
+}
+
 /**
- * Pure Node.js zero-dependency SSL/TLS and STARTTLS SMTP client.
- * Supports port 465 (Direct TLS) and port 587 (STARTTLS).
+ * Sends an email. Tries Resend HTTP API first (works on Render free tier),
+ * then falls back to raw SMTP (may be blocked on cloud providers).
  */
 export async function sendEmail(options: SendMailOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
-  const host = env.SMTP_HOST || "smtp.gmail.com";
-  const port = Number(env.SMTP_PORT) || 587;
-  const user = (env.SMTP_USER || "").trim();
-  const pass = (env.SMTP_PASS || "").replace(/\s+/g, "");
-  const from = options.from || `WhisperLag UNILAG <${user}>`;
   const rawRecipients = Array.isArray(options.to) ? options.to : [options.to];
   const recipients = Array.from(new Set(rawRecipients.map((e) => e.trim()).filter(Boolean)));
 
@@ -28,9 +59,21 @@ export async function sendEmail(options: SendMailOptions): Promise<{ success: bo
     return { success: false, error: "No recipients provided" };
   }
 
+  // --- Primary: Resend HTTP API ---
+  if (env.RESEND_API_KEY) {
+    return sendViaResend(options, recipients);
+  }
+
+  // --- Fallback: raw SMTP (may be blocked on Render free tier) ---
+  const host = env.SMTP_HOST || "smtp.gmail.com";
+  const port = Number(env.SMTP_PORT) || 587;
+  const user = (env.SMTP_USER || "").trim();
+  const pass = (env.SMTP_PASS || "").replace(/\s+/g, "");
+  const from = options.from || `WhisperLag UNILAG <${user}>`;
+
   if (!user || !pass) {
-    console.warn("[mailer] SMTP credentials not configured (SMTP_USER or SMTP_PASS missing). Skipping email dispatch.");
-    return { success: false, error: "SMTP credentials missing" };
+    console.warn("[mailer] No RESEND_API_KEY and no SMTP credentials set. Email skipped.");
+    return { success: false, error: "No email provider configured. Set RESEND_API_KEY in Render environment." };
   }
 
   return new Promise((resolve) => {
@@ -59,7 +102,6 @@ export async function sendEmail(options: SendMailOptions): Promise<{ success: bo
       for (const line of lines) {
         if (!line) continue;
         completeLines.push(line);
-        // An SMTP response block terminates when the 4th character is a space or end of 3-digit code
         if (line.length === 3 || (line.length >= 4 && line[3] === " ")) {
           isLast = true;
         }
@@ -88,74 +130,55 @@ export async function sendEmail(options: SendMailOptions): Promise<{ success: bo
 
     async function runSession() {
       try {
-        // 1. Initial Greeting
         const greeting = await readReply();
         if (!greeting[greeting.length - 1].startsWith("220")) {
           throw new Error(`Unexpected greeting: ${greeting.join(" ")}`);
         }
 
-        // 2. EHLO
         sendCmd(`EHLO localhost`);
         await readReply();
 
-        // 3. STARTTLS if not direct TLS
         if (!isDirectTls) {
           sendCmd("STARTTLS");
           const tlsRes = await readReply();
           if (!tlsRes[tlsRes.length - 1].startsWith("220")) {
             throw new Error(`STARTTLS failed: ${tlsRes.join(" ")}`);
           }
-
-          // Upgrade socket to TLS
           await new Promise<void>((upgraded) => {
-            const tlsSocket = tls.connect(
-              {
-                socket: socket as net.Socket,
-                host,
-                rejectUnauthorized: false,
-              },
-              () => {
-                socket = tlsSocket;
-                socket.on("data", handleData);
-                upgraded();
-              }
-            );
+            const tlsSocket = tls.connect({ socket: socket as net.Socket, host, rejectUnauthorized: false }, () => {
+              socket = tlsSocket;
+              socket.on("data", handleData);
+              upgraded();
+            });
           });
-
-          // EHLO again after TLS negotiation
           sendCmd(`EHLO localhost`);
           await readReply();
         }
 
-        // 4. AUTH LOGIN
         sendCmd("AUTH LOGIN");
         const authReq = await readReply();
         if (!authReq[authReq.length - 1].startsWith("334")) {
           throw new Error(`AUTH LOGIN rejected: ${authReq.join(" ")}`);
         }
 
-        // Send base64 username
         sendCmd(Buffer.from(user).toString("base64"));
         const userReq = await readReply();
         if (!userReq[userReq.length - 1].startsWith("334")) {
           throw new Error(`Username rejected: ${userReq.join(" ")}`);
         }
 
-        // Send base64 password
         sendCmd(Buffer.from(pass).toString("base64"));
         const passRes = await readReply();
         if (!passRes[passRes.length - 1].startsWith("235")) {
           throw new Error(`Authentication failed: ${passRes.join(" ")}`);
         }
 
-        // 5. MAIL FROM
         sendCmd(`MAIL FROM:<${user}>`);
         const mailRes = await readReply();
         if (!mailRes[mailRes.length - 1].startsWith("250")) {
           throw new Error(`MAIL FROM rejected: ${mailRes.join(" ")}`);
         }
 
-        // 6. RCPT TO for each recipient
         for (const rcpt of recipients) {
           sendCmd(`RCPT TO:<${rcpt}>`);
           const rcptRes = await readReply();
@@ -164,14 +187,12 @@ export async function sendEmail(options: SendMailOptions): Promise<{ success: bo
           }
         }
 
-        // 7. DATA
         sendCmd("DATA");
         const dataRes = await readReply();
         if (!dataRes[dataRes.length - 1].startsWith("354")) {
           throw new Error(`DATA command rejected: ${dataRes.join(" ")}`);
         }
 
-        // 8. Payload
         const boundary = `----=_Part_${Date.now()}_${Math.random().toString(36).substring(2)}`;
         const messageId = `<${Date.now()}.${Math.random().toString(36).substring(2)}@whisperlag.unilag.edu.ng>`;
         const headers = [
@@ -201,22 +222,15 @@ export async function sendEmail(options: SendMailOptions): Promise<{ success: bo
           throw new Error(`Message delivery failed: ${sendRes.join(" ")}`);
         }
 
-        // 9. QUIT
         sendCmd("QUIT");
-        try {
-          await readReply();
-        } catch {
-          // Ignore quit response timeout
-        }
+        try { await readReply(); } catch { /* ignore quit timeout */ }
 
         socket.end();
         finish({ success: true, messageId });
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         console.error("[mailer] SMTP transmission error:", msg);
-        try {
-          socket.destroy();
-        } catch {}
+        try { socket.destroy(); } catch {}
         finish({ success: false, error: msg });
       }
     }
@@ -245,6 +259,7 @@ export async function sendEmail(options: SendMailOptions): Promise<{ success: bo
     });
   });
 }
+
 
 /**
  * Sends a notification email to all QA Admins, Faculty Leads, and configured addresses when a new whisper is received.
