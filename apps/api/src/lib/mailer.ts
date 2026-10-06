@@ -11,6 +11,43 @@ interface SendMailOptions {
   from?: string;
 }
 
+/** Send via Brevo HTTP API — sends to ANY admin/recipient email with 0 domain restrictions (port 443). */
+async function sendViaBrevo(options: SendMailOptions, recipients: string[]): Promise<{ success: boolean; messageId?: string; error?: string }> {
+  const apiKey = env.BREVO_API_KEY;
+  if (!apiKey) return { success: false, error: "BREVO_API_KEY not set" };
+
+  const senderEmail = env.BREVO_SENDER_EMAIL || env.SMTP_USER || "olumidemichelle@gmail.com";
+  const senderName = env.BREVO_SENDER_NAME || "WhisperLag UNILAG";
+
+  const payload = {
+    sender: { name: senderName, email: senderEmail },
+    to: recipients.map((email) => ({ email })),
+    subject: options.subject,
+    htmlContent: options.html || `<p>${options.text || ""}</p>`,
+    textContent: options.text || undefined,
+  };
+
+  const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "api-key": apiKey,
+    },
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(15000),
+  });
+
+  const body = (await res.json()) as { messageId?: string; message?: string; code?: string };
+  if (!res.ok) {
+    const errMsg = body.message || `Brevo error ${res.status}`;
+    console.error("[mailer] Brevo error:", errMsg);
+    return { success: false, error: errMsg };
+  }
+
+  console.log("[mailer] Brevo delivery OK, messageId:", body.messageId);
+  return { success: true, messageId: body.messageId };
+}
+
 /** Send via Resend HTTP API — works on any cloud platform (port 443). */
 async function sendViaResend(options: SendMailOptions, recipients: string[]): Promise<{ success: boolean; messageId?: string; error?: string }> {
   const apiKey = env.RESEND_API_KEY;
@@ -37,7 +74,7 @@ async function sendViaResend(options: SendMailOptions, recipients: string[]): Pr
       signal: AbortSignal.timeout(15000),
     });
 
-    const body = await res.json() as { id?: string; message?: string; name?: string };
+    const body = (await res.json()) as { id?: string; message?: string; name?: string };
     return { ok: res.ok, status: res.status, body };
   }
 
@@ -64,8 +101,7 @@ async function sendViaResend(options: SendMailOptions, recipients: string[]): Pr
 }
 
 /**
- * Sends an email. Tries Resend HTTP API first (works on Render free tier),
- * then falls back to raw SMTP (may be blocked on cloud providers).
+ * Sends an email. Tries Brevo -> Resend -> Raw SMTP.
  */
 export async function sendEmail(options: SendMailOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
   const rawRecipients = Array.isArray(options.to) ? options.to : [options.to];
@@ -75,7 +111,12 @@ export async function sendEmail(options: SendMailOptions): Promise<{ success: bo
     return { success: false, error: "No recipients provided" };
   }
 
-  // --- Primary: Resend HTTP API ---
+  // --- 1. Brevo HTTP API (Best for delivering to any admin/external email) ---
+  if (env.BREVO_API_KEY) {
+    return sendViaBrevo(options, recipients);
+  }
+
+  // --- 2. Resend HTTP API ---
   if (env.RESEND_API_KEY) {
     return sendViaResend(options, recipients);
   }

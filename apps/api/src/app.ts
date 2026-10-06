@@ -51,10 +51,11 @@ export function createApp(): Express {
   // Email diagnostic endpoint
   app.get("/api/v1/test-mail", async (_req, res) => {
     const to = env.ADMIN_NOTIFICATION_EMAILS?.split(",")[0]?.trim() || env.SMTP_USER || "olumidenifemi07@gmail.com";
-    const provider = env.RESEND_API_KEY ? "resend" : "smtp";
+    const provider = env.BREVO_API_KEY ? "brevo" : env.RESEND_API_KEY ? "resend" : "smtp";
 
     console.log("[test-mail] Email diagnostic running →", {
       provider,
+      hasBrevoKey: Boolean(env.BREVO_API_KEY),
       hasResendKey: Boolean(env.RESEND_API_KEY),
       smtpHost: env.SMTP_HOST,
       smtpPort: env.SMTP_PORT,
@@ -62,10 +63,10 @@ export function createApp(): Express {
       to,
     });
 
-    if (!env.RESEND_API_KEY && (!env.SMTP_USER || !env.SMTP_PASS)) {
+    if (!env.BREVO_API_KEY && !env.RESEND_API_KEY && (!env.SMTP_USER || !env.SMTP_PASS)) {
       res.json({
         success: false,
-        error: "Neither RESEND_API_KEY nor SMTP credentials (SMTP_USER/SMTP_PASS) are configured.",
+        error: "No email provider configured. Set BREVO_API_KEY or RESEND_API_KEY in Render environment.",
         provider: "none",
         to,
       });

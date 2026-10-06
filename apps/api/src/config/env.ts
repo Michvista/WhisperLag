@@ -28,7 +28,11 @@ const envSchema = z.object({
   CLOUDINARY_API_KEY: z.string().optional(),
   CLOUDINARY_API_SECRET: z.string().optional(),
   // Email notifications for Admin & Faculty
-  // Resend (HTTP API, works on Render free tier) — preferred over raw SMTP
+  // Brevo HTTP API (allows sending to ANY recipient email address on free tier, no custom domain needed)
+  BREVO_API_KEY: z.string().optional().default(""),
+  BREVO_SENDER_EMAIL: z.string().optional().default(""),
+  BREVO_SENDER_NAME: z.string().optional().default("WhisperLag UNILAG"),
+  // Resend HTTP API (sandbox only allows account owner unless custom domain is added)
   RESEND_API_KEY: z.string().optional().default(""),
   RESEND_FROM: z.string().optional().default("WhisperLag UNILAG <onboarding@resend.dev>"),
   // SMTP fallback (blocked by most cloud providers on free tier)
