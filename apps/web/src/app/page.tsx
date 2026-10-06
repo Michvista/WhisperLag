@@ -83,7 +83,7 @@ function formatTimeAgo(isoString: string): string {
 }
 
 export default function LandingPage() {
-  const { role } = useAuth();
+  const { role, logout } = useAuth();
   const [liveWhispers, setLiveWhispers] = useState<PublicWhisper[]>([]);
   const [filterStatus, setFilterStatus] = useState<string>("All");
 
@@ -155,41 +155,48 @@ export default function LandingPage() {
           </div>
 
           {/* Right Navigation Area */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             <Link
               href="/notifications"
               className="flex h-9 w-9 items-center justify-center rounded-full text-text-secondary hover:bg-slate-100 hover:text-navy transition-colors relative"
               aria-label="Notifications"
             >
-              <Icon name="notifications" size={20} />
+              <Icon name="notifications" size={19} />
               <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary" />
             </Link>
 
             {role ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <Link
                   href={role === "ADMIN" ? "/admin" : role === "FACULTY" ? "/faculty" : "/more"}
-                  className="flex items-center gap-2 rounded-full border border-border-subtle bg-slate-50 px-3 py-1 text-xs font-semibold text-navy hover:bg-slate-100"
+                  className="flex items-center gap-1.5 rounded-full border border-border-subtle bg-slate-50 px-2.5 py-1 text-xs font-semibold text-navy hover:bg-slate-100"
                 >
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-green-tint text-[11px] font-bold text-primary">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green-tint text-[10.5px] font-bold text-primary">
                     {role[0].toUpperCase()}
                   </span>
                   <span className="hidden sm:inline">
                     {role === "ADMIN" ? "Admin Portal" : role === "FACULTY" ? "Faculty Portal" : "My Dashboard"}
                   </span>
                 </Link>
+                <button
+                  onClick={() => logout()}
+                  title="Sign Out"
+                  className="hidden sm:inline-flex items-center gap-1 rounded-lg border border-border-subtle bg-white px-2.5 py-1 text-xs font-semibold text-text-secondary hover:bg-slate-50"
+                >
+                  Sign Out
+                </button>
               </div>
             ) : (
-              <div className="hidden sm:flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 <Link
                   href="/login"
-                  className="rounded-lg border border-border-subtle bg-white px-3 py-1.5 text-xs font-semibold text-navy transition-colors hover:bg-slate-50"
+                  className="rounded-lg border border-border-subtle bg-white px-2.5 py-1 text-[11.5px] sm:px-3 sm:py-1.5 sm:text-xs font-semibold text-navy transition-colors hover:bg-slate-50"
                 >
                   Staff Sign In
                 </Link>
                 <Link
                   href="/whisper"
-                  className="rounded-lg bg-primary px-3.5 py-1.5 text-xs font-bold text-white transition-all hover:bg-primary-hover shadow-button-green"
+                  className="hidden sm:inline-flex rounded-lg bg-primary px-3.5 py-1.5 text-xs font-bold text-white transition-all hover:bg-primary-hover shadow-button-green"
                 >
                   Give Feedback →
                 </Link>
@@ -200,18 +207,44 @@ export default function LandingPage() {
       </header>
 
       {/* ── Main Content Container ── */}
-      <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-4 sm:py-6 sm:px-6 lg:px-8 space-y-8 pb-24 lg:pb-16">
+      <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-4 sm:py-6 sm:px-6 lg:px-8 space-y-6 pb-24 lg:pb-16">
+        {/* Staff Active Session Banner (So staff knows when they're logged in and can easily switch or browse as student) */}
+        {role && (role === "FACULTY" || role === "ADMIN") && (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-blue-200 bg-blue-50/90 p-3 text-xs text-navy shadow-2xs">
+            <div className="flex items-center gap-2">
+              <span className="flex h-2.5 w-2.5 rounded-full bg-blue-600 animate-pulse" />
+              <span>
+                You are currently signed in as <strong>{role === "ADMIN" ? "QA Administrator" : "Faculty Lead"}</strong>.
+              </span>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <Link
+                href={role === "ADMIN" ? "/admin" : "/faculty"}
+                className="font-bold text-secondary hover:underline"
+              >
+                Go to {role === "ADMIN" ? "Admin" : "Faculty"} Hub →
+              </Link>
+              <button
+                onClick={() => logout()}
+                className="rounded-md border border-blue-300 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-100"
+              >
+                Sign Out / Switch Account
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* ── HERO SECTION (Seamless & Non-boxed) ── */}
         <section className="relative overflow-hidden pt-2 pb-4 sm:py-6">
-          {/* Mobile Faded Gate Background (Upper Right) */}
-          <div className="absolute right-0 top-0 h-44 sm:h-52 w-7/12 pointer-events-none overflow-hidden lg:hidden">
+          {/* Mobile Faded Gate Background (Upper Right - Rounded) */}
+          <div className="absolute right-0 top-0 h-44 sm:h-52 w-7/12 pointer-events-none overflow-hidden rounded-2xl lg:hidden shadow-2xs">
             <img
               src="/unilag-gate.jpg"
               alt="UNILAG Gate"
-              className="h-full w-full object-cover object-left opacity-85"
+              className="h-full w-full object-cover object-left opacity-90 rounded-2xl"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#F8FAFC] via-[#F8FAFC]/40 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#F8FAFC] via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#F8FAFC] via-[#F8FAFC]/30 to-transparent rounded-2xl" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#F8FAFC] via-transparent to-transparent rounded-2xl" />
           </div>
 
           <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
