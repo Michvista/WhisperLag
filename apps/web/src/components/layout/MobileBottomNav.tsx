@@ -14,7 +14,7 @@ interface TabItem {
 const STUDENT_TABS: TabItem[] = [
   { href: "/", label: "Home", icon: "home" },
   { href: "/whisper", label: "Give Feedback", icon: "add" },
-  { href: "/track", label: "Track", icon: "search" },
+  { href: "/listwhispers", label: "Whispers", icon: "forum" },
   { href: "/more", label: "More", icon: "widgets" },
 ];
 

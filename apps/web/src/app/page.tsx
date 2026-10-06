@@ -202,43 +202,31 @@ export default function LandingPage() {
       {/* ── Main Content Container ── */}
       <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8 space-y-8 pb-24 lg:pb-16">
         {/* ── HERO BANNER ── */}
-        <section className="relative overflow-hidden rounded-2xl border border-border-subtle bg-white shadow-card">
+        <section className="relative overflow-hidden bg-white">
           <div className="flex flex-col lg:flex-row items-stretch">
             {/* Left Content Column */}
             <div className="flex flex-col justify-center p-6 sm:p-8 lg:p-10 lg:w-7/12 space-y-4">
               <div>
-                <p className="mb-2 text-xs font-bold uppercase tracking-wider text-primary">
-                  University of Lagos · SERVICOM &amp; Quality Assurance
-                </p>
                 <h1 className="font-montserrat text-3xl font-extrabold leading-tight text-navy sm:text-4xl lg:text-[40px]">
                   Your voice <br />
                   makes <span className="text-primary">UNILAG</span> <br />
                   a better place.
                 </h1>
-                {/* Preserved Signature Tagline */}
-                <p className="mt-2 text-sm sm:text-base font-bold text-primary italic">
-                  &ldquo;a student who whispers is still speaking&rdquo;
-                </p>
-                <p className="mt-1 text-xs sm:text-sm text-text-secondary">
+                <p className="mt-2 text-xs sm:text-sm text-text-secondary">
                   Share challenges, ideas and experiences anonymously.
                 </p>
               </div>
 
               {/* Mobile Hero Gate Image */}
-              <div className="relative overflow-hidden rounded-xl h-44 sm:h-52 w-full lg:hidden border border-border-subtle my-2">
+              <div className="relative overflow-hidden rounded-xl h-44 sm:h-52 w-full lg:hidden my-2">
                 <img
                   src="/unilag-gate.jpg"
                   alt="University of Lagos Main Gate Akoka"
                   className="h-full w-full object-cover object-center"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent flex items-end p-3">
-                  <span className="text-white text-[11px] font-semibold drop-shadow-md">
-                    University of Lagos · Main Entrance Gate, Akoka
-                  </span>
-                </div>
               </div>
 
-              {/* Actions row: Clean compact CTA buttons */}
+              {/* Actions row */}
               <div className="flex flex-wrap items-center gap-3 pt-2">
                 <Link
                   href="/whisper"
@@ -250,19 +238,19 @@ export default function LandingPage() {
 
                 <div className="inline-flex items-center gap-2 rounded-xl border border-green-200 bg-green-50/80 px-3.5 py-2 text-xs font-semibold text-primary">
                   <Icon name="lock" size={14} className="text-primary" />
-                  <span>100% Anonymous · No login required</span>
+                  <span>100% Anonymous</span>
                 </div>
               </div>
             </div>
 
-            {/* Right Desktop Image Column */}
-            <div className="relative hidden lg:block lg:w-5/12 overflow-hidden bg-slate-100">
+            {/* Right Desktop Image Column — more visible, less gradient */}
+            <div className="relative hidden lg:block lg:w-5/12 overflow-hidden">
               <img
                 src="/unilag-gate.jpg"
                 alt="University of Lagos Main Gate Akoka"
-                className="h-full w-full object-cover object-center"
+                className="h-full w-full object-cover object-center min-h-[320px]"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-white via-white/10 to-transparent w-24 pointer-events-none" />
+              <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white to-transparent pointer-events-none" />
             </div>
           </div>
         </section>
