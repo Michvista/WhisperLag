@@ -326,7 +326,7 @@ export default function ReportsPage() {
                   </h2>
                 </div>
 
-                <div className="divide-y divide-border-subtle">
+                <div className="max-h-[400px] overflow-y-auto divide-y divide-border-subtle pr-2">
                   {filtered.length === 0 && (
                     <p className="py-6 text-center text-xs text-text-secondary">
                       No reports match these filters yet.
