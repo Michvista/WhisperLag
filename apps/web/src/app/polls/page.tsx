@@ -17,7 +17,7 @@ export default function PollsPage() {
             </p>
           </div>
           <Link
-            href="/polls/results"
+            href="/results"
             className="rounded-lg border border-border-subtle bg-white px-3.5 py-1.5 text-xs font-semibold text-primary hover:bg-slate-50 transition-colors"
           >
             View Past Results →
@@ -38,7 +38,7 @@ export default function PollsPage() {
         {/* Link to poll results */}
         <div>
           <Link
-            href="/polls/results"
+            href="/results"
             className="flex items-center justify-between rounded-xl border border-border-subtle bg-white p-4 transition-all hover:border-primary/30"
           >
             <div className="flex items-center gap-3">
