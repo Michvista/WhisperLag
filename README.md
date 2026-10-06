@@ -205,12 +205,47 @@ JWT_SECRET="your-super-secret-jwt-key"
 CORS_ORIGIN="http://localhost:3000,http://localhost:3001"
 GROQ_API_KEY="" # Optional: enables AI routing
 GROQ_MODEL="llama-3.1-70b-versatile"
+
+# Cloudinary Storage Configuration (for evidence attachments)
+CLOUDINARY_URL="cloudinary://<api_key>:<api_secret>@<cloud_name>"
+# Or individual Cloudinary keys:
+# CLOUDINARY_CLOUD_NAME="your_cloud_name"
+# CLOUDINARY_API_KEY="your_api_key"
+# CLOUDINARY_API_SECRET="your_api_secret"
 ```
 
 Create `.env.local` in `apps/web/`:
 ```env
 NEXT_PUBLIC_API_URL="http://localhost:4000"
 ```
+
+---
+
+## 🔌 SIS & LMS Integration Architecture
+
+WhisperLag is engineered to interface seamlessly with institutional university systems (e.g., **UNILAG Student Portal**, **LagMobile**, and **Moodle LMS**) through a zero-trust, privacy-preserving integration pipeline:
+
+```
+┌───────────────────────────┐         ┌───────────────────────────────┐         ┌─────────────────────────────┐
+│ UNILAG Student Portal /   │  ETL    │   WhisperLag Ingestion Engine │ Sync    │ WhisperLag Academic         │
+│ Moodle LMS API            ├────────►│   - Anonymization Gateway     ├────────►│ Registry (PostgreSQL)       │
+│ (Courses, Staff, Roster)  │ (REST)  │   - Course & Faculty Mapping  │ (Clean) │ (Courses, Departments, HODs)│
+└───────────────────────────┘         └───────────────────────────────┘         └─────────────────────────────┘
+                                                      │
+                                                      ▼
+                                       ┌──────────────────────────────┐
+                                       │ 100% Isolated Student Layer  │
+                                       │ (No matric numbers or tokens │
+                                       │  transferred to feedback DB) │
+                                       └──────────────────────────────┘
+```
+
+1. **Course & Department Sync**: Automatically synchronizes university course codes, course titles, credit units, and semester syllabi directly from the UNILAG academic registry.
+2. **Lecturer & Faculty Roster Ingestion**: Imports departmental staff lists and course allocations to ensure accurate rubric evaluation targets and automated routing.
+3. **Strict Student Boundary (Privacy Isolation)**: Unlike standard enterprise integrations, **no matriculation numbers, student names, or academic transcripts** are ever ingested into the feedback processing engine. The integration pipeline strictly ingests academic metadata (courses/faculties), never student identity records.
+4. **Resilient Fallback Mode**: If the live SIS/LMS endpoints are unreachable or during offline campus periods, WhisperLag operates in self-contained mode using its local registry and deterministic routing engine.
+
+---
 
 ### 3. Sync Database Schema & Seed Data
 ```bash

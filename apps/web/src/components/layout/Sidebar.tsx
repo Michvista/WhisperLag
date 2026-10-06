@@ -158,18 +158,28 @@ export function Sidebar() {
       </nav>
 
       <div className="border-t border-border-subtle p-4">
-        <button
-          onClick={handleLogout}
-          disabled={signingOut}
-          className="flex w-full items-center justify-center gap-2 rounded-lg border border-border-subtle bg-white py-2 text-xs font-semibold text-text-secondary transition-all hover:bg-slate-50 hover:text-navy disabled:opacity-50"
-        >
-          {signingOut ? (
-            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-700 border-t-transparent" />
-          ) : (
-            <Icon name="logout" size={15} />
-          )}
-          {signingOut ? "Signing out…" : "Sign Out"}
-        </button>
+        {!isStudent ? (
+          <button
+            onClick={handleLogout}
+            disabled={signingOut}
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-border-subtle bg-white py-2 text-xs font-semibold text-text-secondary transition-all hover:bg-slate-50 hover:text-navy disabled:opacity-50"
+          >
+            {signingOut ? (
+              <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-700 border-t-transparent" />
+            ) : (
+              <Icon name="logout" size={15} />
+            )}
+            {signingOut ? "Signing out…" : "Sign Out"}
+          </button>
+        ) : (
+          <Link
+            href="/login"
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-border-subtle bg-slate-50 py-2 text-xs font-medium text-text-secondary transition-all hover:bg-slate-100 hover:text-navy"
+          >
+            <Icon name="lock" size={14} />
+            <span>Staff Portal Login</span>
+          </Link>
+        )}
       </div>
     </aside>
   );

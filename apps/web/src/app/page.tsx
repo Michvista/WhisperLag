@@ -159,22 +159,6 @@ export default function LandingPage() {
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center gap-6">
             <WhisperBrand href="/" size="md" />
-
-            {/* Desktop Search in Header */}
-            <div className="relative hidden md:block w-72 lg:w-96">
-              <Icon
-                name="search"
-                size={16}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-soft"
-              />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search campus whispers..."
-                className="w-full rounded-full border border-border-subtle bg-slate-50/80 py-1.5 pl-10 pr-4 text-xs text-navy placeholder:text-text-soft focus:border-primary focus:bg-white focus:outline-none"
-              />
-            </div>
           </div>
 
           {/* Desktop Right Links */}
@@ -228,12 +212,12 @@ export default function LandingPage() {
         <section className="relative overflow-hidden rounded-2xl border border-border-subtle bg-white shadow-card">
           <div className="flex flex-col lg:flex-row items-stretch">
             {/* Left Content Column */}
-            <div className="flex flex-col justify-center p-6 sm:p-8 lg:p-10 lg:w-7/12 space-y-5">
+            <div className="flex flex-col justify-center p-6 sm:p-8 lg:p-10 lg:w-7/12 space-y-4">
               <div>
                 <p className="mb-2 text-xs font-bold uppercase tracking-wider text-primary">
                   University of Lagos · SERVICOM &amp; Quality Assurance
                 </p>
-                <h1 className="font-montserrat text-3xl font-extrabold leading-tight text-navy sm:text-4xl lg:text-[42px]">
+                <h1 className="font-montserrat text-3xl font-extrabold leading-tight text-navy sm:text-4xl lg:text-[40px]">
                   Your voice <br />
                   makes <span className="text-primary">UNILAG</span> <br />
                   a better place.
@@ -242,7 +226,7 @@ export default function LandingPage() {
                 <p className="mt-2 text-sm sm:text-base font-bold text-primary italic">
                   &ldquo;a student who whispers is still speaking&rdquo;
                 </p>
-                <p className="mt-2 text-xs sm:text-sm text-text-secondary">
+                <p className="mt-1 text-xs sm:text-sm text-text-secondary">
                   Share challenges, ideas and experiences anonymously.
                 </p>
               </div>
@@ -261,34 +245,19 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              {/* Actions row: Give Feedback CTA + 100% Anonymous Badge */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 pt-2">
+              {/* Actions row: Clean compact CTA buttons */}
+              <div className="flex flex-wrap items-center gap-3 pt-2">
                 <Link
                   href="/whisper"
-                  className="group flex items-center justify-between sm:justify-start gap-3.5 rounded-2xl bg-primary px-6 py-4 text-white shadow-button-green transition-all hover:bg-primary-hover hover:shadow-lg active:scale-[0.99]"
+                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-button-green transition-all hover:bg-primary-hover active:scale-98"
                 >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/20">
-                    <Icon name="chat" size={20} className="text-white" />
-                  </div>
-                  <div className="text-left">
-                    <div className="font-montserrat text-sm font-bold flex items-center gap-1.5">
-                      <span>Give Feedback</span>
-                      <span className="transition-transform group-hover:translate-x-1">→</span>
-                    </div>
-                    <div className="text-[11.5px] text-white/85">Share your experience anonymously</div>
-                  </div>
+                  <Icon name="chat" size={16} className="text-white" />
+                  <span>Give Feedback →</span>
                 </Link>
 
-                <div className="flex items-center gap-3.5 rounded-2xl border border-green-200/80 bg-green-50/70 p-3.5 sm:px-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-100 text-primary">
-                    <Icon name="lock" size={20} className="text-primary" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-navy">100% Anonymous</div>
-                    <div className="text-[11px] text-text-secondary leading-snug">
-                      No name, no matric number, no personal information.
-                    </div>
-                  </div>
+                <div className="inline-flex items-center gap-2 rounded-xl border border-green-200 bg-green-50/80 px-3.5 py-2 text-xs font-semibold text-primary">
+                  <Icon name="lock" size={14} className="text-primary" />
+                  <span>100% Anonymous · No login required</span>
                 </div>
               </div>
             </div>
@@ -328,47 +297,29 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          {/* Filter Bar & Search */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
-              {["All", "Under Review", "Action Taken", "Resolved"].map((pill) => {
-                const active = filterStatus === pill;
-                return (
-                  <button
-                    key={pill}
-                    onClick={() => setFilterStatus(pill)}
-                    className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all whitespace-nowrap ${
-                      active
-                        ? "bg-primary text-white shadow-2xs font-bold"
-                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                    }`}
-                  >
-                    {pill}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Mobile / Secondary Search bar */}
-            <div className="relative block md:hidden w-full">
-              <Icon
-                name="search"
-                size={15}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-text-soft"
-              />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search campus whispers..."
-                className="w-full rounded-lg border border-border-subtle bg-white py-1.5 pl-9 pr-3 text-xs text-navy placeholder:text-text-soft focus:border-primary focus:outline-none"
-              />
-            </div>
+          {/* Filter Bar */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+            {["All", "Under Review", "Action Taken", "Resolved"].map((pill) => {
+              const active = filterStatus === pill;
+              return (
+                <button
+                  key={pill}
+                  onClick={() => setFilterStatus(pill)}
+                  className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all whitespace-nowrap ${
+                    active
+                      ? "bg-primary text-white shadow-2xs font-bold"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
+                >
+                  {pill}
+                </button>
+              );
+            })}
           </div>
 
-          {/* Cards Grid: Desktop 4 Columns, Mobile Horizontal Scroll */}
+          {/* Cards Grid: Desktop 4 Columns, Mobile Horizontal Scroll (Limited to 8 items) */}
           <div className="hidden lg:grid lg:grid-cols-4 gap-4">
-            {filteredWhispers.map((item) => (
+            {filteredWhispers.slice(0, 8).map((item) => (
               <div
                 key={item.id}
                 className="flex flex-col justify-between rounded-xl border border-border-subtle bg-white p-4 shadow-card transition-all hover:border-primary/40 hover:shadow-card-hover"
@@ -390,36 +341,29 @@ export default function LandingPage() {
                 </div>
 
                 <div className="mt-4 pt-3 border-t border-border-subtle flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-text-secondary">
-                      <Icon name="school" size={13} className="text-text-soft" />
-                      {item.category}
-                    </span>
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                        item.status === "Resolved"
-                          ? "bg-blue-50 text-blue-700 border border-blue-200"
-                          : item.status === "Action Taken"
-                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                          : "bg-amber-50 text-amber-800 border border-amber-200"
-                      }`}
-                    >
-                      {item.status}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-1 text-[11px] font-semibold text-text-soft">
-                    <Icon name="chat" size={13} />
-                    <span>{item.responses}</span>
-                  </div>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-text-secondary">
+                    <Icon name="school" size={13} className="text-text-soft" />
+                    {item.category}
+                  </span>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                      item.status === "Resolved"
+                        ? "bg-blue-50 text-blue-700 border border-blue-200"
+                        : item.status === "Action Taken"
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                        : "bg-amber-50 text-amber-800 border border-amber-200"
+                    }`}
+                  >
+                    {item.status}
+                  </span>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Mobile Horizontal Carousel */}
+          {/* Mobile Horizontal Carousel (Limited to 8 items) */}
           <div className="flex lg:hidden gap-3 overflow-x-auto pb-2 scrollbar-none snap-x">
-            {filteredWhispers.map((item) => (
+            {filteredWhispers.slice(0, 8).map((item) => (
               <div
                 key={item.id}
                 className="w-[280px] shrink-0 snap-start flex flex-col justify-between rounded-xl border border-border-subtle bg-white p-4 shadow-card"
@@ -441,28 +385,21 @@ export default function LandingPage() {
                 </div>
 
                 <div className="mt-3 pt-2.5 border-t border-border-subtle flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-text-secondary">
-                      <Icon name="school" size={12} className="text-text-soft" />
-                      {item.category}
-                    </span>
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-[9.5px] font-bold ${
-                        item.status === "Resolved"
-                          ? "bg-blue-50 text-blue-700 border border-blue-200"
-                          : item.status === "Action Taken"
-                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                          : "bg-amber-50 text-amber-800 border border-amber-200"
-                      }`}
-                    >
-                      {item.status}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-1 text-[10px] font-semibold text-text-soft">
-                    <Icon name="chat" size={12} />
-                    <span>{item.responses}</span>
-                  </div>
+                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-text-secondary">
+                    <Icon name="school" size={12} className="text-text-soft" />
+                    {item.category}
+                  </span>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[9.5px] font-bold ${
+                      item.status === "Resolved"
+                        ? "bg-blue-50 text-blue-700 border border-blue-200"
+                        : item.status === "Action Taken"
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                        : "bg-amber-50 text-amber-800 border border-amber-200"
+                    }`}
+                  >
+                    {item.status}
+                  </span>
                 </div>
               </div>
             ))}

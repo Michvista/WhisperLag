@@ -6,6 +6,8 @@ import { useSearchParams } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout/AppShell";
 
+import { api } from "@/lib/api";
+
 interface TrackResult {
   refNumber: string;
   category: string;
@@ -23,8 +25,6 @@ const STATUS_META: Record<
   ACTIONED: { label: "Resolved / Action Taken", icon: "verified", cls: "text-primary", bg: "bg-green-tint" },
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
-
 function TrackContent() {
   const searchParams = useSearchParams();
   const [ref, setRef] = useState(searchParams.get("ref") ?? "");
@@ -37,24 +37,12 @@ function TrackContent() {
     setError(null);
     setResult(null);
     try {
-      const res = await fetch(
-        `${API_BASE}/api/v1/feedback/lookup/${encodeURIComponent(refCode)}`
+      const data = await api<TrackResult>(
+        `/feedback/lookup/${encodeURIComponent(refCode)}`
       );
-      const json = (await res.json().catch(() => ({}))) as {
-        success?: boolean;
-        data?: TrackResult;
-        error?: string | { code?: string; message?: string } | null;
-      };
-      if (!res.ok || !json.success) {
-        let errorMsg = "No whisper found with that reference number. Please check the code and try again.";
-        if (typeof json.error === "string") errorMsg = json.error;
-        else if (json.error && typeof json.error === "object" && json.error.message) errorMsg = json.error.message;
-        setError(errorMsg);
-        return;
-      }
-      setResult(json.data ?? null);
-    } catch {
-      setError("Could not reach the server. Please try again later.");
+      setResult(data ?? null);
+    } catch (err: any) {
+      setError(err?.message || "No whisper found with that reference number. Please check the code and try again.");
     } finally {
       setLoading(false);
     }
