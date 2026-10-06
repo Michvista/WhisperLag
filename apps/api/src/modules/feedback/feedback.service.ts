@@ -39,13 +39,17 @@ export class FeedbackService {
       include: { department: { select: { name: true } } },
     });
 
-    void notifyNewWhisper({
-      refNumber: whisper.refNumber || refCode,
-      category: whisper.category,
-      content: whisper.content,
-      departmentName: whisper.department?.name,
-      attachmentUrl: whisper.attachmentUrl ?? undefined,
-    });
+    try {
+      await notifyNewWhisper({
+        refNumber: whisper.refNumber || refCode,
+        category: whisper.category,
+        content: whisper.content,
+        departmentName: whisper.department?.name,
+        attachmentUrl: whisper.attachmentUrl ?? undefined,
+      });
+    } catch (err) {
+      console.error("[feedback] notifyNewWhisper error:", err);
+    }
 
     return whisper as unknown as Whisper;
   }
@@ -70,13 +74,17 @@ export class FeedbackService {
       include: { department: { select: { name: true } } },
     });
 
-    void notifyNewWhisper({
-      refNumber: whisper.refNumber || refCode,
-      category: whisper.category,
-      content: whisper.content,
-      departmentName: whisper.department?.name,
-      attachmentUrl: whisper.attachmentUrl ?? undefined,
-    });
+    try {
+      await notifyNewWhisper({
+        refNumber: whisper.refNumber || refCode,
+        category: whisper.category,
+        content: whisper.content,
+        departmentName: whisper.department?.name,
+        attachmentUrl: whisper.attachmentUrl ?? undefined,
+      });
+    } catch (err) {
+      console.error("[feedback] notifyNewWhisper error:", err);
+    }
 
     return whisper as unknown as Whisper;
   }
