@@ -161,6 +161,11 @@ export async function notifyNewWhisper(data: {
     }
   }
 
+  // If no specific admin recipient is configured, default to the SMTP_USER
+  if (recipientSet.size === 0 && env.SMTP_USER && env.SMTP_USER.includes("@")) {
+    recipientSet.add(env.SMTP_USER);
+  }
+
   // Fetch all registered admin & faculty emails from the database
   try {
     const staffUsers = await prisma.user.findMany({
@@ -177,7 +182,12 @@ export async function notifyNewWhisper(data: {
   }
 
   const recipients = Array.from(recipientSet);
-  if (recipients.length === 0) return;
+  if (recipients.length === 0) {
+    console.log("[mailer] No admin recipient email found. Set ADMIN_NOTIFICATION_EMAILS in Render environment.");
+    return;
+  }
+
+  console.log(`[mailer] Dispatching notification for whisper ${data.refNumber} to:`, recipients);
 
   const isUrgent = data.content.toLowerCase().includes("urgent") || data.category === "Hostel / Facilities";
   const subject = `${isUrgent ? "🚨 [URGENT] " : "🌿 "}New UNILAG Whisper: [${data.category}] (${data.refNumber})`;
@@ -237,12 +247,17 @@ export async function notifyNewWhisper(data: {
     </div>
   `;
 
-  await sendEmail({
+  const res = await sendEmail({
     to: recipients,
     subject,
     text: `New UNILAG Whisper (${data.refNumber})\nCategory: ${data.category}\n\nContent:\n${data.content}`,
     html,
-  }).catch((err) => console.error("[mailer] Notification failed:", err));
+  }).catch((err) => {
+    console.error("[mailer] Notification failed:", err);
+    return { success: false, error: String(err) };
+  });
+
+  console.log(`[mailer] Delivery result for whisper ${data.refNumber}:`, res);
 }
 
 /**

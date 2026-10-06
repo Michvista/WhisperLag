@@ -32,6 +32,8 @@ function useNavItems() {
           { href: "/surveys", label: "Surveys & Polls", iconName: "summarize" },
           { href: "/reports", label: "Reports", iconName: "file" },
           { href: "/insights", label: "AI Insights", iconName: "sparkles" },
+          { href: "/notifications", label: "Notifications", iconName: "notifications" },
+          { href: "/settings", label: "Settings", iconName: "tune" },
         ]
       : role === "FACULTY"
         ? [
@@ -41,6 +43,8 @@ function useNavItems() {
             { href: "/surveys", label: "Surveys & Polls", iconName: "summarize" },
             { href: "/collaboration", label: "Collaboration", iconName: "chat" },
             { href: "/reports", label: "Reports", iconName: "file" },
+            { href: "/notifications", label: "Notifications", iconName: "notifications" },
+            { href: "/settings", label: "Settings", iconName: "tune" },
           ]
         : [
             // Student primary nav matching UI design

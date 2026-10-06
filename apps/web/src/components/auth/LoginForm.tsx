@@ -11,6 +11,7 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -52,18 +53,39 @@ export function LoginForm() {
       </div>
 
       <div className="space-y-1.5">
-        <label htmlFor="password" className="text-xs font-extrabold uppercase tracking-wider text-[#10253A]">
-          Secure Password
-        </label>
-        <input
-          id="password"
-          type="password"
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="••••••••"
-          className="wl-input"
-        />
+        <div className="flex items-center justify-between">
+          <label htmlFor="password" className="text-xs font-extrabold uppercase tracking-wider text-[#10253A]">
+            Secure Password
+          </label>
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="flex items-center gap-1 text-[11px] font-semibold text-text-secondary hover:text-primary transition-colors focus:outline-hidden"
+            tabIndex={-1}
+          >
+            <Icon name={showPassword ? "visibility_off" : "visibility"} size={14} />
+            <span>{showPassword ? "Hide" : "Show"}</span>
+          </button>
+        </div>
+        <div className="relative">
+          <input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+            className="wl-input pr-10"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-soft hover:text-navy transition-colors focus:outline-hidden"
+            title={showPassword ? "Hide password" : "Show password"}
+          >
+            <Icon name={showPassword ? "visibility_off" : "visibility"} size={17} />
+          </button>
+        </div>
       </div>
 
       {error && (
