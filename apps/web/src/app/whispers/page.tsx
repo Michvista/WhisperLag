@@ -35,7 +35,31 @@ interface WhisperFeed {
 }
 
 
-type FilterTab = "All" | "New" | "Under Review" | "Suggestions" | "Resolved";
+interface InsightResult {
+  provider: "groq" | "algorithm";
+  generatedAt: string;
+  clusters: {
+    id: string;
+    title: string;
+    summary: string;
+    size: number;
+    sentiment: "positive" | "neutral" | "negative";
+    items: { id: string }[];
+  }[];
+  noise: { id: string; category: string; content: string; reason: string }[];
+}
+
+type FilterTab = "All" | "New" | "Under Review" | "Suggestions" | "Noise" | "Resolved";
+
+const NOISE_HINTS = /\b(lol|test|asap|pls|please fix|fix this|ok|okay|nice|good|bad|hi|hello)\b/i;
+
+function isLikelyNoiseText(content: string): boolean {
+  const clean = content.replace(/^\[.*?\]\s*/, "").trim();
+  if (clean.length < 15) return true;
+  if (!/[a-zA-Z]{3}/.test(clean)) return true;
+  if (clean.split(/\s+/).length <= 2 && NOISE_HINTS.test(clean)) return true;
+  return false;
+}
 
 function parseTitleFromContent(content: string, category: string, aiTag: WhisperItem["aiTag"]): string {
   if (aiTag?.lecturer) return aiTag.lecturer;
@@ -54,6 +78,7 @@ function cleanBody(content: string): string {
 
 export default function WhispersPage() {
   const [items, setItems] = useState<WhisperItem[]>([]);
+  const [groqNoiseIds, setGroqNoiseIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<FilterTab>("All");
   const [searchQuery, setSearchQuery] = useState("");
@@ -63,8 +88,8 @@ export default function WhispersPage() {
   const [userFaculty, setUserFaculty] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [resolvingId, setResolvingId] = useState<string | null>(null);
-  const [resolveNote, setResolveNote] = useState<Record<string, string>>({});
   const [tagging, setTagging] = useState(false);
+  const [resolveNote, setResolveNote] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const r = getRole();
@@ -93,16 +118,30 @@ export default function WhispersPage() {
         }
       }
 
-      const res = await api<WhisperFeed>("/feedback?page=1&limit=100", {
-        token: getToken(),
-        cache: "no-store",
-      });
+      const [res, insights] = await Promise.all([
+        api<WhisperFeed>("/feedback?page=1&limit=100", {
+          token: getToken(),
+          cache: "no-store",
+        }),
+        api<InsightResult>("/insights", {
+          token: getToken(),
+          cache: "no-store",
+        }).catch(() => null),
+      ]);
+
       setItems(res?.items ?? []);
+      if (insights?.noise && Array.isArray(insights.noise)) {
+        setGroqNoiseIds(new Set(insights.noise.map((n) => n.id)));
+      }
     } catch {
       setItems([]);
     } finally {
       setLoading(false);
     }
+  }
+
+  function checkIsNoise(item: WhisperItem): boolean {
+    return groqNoiseIds.has(item.id) || isLikelyNoiseText(item.content);
   }
 
   async function setStatus(id: string, status: "ACKNOWLEDGED" | "ACTIONED", note?: string) {
@@ -130,27 +169,27 @@ export default function WhispersPage() {
         method: "POST",
         token: getToken(),
       });
-      toast(res.tagged > 0 ? `Routed ${res.tagged} whisper${res.tagged === 1 ? "" : "s"} to courses.` : "No untagged whispers left.");
+      toast(res.tagged > 0 ? `Groq AI auto-assigned ${res.tagged} whisper${res.tagged === 1 ? "" : "s"} to matching courses.` : "All whispers are already assigned.");
       await loadWhispers();
     } catch (e) {
-      toast(e instanceof Error ? e.message : "Tagging failed", "error");
+      toast(e instanceof Error ? e.message : "Routing failed", "error");
     } finally {
       setTagging(false);
     }
   }
 
-  const isAdminOrFaculty = role === ROLES.ADMIN || role === ROLES.FACULTY;
-
   const allCount = items.length;
   const newCount = items.filter((w) => w.status === "NEW").length;
   const reviewCount = items.filter((w) => w.status === "ACKNOWLEDGED").length;
   const suggestionCount = items.filter((w) => w.content.includes("[Suggestion Box]") || w.category === "Other").length;
+  const noiseCount = items.filter((w) => checkIsNoise(w)).length;
   const resolvedCount = items.filter((w) => w.status === "ACTIONED").length;
 
   const filteredItems = items.filter((item) => {
     if (activeTab === "New" && item.status !== "NEW") return false;
     if (activeTab === "Under Review" && item.status !== "ACKNOWLEDGED") return false;
     if (activeTab === "Suggestions" && !item.content.includes("[Suggestion Box]") && item.category !== "Other") return false;
+    if (activeTab === "Noise" && !checkIsNoise(item)) return false;
     if (activeTab === "Resolved" && item.status !== "ACTIONED") return false;
 
     if (!searchQuery.trim()) return true;
@@ -170,7 +209,7 @@ export default function WhispersPage() {
         <div>
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold uppercase tracking-wider text-primary">
-              Feedback &amp; Whispers
+              Student Voice &amp; Whispers
             </span>
             {userFaculty && (
               <span className="rounded-full bg-green-tint px-2.5 py-0.5 text-[10.5px] font-bold text-primary border border-primary/20">
@@ -179,10 +218,10 @@ export default function WhispersPage() {
             )}
           </div>
           <h1 className="mt-1 font-montserrat text-2xl font-bold tracking-tight text-navy sm:text-3xl">
-            Whispers
+            Student Whispers
           </h1>
           <p className="mt-1 text-xs text-text-secondary">
-            See what students are telling you · {items.length} total
+            Live anonymous feedback from students across UNILAG · {items.length} total
           </p>
         </div>
 
@@ -191,11 +230,11 @@ export default function WhispersPage() {
             <button
               onClick={tagAll}
               disabled={tagging}
-              title="Reads each untagged whisper and automatically tags course, lecturer, or department"
+              title="Uses AI to scan student messages and automatically assign matching course codes, lecturers, or departments"
               className="flex items-center gap-1.5 rounded-lg border border-border-subtle bg-white px-3.5 py-2 text-xs font-semibold text-navy hover:bg-slate-50 disabled:opacity-50"
             >
               <Icon name="auto_awesome" size={15} className="text-primary" />
-              {tagging ? "Routing with AI…" : "Route with AI"}
+              {tagging ? "Assigning with AI…" : "Auto-Assign with AI"}
             </button>
           )}
         </div>
@@ -209,6 +248,7 @@ export default function WhispersPage() {
             { id: "New" as FilterTab, label: "New", count: newCount },
             { id: "Under Review" as FilterTab, label: "Under Review", count: reviewCount },
             { id: "Suggestions" as FilterTab, label: "💡 Suggestions", count: suggestionCount },
+            { id: "Noise" as FilterTab, label: "⚠️ Low Substance (Noise)", count: noiseCount },
             { id: "Resolved" as FilterTab, label: "Resolved", count: resolvedCount },
           ].map((tab) => {
             const isActive = activeTab === tab.id;
@@ -218,14 +258,20 @@ export default function WhispersPage() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex shrink-0 items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all ${
                   isActive
-                    ? "border-primary bg-green-tint text-primary font-bold"
-                    : "border-border-subtle bg-white text-text-secondary hover:text-navy hover:bg-slate-50"
+                    ? tab.id === "Noise"
+                      ? "border-amber-400 bg-amber-50 text-amber-800 font-bold shadow-2xs"
+                      : "border-primary bg-green-tint text-primary font-bold shadow-2xs"
+                    : "border-border-subtle bg-white text-text-secondary hover:bg-slate-50 hover:text-navy"
                 }`}
               >
-                {tab.label}
+                <span>{tab.label}</span>
                 <span
-                  className={`flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold ${
-                    isActive ? "bg-primary text-white" : "bg-slate-100 text-text-secondary"
+                  className={`rounded-full px-1.5 py-0.2 text-[10.5px] font-bold ${
+                    isActive
+                      ? tab.id === "Noise"
+                        ? "bg-amber-200 text-amber-900"
+                        : "bg-primary text-white"
+                      : "bg-slate-100 text-text-soft"
                   }`}
                 >
                   {tab.count}
@@ -243,7 +289,7 @@ export default function WhispersPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search whispers..."
+            placeholder="Search whispers, courses, lecturers..."
             className="w-full rounded-lg border border-border-subtle bg-white py-1.5 pl-9 pr-3 text-xs text-navy placeholder-text-soft outline-none focus:border-primary"
           />
         </div>
@@ -275,6 +321,7 @@ export default function WhispersPage() {
             const isResolved = item.status === "ACTIONED";
             const isUnderReview = item.status === "ACKNOWLEDGED";
             const isSuggestion = item.content.includes("[Suggestion Box]");
+            const isNoise = checkIsNoise(item);
 
             const formattedDate = new Date(item.createdAt).toLocaleDateString("en-US", {
               month: "short",
@@ -285,7 +332,9 @@ export default function WhispersPage() {
             return (
               <article
                 key={item.id}
-                className="rounded-xl border border-border-subtle bg-white p-4 transition-all hover:border-slate-300 shadow-card"
+                className={`rounded-xl border p-4 transition-all hover:border-slate-300 shadow-card ${
+                  isNoise ? "border-amber-200 bg-amber-50/20" : "border-border-subtle bg-white"
+                }`}
               >
                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                   <div className="flex-1 space-y-1.5">
@@ -296,6 +345,11 @@ export default function WhispersPage() {
                       <span className="rounded-md bg-green-tint px-2 py-0.5 text-[11px] font-bold text-primary">
                         {item.category}
                       </span>
+                      {isNoise && (
+                        <span className="rounded-md bg-amber-100 px-2 py-0.5 text-[10.5px] font-bold text-amber-800 border border-amber-300">
+                          ⚠️ Low Substance (Noise)
+                        </span>
+                      )}
                       {isSuggestion && (
                         <span className="rounded-md bg-amber-tint px-2 py-0.5 text-[11px] font-bold text-amber-800">
                           💡 Suggestion Box
@@ -420,6 +474,8 @@ export default function WhispersPage() {
       )}
     </div>
   );
+
+  const isAdminOrFaculty = role === ROLES.ADMIN || role === ROLES.FACULTY;
 
   if (isAdminOrFaculty) {
     return (

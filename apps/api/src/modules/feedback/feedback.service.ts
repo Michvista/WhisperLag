@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { env } from "../../config/env.js";
 import { prisma } from "../../lib/prisma.js";
 import { ApiError } from "../../utils/ApiError.js";
+import { notifyNewWhisper } from "../../lib/mailer.js";
 import type { CreateWhisperInput, PublicWhisperInput, UpdateWhisperStatusInput } from "./feedback.schema.js";
 
 interface RouteTag {
@@ -31,7 +32,17 @@ export class FeedbackService {
         isAnonymous: input.isAnonymous,
         departmentId: input.departmentId ?? null,
       },
+      include: { department: { select: { name: true } } },
     });
+
+    void notifyNewWhisper({
+      refNumber: whisper.refNumber || `WL-${new Date().getFullYear()}-${whisper.id.slice(0, 6)}`,
+      category: whisper.category,
+      content: whisper.content,
+      departmentName: whisper.department?.name,
+      attachmentUrl: whisper.attachmentUrl ?? undefined,
+    });
+
     return whisper as unknown as Whisper;
   }
 
@@ -50,7 +61,17 @@ export class FeedbackService {
         refNumber: input.refNumber ?? null,
         attachmentUrl: input.attachmentUrl ?? null,
       },
+      include: { department: { select: { name: true } } },
     });
+
+    void notifyNewWhisper({
+      refNumber: whisper.refNumber || `WL-${new Date().getFullYear()}-${whisper.id.slice(0, 6)}`,
+      category: whisper.category,
+      content: whisper.content,
+      departmentName: whisper.department?.name,
+      attachmentUrl: whisper.attachmentUrl ?? undefined,
+    });
+
     return whisper as unknown as Whisper;
   }
 

@@ -495,24 +495,24 @@ export function WhisperWizard() {
         <div className="space-y-5">
           <div>
             <h1 className="font-montserrat text-2xl font-bold tracking-tight text-navy">
-              Your whisper is <span className="text-primary">protected.</span>
+              Your feedback is <span className="text-primary">100% Anonymous</span>
             </h1>
             <p className="mt-1 text-xs leading-relaxed text-text-secondary">
-              Your identity is stripped at the network boundary before this feedback is stored.
+              WhisperLag is built so no one—not even lecturers or school administrators—can ever see who submitted this.
             </p>
           </div>
 
-          <div className="rounded-lg border border-border-subtle bg-white p-4 space-y-3">
+          <div className="rounded-xl border border-border-subtle bg-white p-4 space-y-3 shadow-2xs">
             <div className="flex items-start gap-3 border-b border-slate-100 pb-3">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-green-tint text-primary">
                 <Icon name="user" size={16} className="text-primary" />
               </div>
               <div>
                 <div className="font-montserrat text-xs font-bold text-navy">
-                  No name required
+                  No name or account needed
                 </div>
                 <div className="text-xs leading-relaxed text-text-secondary">
-                  You can share freely without revealing your name or contact info.
+                  You never have to log in. You can speak freely without sharing who you are.
                 </div>
               </div>
             </div>
@@ -523,10 +523,10 @@ export function WhisperWizard() {
               </div>
               <div>
                 <div className="font-montserrat text-xs font-bold text-navy">
-                  No matric number required
+                  No matric number recorded
                 </div>
                 <div className="text-xs leading-relaxed text-text-secondary">
-                  Your student identity isn&apos;t collected or linked to your message.
+                  Your matric number and department records are never saved with your message.
                 </div>
               </div>
             </div>
@@ -537,10 +537,10 @@ export function WhisperWizard() {
               </div>
               <div>
                 <div className="font-montserrat text-xs font-bold text-navy">
-                  Cryptographically isolated
+                  Completely untraceable
                 </div>
                 <div className="text-xs leading-relaxed text-text-secondary">
-                  We keep your feedback and authentication tokens strictly separate.
+                  No IP addresses or device details are saved in the database.
                 </div>
               </div>
             </div>

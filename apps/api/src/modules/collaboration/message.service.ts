@@ -1,13 +1,26 @@
 import { prisma } from "../../lib/prisma.js";
+import { notifyCollaborationMessage } from "../../lib/mailer.js";
 
 export class MessageService {
   /** Send an internal note. Scoped to a department for faculty; admins may omit. */
   async send(input: { body: string; departmentId?: string }, senderId: string, role: string) {
     const departmentId = role === "ADMIN" ? (input.departmentId ?? null) : input.departmentId;
-    return prisma.message.create({
+    const msg = await prisma.message.create({
       data: { body: input.body, senderId, departmentId },
-      include: { sender: { select: { id: true, name: true, role: true } } },
+      include: {
+        sender: { select: { id: true, name: true, role: true } },
+        department: { select: { id: true, name: true } },
+      },
     });
+
+    void notifyCollaborationMessage({
+      senderName: msg.sender?.name || "Staff Colleague",
+      body: msg.body,
+      senderId,
+      departmentName: msg.department?.name,
+    });
+
+    return msg;
   }
 
   /**

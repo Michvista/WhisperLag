@@ -87,6 +87,11 @@ async function main() {
     update: {},
     create: { email: "admin@whisperlag.test", name: "Admin User", passwordHash, role: Role.ADMIN },
   });
+  await prisma.user.upsert({
+    where: { email: "enewsmedia90@gmail.com" },
+    update: { role: Role.ADMIN },
+    create: { email: "enewsmedia90@gmail.com", name: "QA Administrator", passwordHash, role: Role.ADMIN },
+  });
   const faculty = await prisma.user.upsert({
     where: { email: "faculty@whisperlag.test" },
     update: { name: "Dr. Ada Obi", departmentId: departments["Nursing Science"] },

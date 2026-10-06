@@ -27,7 +27,14 @@ export class IntegrationService {
     let updated = 0;
 
     for (const c of input.courses) {
-      const departmentId = c.department ? (byName.get(c.department.toLowerCase())?.id ?? null) : null;
+      let departmentId = c.department ? (byName.get(c.department.toLowerCase())?.id ?? null) : null;
+      if (!departmentId && c.department && c.department.trim()) {
+        const newDept = await prisma.department.create({
+          data: { name: c.department.trim(), faculty: "General Faculty" },
+        });
+        byName.set(c.department.toLowerCase(), newDept);
+        departmentId = newDept.id;
+      }
       const lecturerId = c.lecturer ? (byNameUsers.get(c.lecturer.toLowerCase())?.id ?? null) : null;
 
       const lmsData = {

@@ -7,91 +7,133 @@
 
 ## 🌟 Executive Summary
 
-**WhisperLag** modernises and digitises UNILAG's quality assurance, student feedback, and academic monitoring operations into a unified, secure platform. Built specifically for the **UNILAG Quality Assurance & SERVICOM Unit**, WhisperLag bridges the communication gap between students, lecturers, faculty heads, and university administrators.
+**WhisperLag** modernizes and digitizes UNILAG's quality assurance, student feedback, and academic monitoring operations into a unified, secure platform. Built specifically for the **UNILAG Quality Assurance & SERVICOM Unit**, WhisperLag bridges the communication gap between students, lecturers, faculty heads, and university administrators.
 
-The core differentiator is the **Whisper Lock**: a cryptographic and architectural guarantee that student feedback is 100% anonymous. Anonymity is not a checkbox—it is **structurally enforced at the database level**. 
+The core differentiator is the **Whisper Lock**: a structural and architectural guarantee that student feedback is 100% anonymous. Anonymity is not an optional checkbox—it is **enforced at the database and network level**. Students never need an account, password, or matriculation number to speak freely.
 
 ---
 
 ## 🛡️ The Whisper Lock Guarantee
 
-Most university feedback systems offer an optional "submit anonymously" checkbox while retaining user identifiers or IP addresses in database logs. WhisperLag re-engineers this from first principles:
+Most university feedback systems offer an optional "submit anonymously" checkbox while still recording student accounts, matric numbers, or IP addresses in database logs. WhisperLag re-engineers this from first principles:
 
-1. **Zero-Identity Data Schema**: The `Whisper` PostgreSQL model has **no** `userId` foreign key. There is no column in the database where student identity could ever be stored or leaked.
-2. **Network-Boundary Stripping**: When an authenticated student or public user submits feedback, authentication tokens and emails are validated at the perimeter and stripped before database insertion.
-3. **Reference-Based Tracking (`WL-YYYY-XXXXXX`)**: Each whisper receives a unique, unlinked tracking code. Students can check review status and institutional actions on the public tracker without creating an account or revealing their identity.
-4. **Isolated File Attachments**: Supporting screenshots and documents (PDF, DOCX, Images up to 10MB) are sanitized and renamed to random UUIDs upon upload to prevent metadata or filename leakage.
+1. **Zero-Identity Database Schema**: The `Whisper` database model has **no** `userId` column or relationship. There is no column in the database where a student's identity could ever be stored or leaked.
+2. **No Accounts or Passwords for Students**: Students never register, log in, or provide personal credentials to submit feedback, evaluate courses, or vote in polls.
+3. **Reference-Based Tracking (`WL-YYYY-XXXXXX`)**: Each submission receives a unique, unlinked tracking code. Students can check review status and official resolution actions on the public tracker without revealing who they are.
+4. **Cloudinary Cloud Storage for Evidence**: Supporting screenshots, photos, and documents (PDF, DOCX, Images up to 10MB) are securely uploaded to **Cloudinary**, stripped of device metadata (EXIF/GPS) and renamed to random UUIDs to prevent file leakage.
 
 ---
 
 ## 🚀 Complete Feature Index
 
-### 1. 📝 Student Voice & Whisper Wizard (`/whisper`)
+### 1. 📝 Anonymous Student Voice (`/whisper`)
 - **4-Step Interactive Submission Flow**:
-  1. **Feedback Type**: Choose from 6 major categories (*Lecturer*, *Course / Learning*, *Department / Service*, *Hostel / Facilities*, *Administration*, *Other*).
+  1. **Category**: Choose from 6 major areas (*Lecturer*, *Course / Learning*, *Department / Service*, *Hostel / Facilities*, *Administration*, *Other*).
   2. **Details & Content**: Specify subject/course/lecturer, choose tone tags (*Constructive*, *Concern*, *Suggestion*, *Praise*, *Urgent*), select target department, and provide the message.
-  3. **Privacy Reassurance**: Visual confirmation of Whisper Lock protections before submission.
+  3. **Privacy Reassurance**: Visual breakdown of Whisper Lock protections before final submission.
   4. **Review & Submit**: Full summary breakdown with inline editing before final dispatch.
-- **Supporting File Attachments**: Upload screenshots, receipts, or documents (up to 10MB) directly from desktop or mobile.
-- **Soft-Gated UNILAG Verification**: Optional UNILAG email validation (`@unilag.edu.ng` / `@live.unilag.edu.ng`) to verify community membership without saving or associating the email address.
-- **Offline Mode & Sync**: Automatically queues submissions in local storage if network drops and flushes to the server when back online.
-- **Instant Reference Receipt (`/whisper/success`)**: Provides a printable/copyable `WL-2026-XXXXXX` reference code and "What Happens Next" 3-step lifecycle breakdown.
+- **Evidence Upload**: Upload screenshots, receipts, or documents (up to 10MB) directly to Cloudinary.
+- **Offline Mode & Sync**: Automatically queues submissions in browser storage if network drops and flushes to the server when back online.
+- **Instant Reference Receipt (`/whisper/success`)**: Generates a copyable `WL-2026-XXXXXX` reference code with a 3-step investigation lifecycle guide.
 
-### 2. 🔍 Reference Tracker (`/track`)
-- Public, zero-login search tool allowing students to paste their `WL-YYYY-XXXXXX` reference code.
-- Real-time status badge:
-  - `Received` (New submission awaiting department assignment)
+### 2. 🔍 Public Reference Tracker (`/track`)
+- Zero-login search tool allowing students to paste their `WL-YYYY-XXXXXX` reference code.
+- Real-time status badges:
+  - `Submitted` (New submission awaiting department review)
   - `Under Review` (Currently under active investigation by QA / HOD)
   - `Resolved` (Action taken with official institutional resolution notes displayed)
 
-### 3. 📢 Public Campus Feeds (`/listwhispers` & `PublicRecent`)
-- **Live Community Whispers**: Browse all verified student feedback and official institutional resolutions.
-- **Real-Time Filtering**: Filter by *All*, *Under Review*, or *Resolved*, with instant keyword search across content and categories.
-- **Attachment Previews**: Direct, secure links to view uploaded evidence files.
-- **Recent Campus Feedback Widget**: Embedded sidebar feed across the student interface showing live community impact.
+### 3. 📢 Public Campus Whispers Feed (`/listwhispers`)
+- **Live Community Whispers**: Browse verified student feedback and official institutional resolutions.
+- **Filter by Status**: Filter by *All*, *Under Review*, or *Resolved*, with instant keyword search.
+- **Confidentiality Guard**: Sensitive individual lecturer complaints are automatically kept confidential for verified QA/Faculty review.
 
-### 4. 📊 Campus Pulse & Surveys (`/surveys`)
-- **Interactive Quick Polls**: Fast, single-click student voting on campus issues (e.g., library hours, portal performance, lecture facilities).
-- **Multi-Criteria Rubric Evaluations**: Comprehensive student course evaluations covering *Clarity*, *Fairness*, *Expertise*, *Engagement*, and *Punctuality*.
-- **Departmental Pulse Surveys**: Faculty-wide survey scheduling with automated open/close dates.
+### 4. 💡 Targeted Suggestion Box (`/suggestion`)
+- Share constructive improvement ideas with campus administrators.
+- **Target Scope Selector**: Route suggestions either to **General Campus (All UNILAG)** or directly to a **Specific Faculty / Department**.
 
-### 5. 🏛️ Faculty Quality Hub (`/faculty`)
-- **Real-Time Sentiment Analytics**: Overall department and faculty sentiment scores calculated from student ratings.
-- **14-Day Activity Trends**: Area charts tracking whisper volume and course evaluations over time.
-- **Evaluation Score Breakdown**: Visual bar charts displaying average ratings across teaching categories.
-- **Member Departments Structure**: Scrollable departmental hierarchy cards displaying course counts and active whispers.
-- **Faculty Course Registry**: Filterable table of all active courses, assigned lecturers, response counts, and aggregate satisfaction scores.
+### 5. 🎓 Dedicated Evaluations Hub (`/evaluations`)
+- **Lecturer Evaluation (`/evaluations/lecturer`)**: 5-dimension teaching quality assessment:
+  1. *Lecture Clarity & Teaching Style*
+  2. *Punctuality & Lecture Consistency*
+  3. *Student Engagement & Classroom Climate*
+  4. *Assessment Fairness & Grading*
+  5. *Accessibility & Academic Support*
+- **Course Evaluation (`/evaluations/course`)**: Comprehensive curriculum evaluation covering syllabus depth, learning resources, workload pacing, and lab/practical alignment.
 
-### 6. 🎛️ Admin Command Center (`/admin`)
-- **Executive Institutional Metrics**: Key KPIs including Total Whispers, Active Courses across all faculties, Pending Interventions, and University-Wide Resolution Rate.
-- **Whisper & Evaluation Volume Charts**: Comparative 14-day tracking of student voice metrics.
-- **Resolution Rate Donut Chart**: Proportional breakdown of resolved vs. open feedback.
-- **Faculty Course Registry & Management**: Fast search and filtering across all 9+ UNILAG faculties, with an inline modal to register new courses to any department.
-- **Accreditation Export Engine**: One-click generation of comprehensive NUC accreditation dossiers aggregating sentiment across faculties.
+### 6. 📊 Campus Pulse & Surveys (`/polls` & `/results`)
+- **Interactive Quick Polls**: Fast student voting on campus issues (library hours, portal speed, lecture hall facilities).
+- **Live Visual Results**: Instant pie and bar chart visualizations of student opinions.
 
-### 7. 👥 Faculty & Dean Management (`/admin/faculties`)
-- **Full CRUD Management**: View, add, edit, and delete UNILAG faculties and designated Faculty Heads / Deans.
-- **Department & Course Rollup**: Live counts of member departments and courses under each faculty.
-- **Automated Account Provisioning**: Adding a new faculty lead automatically provisions their faculty portal account with default credentials (`password123`).
+### 7. 🧹 Real-Time AI Noise Filtering & Auto-Routing (`/whispers`)
+- **Groq LLM Integration**: Uses Groq AI (`llama-3.1-70b-versatile` / `openai/gpt-oss-120b`) to scan student messages and auto-assign them to matching courses, lecturers, and departments.
+- **Real-Time Noise Filter Pill**: Automatically identifies low-substance, spam, or single-word submissions and isolates them into the **`⚠️ Low Substance (Noise)`** filter pill so QA staff can focus on actionable issues.
 
-### 8. 📚 Course Hub (`/courses`)
-- Searchable directory of university courses across faculties and departments.
-- Course syllabus outlines, credit units, semester breakdowns, and assigned lecturers.
+### 8. 📑 Institutional Reports & AI Synthesis (`/reports`)
+- **Instant NUC Accreditation Dossiers**: Generate comprehensive compliance audit summaries in under 2 minutes.
+- **Report Types**:
+  - 📋 **Accreditation Summary** (Full institution QA evaluation & compliance overview)
+  - 🏛️ **Department Snapshot** (Targeted deep-dive for a specific faculty or department)
+  - 📈 **14-Day Trend Report** (Temporal sentiment shifts, resolution velocity, and volume surges)
+- **Groq AI Synthesis**: Automatically drafts executive findings, key strengths, priority areas for improvement, and recommended interventions.
+- **Export & Print**: Interactive report viewer with one-click Print to PDF and Export to CSV.
 
-### 9. 🤖 AI-Powered Whisper Routing (`feedback/analyze`)
-- **Groq LLM Integration**: Uses Groq (LLaMA/Mixtral) to analyze raw student submissions and auto-tag the affected Course Code, Course Title, Lecturer, and Department.
-- **Keyword Fallback Engine**: Deterministic regex matching against the course and lecturer registry when offline or without external API keys.
+### 9. 🔌 SIS & LMS JSON Integrations (`/integrations`)
+- Connects official course catalogs from the UNILAG Student Portal (SIS) and Moodle (LMS).
+- **JSON File Upload & Paste**: Upload `.json` catalog files directly or select from preset faculty templates (*Nursing*, *Engineering*, *Management Sciences*).
+- **Auto-Department Creation**: Automatically creates and maps new departments mentioned in imported rosters.
+- **Export Catalog**: Download the active course registry as a formatted JSON document.
 
-### 10. 🔌 SIS / LMS Bulk Integrations (`/integrations`)
-- Simulated and live connectors for UNILAG Student Information Systems (SIS) and Learning Management Systems (LMS).
-- One-click bulk sync for courses, departments, and lecturer assignments.
+### 10. 📧 Real-Time Email Notifications & Collaboration (`/collaboration`)
+- **TLS SMTP Dispatcher**: Direct SSL connection to Gmail (port 465) for instant notification delivery.
+- **Incoming Whisper Alerts**: Automatically notifies QA Admins and Deans when new feedback or urgent issues arrive.
+- **Internal Collaboration Alerts**: Notifies staff members when a team note is posted in the Collaboration Hub.
 
-### 11. 📑 Audit Logs & Reports (`/reports`)
-- Comprehensive audit trail of all administrative actions and status updates.
-- Exportable structured reports in JSON and printable formats.
+---
 
-### 12. 💬 Internal Collaboration (`/collaboration`)
-- Secure internal message channels between faculty members, HODs, and university administrators for coordinating whisper resolutions.
+## 🔐 Role-Based Access Control (RBAC)
+
+WhisperLag operates on a clear, three-tier access model designed for maximum privacy and operational efficiency:
+
+| Capability & Action | Anonymous Students / Public | Faculty Lead / HOD | QA Administrator |
+|---|:---:|:---:|:---:|
+| **Submit Feedback & Whispers (`/whisper`)** | ✅ | ✅ | ✅ |
+| **Track Submission Status (`/track`)** | ✅ | ✅ | ✅ |
+| **Browse Public Whispers & Resolutions (`/listwhispers`)** | ✅ | ✅ | ✅ |
+| **Vote in Campus Pulse Polls (`/polls`)** | ✅ | ✅ | ✅ |
+| **Submit Lecturer & Course Evaluations (`/evaluations`)** | ✅ | ✅ | ✅ |
+| **Submit Targeted Suggestions (`/suggestion`)** | ✅ | ✅ | ✅ |
+| **Access Faculty Analytics Hub (`/faculty`)** | ❌ | ✅ | ✅ |
+| **View Department Sentiment & Course Scores** | ❌ | ✅ | ✅ |
+| **Internal Staff Collaboration (`/collaboration`)** | ❌ | ✅ | ✅ |
+| **Moderate Whispers & Publish Action Notes** | ❌ | ❌ | ✅ |
+| **Manage UNILAG Faculties & Deans (`/admin/faculties`)** | ❌ | ❌ | ✅ |
+| **Import & Sync SIS / LMS Data (`/integrations`)** | ❌ | ❌ | ✅ |
+| **Generate & Export Accreditation Reports (`/reports`)** | ❌ | ❌ | ✅ |
+
+> **Note for Students:** Students are 100% anonymous and never need to log in or create an account. Login credentials are strictly reserved for verified university staff and administrators.
+
+---
+
+## 🔑 Verified Staff & Admin Credentials
+
+| Role | Email | Password | Access Portal |
+|---|---|---|---|
+| **QA Administrator** | `enewsmedia90@gmail.com` | `enewsmedia` *(or `password123`)* | `/admin` (Command Center) |
+| **QA Administrator (Demo)** | `admin@whisperlag.test` | `password123` | `/admin` (Command Center) |
+| **Faculty Lead / Dean** | `faculty@whisperlag.test` | `password123` | `/faculty` (Faculty Hub) |
+
+---
+
+## 📊 Key Accreditation Indicators & Quality Benchmarks
+
+| Metric / KPI | Benchmark Target | Description |
+|---|---|---|
+| **Course Delivery Quality** | $\ge 3.5 / 5.0$ ($70\%+$) | Minimum average score across teaching clarity, punctuality, engagement, and fairness. |
+| **Resolution / Compliance Rate** | $\ge 75\%$ | Percentage of student grievances resolved with verified institutional action notes. |
+| **Resolution Turnaround Time** | $\le 7 - 14$ days | Average time from submission to review and final resolution. |
+| **Department Sentiment Index** | $\ge 65\%$ Positive | Aggregate student satisfaction score computed from rubric evaluations and feedback. |
+| **Noise-to-Substance Ratio** | $\le 10\%$ | Low-substance submissions filtered by Groq AI to preserve QA focus. |
 
 ---
 
@@ -103,90 +145,30 @@ WhisperLag/
 │   ├── api/                    # Express REST API (Modular Architecture)
 │   │   ├── prisma/             # PostgreSQL schema & seed scripts
 │   │   ├── src/
-│   │   │   ├── modules/        # Domain modules (auth, feedback, courses, stats, etc.)
-│   │   │   ├── middleware/     # Auth, RBAC, Rate Limiting, Async Handlers
-│   │   │   └── uploads/        # Sanitized file attachment storage
+│   │   │   ├── modules/        # Domain modules (auth, feedback, courses, reports, etc.)
+│   │   │   ├── lib/            # TLS SMTP mailer, Prisma client
+│   │   │   └── middleware/     # Auth, RBAC, Rate Limiting, Async Handlers
 │   └── web/                    # Next.js 14 App Router (Mobile-First UI)
 │       ├── src/
-│       │   ├── app/            # Next.js routes (whisper, faculty, admin, track, etc.)
-│       │   ├── components/     # UI components, layouts, wizards, charts
-│       │   └── lib/            # API client, offline sync outbox, toast notifications
+│       │   ├── app/            # Next.js routes (whisper, faculty, admin, track, reports, etc.)
+│       │   ├── components/     # UI components, wizards, charts, error boundaries
+│       │   └── lib/            # Typed API client, offline outbox, toast notifications
 ├── packages/
 │   └── shared/                 # Monorepo shared types, RBAC permissions, constants
 ```
 
 ### 🛠️ Technologies Used
 
-WhisperLag is built using modern, production-ready technologies chosen for type safety, performance, and developer velocity across a monorepo architecture:
-
-#### 💻 Frontend & Client Experience (`apps/web`)
-- **[Next.js 14](https://nextjs.org/) (React 18 & App Router)**: Powering server-rendered layouts, dynamic client components, streaming UI, and route-level code splitting.
-- **[TypeScript 5](https://www.typescriptlang.org/)**: Full type safety from database schemas to UI component props.
-- **[Tailwind CSS 3](https://tailwindcss.com/)**: Custom utility design system crafted around official UNILAG palette tokens (`#009A44` Primary Green, `#10253A` Navy, `#2C7DA0` Blue Accent, `#7355A2` Purple, etc.).
-- **[Recharts](https://recharts.org/)**: Responsive charting engine powering 14-day sentiment trend area charts, category evaluation bar charts, and resolution rate donut charts.
-- **[Framer Motion](https://www.framer.com/motion/)**: Smooth layout animations, page transitions, and wizard step progress feedback.
-- **[Hugeicons & Material Icons](https://hugeicons.com/)**: High-fidelity, accessible icon set designed for academic and quality assurance workflows.
-- **Client Offline Outbox Engine**: Browser-level `localStorage` and IndexedDB queuing with automated `navigator.onLine` event triggers for zero-loss submission resilience.
-
-#### ⚙️ Backend API & Business Logic (`apps/api`)
-- **[Node.js](https://nodejs.org/) (v18+) & [Express](https://expressjs.com/) (ES Modules)**: Modular REST API organized into clean domain modules (`auth`, `feedback`, `courses`, `evaluations`, `departments`, `surveys`, `reports`, `stats`, `integrations`, `collaboration`).
-- **[Busboy](https://github.com/mscdex/busboy)**: High-throughput streaming multipart/form-data parser for processing direct on-disk file uploads (images, PDFs, documents) with strict MIME and size limits (10MB).
-- **[Zod](https://zod.dev/)**: Runtime validation engine for validating incoming API payloads, route parameters, and query strings.
-- **[Bcryptjs](https://github.com/dcodeIO/bcrypt.js)** & **[JSON Web Tokens (JWT)](https://jwt.io/)**: Secure cryptographic credential hashing and stateless role-based access tokens.
-- **[Helmet](https://helmetjs.github.io/) & [CORS](https://github.com/expressjs/cors)**: Enterprise HTTP security headers with customized Cross-Origin Resource Policies for serving uploaded evidence files.
-- **[Morgan](https://github.com/expressjs/morgan)**: Structured HTTP request and response logging.
-
-#### 🗄️ Database & Data Infrastructure (`prisma`)
-- **[PostgreSQL](https://www.postgresql.org/)**: Robust relational database enforcing structural anonymity (no user relations on the `Whisper` table), foreign key integrity, and unique tracking indexes.
-- **[Neon Serverless PostgreSQL](https://neon.tech/)**: Cloud-hosted PostgreSQL with SSL encryption and scalable connection pooling.
-- **[Prisma ORM (v5.19)](https://www.prisma.io/)**: Type-safe database client, schema migrations (`prisma db push`), and automated seeding scripts.
-
-#### 🧠 Artificial Intelligence & Natural Language Processing
-- **[Groq Cloud API](https://groq.com/)**: Ultra-fast LLM inference (`llama-3.1-70b-versatile` / `openai/gpt-oss-120b`) for automated intent analysis, routing whispers to courses and lecturers.
-- **Deterministic Keyword Fallback Engine**: In-memory regex token matcher providing instant course and department tagging when offline or without external API keys.
-
-#### 📦 Monorepo, Tooling & Testing
-- **npm Workspaces**: Unified monorepo structure sharing code and types via `@whisperlag/shared`.
-- **[Concurrently](https://github.com/open-cli-tools/concurrently)**: Single-command parallel execution of Web and API dev servers (`npm run dev`).
-- **[Docker & Docker Compose](https://www.docker.com/)**: Local containerized PostgreSQL and Redis support.
-- **[Vitest](https://vitest.dev/)**: Blazing-fast unit and RBAC permission testing suite.
-
----
-
-## 🔐 Role-Based Access Control (RBAC)
-
-**RBAC** stands for **Role-Based Access Control**. It is an enterprise security paradigm that restricts system access based on an authenticated user's designated organizational role (*Guest / Anonymous*, *Student*, *Faculty*, or *Admin*). 
-
-In **WhisperLag**, RBAC guarantees that:
-1. **Student Confidentiality**: Faculty members and deans can view aggregate departmental sentiment and statistical rubric distributions, but have **zero access** to submitting student identities.
-2. **Administrative Moderation**: Only verified Quality Assurance (QA) Officers and System Administrators have permission to tag whispers with public resolution notes or manage faculty registries.
-3. **Declarative Authority**: The permission matrix is defined as a single source of truth in `@whisperlag/shared/src/roles.ts`, evaluated at every Express API route via the `authorize()` middleware and reflected on the frontend via `<RoleGate />` components.
-
-### 🛡️ Declarative RBAC Permission Matrix
-
-| Permission & Capability | Guest / Anonymous | Student | Faculty Lead / HOD | QA Admin |
-|---|:---:|:---:|:---:|:---:|
-| **Submit Anonymous Whisper (`/whisper`)** | ✅ | ✅ | ✅ | ✅ |
-| **Track Submission via Ref Code (`/track`)** | ✅ | ✅ | ✅ | ✅ |
-| **View Public Whisper Feed (`/listwhispers`)** | ✅ | ✅ | ✅ | ✅ |
-| **Vote in Campus Pulse Polls** | ✅ | ✅ | ✅ | ✅ |
-| **Submit Course & Lecturer Evaluations** | ❌ | ✅ | ❌ | ❌ |
-| **Access Faculty Analytics Hub (`/faculty`)** | ❌ | ❌ | ✅ | ✅ |
-| **View Department Sentiment & Course Scores** | ❌ | ❌ | ✅ | ✅ |
-| **Internal Staff Collaboration Messaging (`/collaboration`)** | ❌ | ❌ | ✅ | ✅ |
-| **Moderate Whispers & Publish Action Notes** | ❌ | ❌ | ❌ | ✅ |
-| **Manage UNILAG Faculties & Deans (`/admin/faculties`)** | ❌ | ❌ | ❌ | ✅ |
-| **Create & Register Courses to Faculties** | ❌ | ❌ | ❌ | ✅ |
-| **Generate & Export Accreditation Reports (`/reports`)** | ❌ | ❌ | ❌ | ✅ |
+- **Frontend (`apps/web`)**: Next.js 14 (App Router), React 18, TypeScript 5, Tailwind CSS 3, Recharts, Hugeicons.
+- **Backend API (`apps/api`)**: Node.js 18+, Express (ES Modules), Prisma ORM v5.19, Zod, Bcryptjs, JWT, Helmet.
+- **Cloud Media Storage**: [Cloudinary](https://cloudinary.com/) (Secure evidence attachments with EXIF metadata stripping).
+- **Artificial Intelligence**: [Groq Cloud](https://groq.com/) (`llama-3.1-70b-versatile` / `openai/gpt-oss-120b`) for automated intent analysis, routing, noise filtering, and report synthesis.
+- **Database**: PostgreSQL (Hosted on [Neon Serverless](https://neon.tech/)).
+- **Email Notifications**: Zero-dependency TLS SMTP Client connecting directly to Gmail (port 465).
 
 ---
 
 ## ⚡ Quick Start Guide
-
-### Prerequisites
-- **Node.js**: `v18.17.0` or later
-- **npm**: `v9.0.0` or later
-- **PostgreSQL Database**: Local PostgreSQL instance or a free cloud database like [Neon](https://neon.tech)
 
 ### 1. Clone & Install Dependencies
 ```bash
@@ -203,15 +185,20 @@ NODE_ENV=development
 DATABASE_URL="postgresql://user:password@ep-shy-surf.neon.tech/neondb?sslmode=require"
 JWT_SECRET="your-super-secret-jwt-key"
 CORS_ORIGIN="http://localhost:3000,http://localhost:3001"
-GROQ_API_KEY="" # Optional: enables AI routing
+
+# Groq AI (for automated routing, noise filtering, and report synthesis)
+GROQ_API_KEY="your-groq-api-key"
 GROQ_MODEL="llama-3.1-70b-versatile"
 
-# Cloudinary Storage Configuration (for evidence attachments)
+# Cloudinary Storage Configuration
 CLOUDINARY_URL="cloudinary://<api_key>:<api_secret>@<cloud_name>"
-# Or individual Cloudinary keys:
-# CLOUDINARY_CLOUD_NAME="your_cloud_name"
-# CLOUDINARY_API_KEY="your_api_key"
-# CLOUDINARY_API_SECRET="your_api_secret"
+
+# Email Notifications
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT=465
+SMTP_USER="enewsmedia90@gmail.com"
+SMTP_PASS="your-gmail-app-password"
+ADMIN_NOTIFICATION_EMAILS="enewsmedia90@gmail.com"
 ```
 
 Create `.env.local` in `apps/web/`:
@@ -219,40 +206,12 @@ Create `.env.local` in `apps/web/`:
 NEXT_PUBLIC_API_URL="http://localhost:4000"
 ```
 
----
-
-## 🔌 SIS & LMS Integration Architecture
-
-WhisperLag is engineered to interface seamlessly with institutional university systems (e.g., **UNILAG Student Portal**, **LagMobile**, and **Moodle LMS**) through a zero-trust, privacy-preserving integration pipeline:
-
-```
-┌───────────────────────────┐         ┌───────────────────────────────┐         ┌─────────────────────────────┐
-│ UNILAG Student Portal /   │  ETL    │   WhisperLag Ingestion Engine │ Sync    │ WhisperLag Academic         │
-│ Moodle LMS API            ├────────►│   - Anonymization Gateway     ├────────►│ Registry (PostgreSQL)       │
-│ (Courses, Staff, Roster)  │ (REST)  │   - Course & Faculty Mapping  │ (Clean) │ (Courses, Departments, HODs)│
-└───────────────────────────┘         └───────────────────────────────┘         └─────────────────────────────┘
-                                                      │
-                                                      ▼
-                                       ┌──────────────────────────────┐
-                                       │ 100% Isolated Student Layer  │
-                                       │ (No matric numbers or tokens │
-                                       │  transferred to feedback DB) │
-                                       └──────────────────────────────┘
-```
-
-1. **Course & Department Sync**: Automatically synchronizes university course codes, course titles, credit units, and semester syllabi directly from the UNILAG academic registry.
-2. **Lecturer & Faculty Roster Ingestion**: Imports departmental staff lists and course allocations to ensure accurate rubric evaluation targets and automated routing.
-3. **Strict Student Boundary (Privacy Isolation)**: Unlike standard enterprise integrations, **no matriculation numbers, student names, or academic transcripts** are ever ingested into the feedback processing engine. The integration pipeline strictly ingests academic metadata (courses/faculties), never student identity records.
-4. **Resilient Fallback Mode**: If the live SIS/LMS endpoints are unreachable or during offline campus periods, WhisperLag operates in self-contained mode using its local registry and deterministic routing engine.
-
----
-
 ### 3. Sync Database Schema & Seed Data
 ```bash
 # Push schema to database
 npm run db:migrate -w @whisperlag/api
 
-# Seed test departments, courses, rubrics, and realistic student whispers
+# Seed departments, courses, rubrics, and realistic student whispers
 npm run db:seed -w @whisperlag/api
 ```
 
@@ -262,43 +221,6 @@ npm run dev
 ```
 - **Web Application**: `http://localhost:3001` (or `http://localhost:3000`)
 - **API Server**: `http://localhost:4000`
-
----
-
-## 🔑 Demo & Test Credentials
-
-| Role | Email | Password | Default Landing |
-|---|---|---|---|
-| **Admin** | `admin@whisperlag.test` | `password123` | `/admin` (Command Center) |
-| **Faculty Lead** | `faculty@whisperlag.test` | `password123` | `/faculty` (Faculty Hub) |
-| **Student** | `student@whisperlag.test` | `password123` | `/dashboard` (Student Portal) |
-| **Public / Guest** | *No login needed* | *N/A* | `/whisper` (Feedback Wizard) |
-
----
-
-## 📡 Key API Endpoints (v1)
-
-### Feedback & Whispers
-- `POST /api/v1/feedback/public` — Submit feedback anonymously (supports `multipart/form-data` with attachments).
-- `GET /api/v1/feedback/public-recent` — Public stream of recent whispers and resolutions.
-- `GET /api/v1/feedback/lookup/:ref` — Query status and resolution notes by `refNumber`.
-- `GET /api/v1/feedback` — Admin paginated whisper feed with moderation controls.
-- `PATCH /api/v1/feedback/:id/status` — Update status (`NEW` → `ACKNOWLEDGED` → `ACTIONED`) with public resolution note.
-- `POST /api/v1/feedback/analyze` — AI automatic routing of untagged whispers to courses and lecturers.
-
-### Academic Registry & Analytics
-- `GET /api/v1/courses` — Course registry with faculty and department filtering.
-- `POST /api/v1/courses` — Register a new course under any faculty.
-- `GET /api/v1/departments` — Department directory and course counts.
-- `POST /api/v1/departments` — Create or update departments and faculties.
-- `GET /api/v1/evaluations/summary` — Aggregate sentiment statistics and rubric scores.
-- `GET /api/v1/stats/overview` — Institutional QA performance metrics.
-
-### Surveys & Collaboration
-- `GET /api/v1/surveys` — Active surveys and pulse polls.
-- `POST /api/v1/surveys/questions/:questionId/respond` — Anonymous poll vote submission.
-- `GET /api/v1/messages` & `POST /api/v1/messages` — Secure internal staff messaging.
-- `POST /api/v1/reports/generate` — Generate institutional accreditation reports.
 
 ---
 

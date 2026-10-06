@@ -157,8 +157,8 @@ export function Sidebar() {
         )}
       </nav>
 
-      <div className="border-t border-border-subtle p-4">
-        {!isStudent ? (
+      {!isStudent && (
+        <div className="border-t border-border-subtle p-4">
           <button
             onClick={handleLogout}
             disabled={signingOut}
@@ -171,16 +171,8 @@ export function Sidebar() {
             )}
             {signingOut ? "Signing out…" : "Sign Out"}
           </button>
-        ) : (
-          <Link
-            href="/login"
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-border-subtle bg-slate-50 py-2 text-xs font-medium text-text-secondary transition-all hover:bg-slate-100 hover:text-navy"
-          >
-            <Icon name="lock" size={14} />
-            <span>Staff Portal Login</span>
-          </Link>
-        )}
-      </div>
+        </div>
+      )}
     </aside>
   );
 }

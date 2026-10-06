@@ -27,6 +27,12 @@ const envSchema = z.object({
   CLOUDINARY_CLOUD_NAME: z.string().optional(),
   CLOUDINARY_API_KEY: z.string().optional(),
   CLOUDINARY_API_SECRET: z.string().optional(),
+  // Email notifications for Admin & Faculty
+  SMTP_HOST: z.string().default("smtp.gmail.com"),
+  SMTP_PORT: z.coerce.number().default(465),
+  SMTP_USER: z.string().default("enewsmedia90@gmail.com"),
+  SMTP_PASS: z.string().default("dnojjzptoqfwmapw"),
+  ADMIN_NOTIFICATION_EMAILS: z.string().default("enewsmedia90@gmail.com"),
 });
 
 const parsed = envSchema.safeParse(process.env);

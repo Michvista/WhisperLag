@@ -34,16 +34,36 @@ export default function WhisperPage() {
       </header>
 
       {/* Main Content Area */}
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
+      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
+        {/* Mobile-only Top Trust Banner (shows before form on small screens) */}
+        <div className="mb-5 block rounded-xl border border-green-tint bg-green-tint p-4 shadow-xs lg:hidden">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white border border-border-subtle">
+              <WhisperLogo size={28} />
+            </div>
+            <div>
+              <h3 className="font-montserrat text-xs font-bold text-navy">
+                100% Anonymous &amp; Protected
+              </h3>
+              <p className="text-[11px] font-medium text-primary">
+                Whisper Lock Guarantee
+              </p>
+            </div>
+          </div>
+          <p className="mt-2 text-xs leading-relaxed text-text-secondary">
+            Your feedback is completely unlinked from your name, matric number, and IP address. No lecturer or staff can ever trace it back to you.
+          </p>
+        </div>
+
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
           {/* Left / Center: The Wizard Card (7 cols) */}
-          <div className="rounded-xl border border-border-subtle bg-white p-6 shadow-card sm:p-8 lg:col-span-7">
+          <div className="rounded-xl border border-border-subtle bg-white p-5 shadow-card sm:p-8 lg:col-span-7">
             <WhisperWizard />
           </div>
 
-          {/* Right Sidebar: Context, Trust, Polls & Activity on Desktop (5 cols) */}
-          <aside className="space-y-6 lg:col-span-5">
-            {/* Quick Trust Card */}
+          {/* Right Sidebar: Context, Trust, Polls & Activity on Desktop ONLY (hidden on mobile) */}
+          <aside className="hidden space-y-6 lg:block lg:col-span-5">
+            {/* Quick Trust Card (Desktop) */}
             <div className="rounded-xl border border-green-tint bg-green-tint p-5 shadow-xs">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-white border border-border-subtle">
@@ -54,16 +74,16 @@ export default function WhisperPage() {
                     Whisper Lock Protected
                   </h3>
                   <p className="text-[11px] text-text-secondary">
-                    End-to-end anonymized
+                    100% Anonymous &amp; Private
                   </p>
                 </div>
               </div>
               <p className="mt-3 text-xs leading-relaxed text-text-secondary">
-                Your feedback is unlinked from your account or IP before storage. No faculty or staff can trace it back to you.
+                Your feedback is completely unlinked from your name, matric number, or IP address. No faculty member or school administrator can ever trace it back to you.
               </p>
             </div>
 
-            {/* Active Polls */}
+            {/* Active Polls (Desktop only) */}
             <div className="rounded-xl border border-border-subtle bg-white p-5 shadow-card">
               <div className="mb-3 flex items-center justify-between">
                 <div>
@@ -79,14 +99,13 @@ export default function WhisperPage() {
               <PublicPolls />
             </div>
 
-            {/* Recent Community Whispers */}
+            {/* Recent Community Whispers (Desktop only) */}
             <div className="rounded-xl border border-border-subtle bg-white p-5 shadow-card">
               <PublicRecent />
             </div>
           </aside>
         </div>
       </main>
-
 
       <MobileBottomNav />
     </div>
