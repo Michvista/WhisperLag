@@ -18,33 +18,49 @@ async function sendViaResend(options: SendMailOptions, recipients: string[]): Pr
 
   const from = options.from || env.RESEND_FROM || "WhisperLag UNILAG <onboarding@resend.dev>";
 
-  const payload: Record<string, unknown> = {
-    from,
-    to: recipients,
-    subject: options.subject,
-  };
-  if (options.html) payload.html = options.html;
-  if (options.text) payload.text = options.text;
+  async function postResend(targetRecipients: string[]) {
+    const payload: Record<string, unknown> = {
+      from,
+      to: targetRecipients,
+      subject: options.subject,
+    };
+    if (options.html) payload.html = options.html;
+    if (options.text) payload.text = options.text;
 
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify(payload),
-    signal: AbortSignal.timeout(15000),
-  });
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(15000),
+    });
 
-  const body = await res.json() as { id?: string; message?: string; name?: string };
-  if (!res.ok) {
-    const errMsg = body.message || body.name || `Resend API error ${res.status}`;
+    const body = await res.json() as { id?: string; message?: string; name?: string };
+    return { ok: res.ok, status: res.status, body };
+  }
+
+  let attempt = await postResend(recipients);
+
+  // If Resend Sandbox error ("You can only send testing emails to your own email address (user@domain.com)")
+  if (!attempt.ok && attempt.body?.message?.includes("You can only send testing emails to your own email address")) {
+    const match = attempt.body.message.match(/\(([^)]+@[^)]+)\)/);
+    const authorizedEmail = match?.[1]?.trim();
+    if (authorizedEmail && !recipients.includes(authorizedEmail)) {
+      console.warn(`[mailer] Resend Sandbox active: Redirecting delivery to verified account email ${authorizedEmail}`);
+      attempt = await postResend([authorizedEmail]);
+    }
+  }
+
+  if (!attempt.ok) {
+    const errMsg = attempt.body.message || attempt.body.name || `Resend API error ${attempt.status}`;
     console.error("[mailer] Resend error:", errMsg);
     return { success: false, error: errMsg };
   }
 
-  console.log("[mailer] Resend delivery OK, id:", body.id);
-  return { success: true, messageId: body.id };
+  console.log("[mailer] Resend delivery OK, id:", attempt.body.id);
+  return { success: true, messageId: attempt.body.id };
 }
 
 /**
